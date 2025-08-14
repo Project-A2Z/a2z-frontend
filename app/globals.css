@@ -1,0 +1,38 @@
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    /* CSS Custom Properties for A2Z brand colors */
+    --color-primary: #88BE46;
+    --color-secondary: #4C9343;
+    --color-accent: #06B590;
+    --color-text: #241E20;
+    
+    /* Semantic colors */
+    --color-success: #4C9343;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-info: #06B590;
+    
+    /* Background colors */
+    --color-background: #ffffff;
+    --color-foreground: #241E20;
+    --color-border: #e5e7eb;
+  }
+}
+
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+}
+ 
