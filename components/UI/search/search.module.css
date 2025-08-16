@@ -1,0 +1,181 @@
+.searchForm {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+  margin: 0 16px;
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 45px 12px 16px; /* Right padding for icon, left for text */
+  border: 1px solid var(--black16);
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 400;
+  background-color: var(--background);
+  color: var(--black87);
+  text-align: right;
+  direction: rtl;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.searchInput::placeholder {
+  color: var(--black37);
+  font-size: 14px;
+  opacity: 1;
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
+  background-color: var(--background);
+}
+
+.searchInput:hover {
+  border-color: var(--black37);
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--black37);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.searchContainer:focus-within .searchIcon {
+  color: var(--primary);
+}
+
+/* Enhanced focus state using brand colors */
+.searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.15);
+}
+
+/* Hover state for better UX */
+.searchContainer:hover .searchInput {
+  border-color: var(--black60);
+}
+
+.searchContainer:hover .searchIcon {
+  color: var(--black60);
+}
+
+/* Active state */
+.searchInput:active {
+  border-color: var(--primary);
+}
+
+/* Enhanced styling using your brand colors */
+.searchInput {
+  background-color: var(--background);
+  border: 1px solid var(--black16);
+  color: var(--black87);
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+  background-color: var(--background);
+  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .searchForm {
+    max-width: 100%;
+    margin: 0 8px;
+  }
+  
+  .searchInput {
+    padding: 10px 40px 10px 12px;
+    font-size: 14px;
+  }
+  
+  .searchIcon {
+    width: 18px;
+    height: 18px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchForm {
+    margin: 0 4px;
+  }
+  
+  .searchInput {
+    padding: 8px 35px 8px 10px;
+    font-size: 13px;
+  }
+  
+  .searchIcon {
+    width: 16px;
+    height: 16px;
+    right: 8px;
+  }
+}
+
+/* Clean background for the search area */
+.searchForm {
+  background: transparent;
+}
+
+/* Additional styling for better visual hierarchy using brand colors */
+.searchInput {
+  font-family: inherit;
+  letter-spacing: 0.025em;
+}
+
+/* Focus states for accessibility using brand colors */
+.searchInput:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Disabled state using brand colors */
+.searchInput:disabled {
+  background-color: var(--black8);
+  color: var(--disabled);
+  cursor: not-allowed;
+  border-color: var(--black16);
+}
+
+.searchInput:disabled::placeholder {
+  color: var(--black16);
+}
+
+.searchInput:disabled + .searchIcon {
+  color: var(--disabled);
+}
+
+/* Error state (if needed for validation) */
+.searchInput.error {
+  border-color: var(--error);
+}
+
+.searchInput.error:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(221, 61, 61, 0.1);
+}
+
+/* Success state (if needed) */
+.searchInput.success {
+  border-color: var(--secondary2);
+}
+
+.searchInput.success:focus {
+  border-color: var(--secondary2);
+  box-shadow: 0 0 0 3px rgba(6, 181, 144, 0.1);
+}
