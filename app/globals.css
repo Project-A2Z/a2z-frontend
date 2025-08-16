@@ -1,24 +1,42 @@
-@import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
-  :root {
-    /* CSS Custom Properties for A2Z brand colors */
-    --color-primary: #88BE46;
-    --color-secondary: #4C9343;
-    --color-accent: #06B590;
-    --color-text: #241E20;
-    
-    /* Semantic colors */
-    --color-success: #4C9343;
-    --color-warning: #F59E0B;
-    --color-error: #EF4444;
-    --color-info: #06B590;
-    
-    /* Background colors */
-    --color-background: #ffffff;
-    --color-foreground: #241E20;
-    --color-border: #e5e7eb;
+  * {
+    @apply border-gray-200;
+  }
+  
+  body {
+    @apply bg-white text-gray-900;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Custom scrollbar with brand colors */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-400 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-500;
+  }
+  
+  /* Selection color */
+  ::selection {
+    @apply bg-primary-200 text-gray-900;
+  }
+  
+  /* Focus outline */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
   }
 }
 
@@ -32,7 +50,46 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark;
+    @apply bg-primary-500 hover:bg-primary-600 text-white;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 hover:bg-secondary-600 text-white;
+  }
+  
+  .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white;
+  }
+  
+  .btn-ghost {
+    @apply text-primary-500 hover:bg-primary-50;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md border border-gray-200;
+  }
+  
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-brand {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500;
+  }
+  
+  .shadow-brand {
+    @apply shadow-lg;
+    box-shadow: 0 4px 14px 0 rgba(136, 190, 70, 0.15);
   }
 }
  
