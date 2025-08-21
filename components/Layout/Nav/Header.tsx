@@ -2,12 +2,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import styles from './Header.module.css';
 import "../../../app/globals.css";
-import Image from 'next/image';
+
+// Components
 import SearchComponent from './../../UI/search/search';
 import LanguageSelector from './../../UI/Language/language';
 import { Button } from '../../UI/Buttons/Button';
+
+// Icons
 import Logo from './../../../public/icons/logo.svg';
 import Heart from './../../../public/icons/emptyHeart.svg';
 import Cart from './../../../public/icons/Cart Large 2.svg';
@@ -21,39 +25,40 @@ interface HeaderProps {
   showUserActions?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
+// Already a function component! Here's the cleaned up version:
+function Header({ 
   className = '',
   variant = 'default',
   customStyles = {},
   showSearch = true,
   showUserActions = true
-}) => {
+}: HeaderProps) {
   const router = useRouter();
-  const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null });
-//     const [user, setUser] = useState({ name: '', avatar: null });
+  const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
+  // const [user, setUser] = useState({ name: '', avatar: null as string | null });
   const [data, setData] = useState([]);
 
-  const getUserInitial = (name: string) => {
+  const getUserInitial = (name: string): string => {
     return name ? name.charAt(0).toUpperCase() : '';
   };
 
-  const handleLogin = () => {
+  const handleLogin = (): void => {
     console.log('Redirecting to register...');
     router.push('/register');
   };
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     setUser({ name: '', avatar: null });
     console.log('User logged out');
   };
 
-  const handleNotificationClick = () => {
+  const handleNotificationClick = (): void => {
     console.log('Notification clicked');
     // Add your notification logic here
   };
 
   // Get variant-specific classes
-  const getVariantClass = () => {
+  const getVariantClass = (): string => {
     switch (variant) {
       case 'auth':
         return styles.headerAuth;
@@ -69,59 +74,18 @@ const Header: React.FC<HeaderProps> = ({
   // Combine all classes
   const headerClasses = `${styles.header} ${getVariantClass()} ${className}`.trim();
 
+  // Check if user is authenticated
+  const isAuthenticated = user?.name;
+
   return (
-    <div className={headerClasses} style={customStyles}>
+    <header className={headerClasses} style={customStyles}>
       <div className={styles.left}>
-        {showUserActions && user && user.name ? (
-          <>
-            <div className={styles.prof}>
-              <Link href="/profile">
-                <div className={styles.avatar}>
-                  {user.avatar ? (
-                    <Image src={user.avatar} alt="User Avatar" width={40} height={40} className={styles.avatarImage} />
-                  ) : (
-                    <span className={styles.initial}>{getUserInitial(user.name)}</span>
-                  )}
-                  
-                </div>  
-                
-              </Link>
-            </div>
-            <div className={styles.navs}>
-              <Link href="/cart" className={styles.navLink}>
-                <Cart className={styles.icon} />
-                <span className={styles.navText}>عربة التسوق</span>
-              </Link>
-              <Link href="/favorites" className={styles.navLink}>
-                <Heart className={styles.icon} />
-                <span className={styles.navText}>المفضلة</span>
-              </Link>
-              {/* Using custom Button component for notification */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNotificationClick}
-                className={styles.notification_btn}
-                leftIcon={<Notification className={styles.icon} />}
-              >
-                <span className={styles.navText}>الإشعارات</span>
-              </Button>
-            </div>
-          </>
-        ) : showUserActions ? (
-          <>
-            {/* Using custom Button component for login - Fixed */}
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleLogin}
-              className={styles.loginButton}
-              rounded={true}
-            >
-              تسجيل الدخول
-            </Button>
-          </>
-        ) : null}
+        
+        <Link href="/" className={styles.logoLink}>
+          <Logo className={styles.logo} />
+        </Link>
+        <LanguageSelector />
+        
       </div>
 
       {showSearch && (
@@ -131,13 +95,71 @@ const Header: React.FC<HeaderProps> = ({
       )}
 
       <div className={styles.right}>
-        <LanguageSelector />
-        <Link href="/" className={styles.logoLink}>
-          <Logo className={styles.logo} />
-        </Link>
+        {showUserActions && (
+          <>
+            {isAuthenticated ? (
+              <>
+                
+                
+                <nav className={styles.navs}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleNotificationClick}
+                    className={styles.notification_btn}
+                    leftIcon={<Notification className={styles.icon} />}
+                  >
+                    <span className={styles.navText}>الإشعارات</span>
+                  </Button>
+                 
+                  
+                  <Link href="/favorites" className={styles.navLink}>
+                    <Heart className={styles.icon} />
+                    <span className={styles.navText}>المفضلة</span>
+                  </Link>
+                  
+                  <Link href="/cart" className={styles.navLink}>
+                    <Cart className={styles.icon} />
+                    <span className={styles.navText}>عربة التسوق</span>
+                  </Link>
+                  
+                </nav>
+                <div className={styles.prof}>
+                  <Link href="/profile">
+                    <div className={styles.avatar}>
+                      {user.avatar ? (
+                        <Image 
+                          src={user.avatar} 
+                          alt="User Avatar" 
+                          width={40} 
+                          height={40} 
+                          className={styles.avatarImage} 
+                        />
+                      ) : (
+                        <span className={styles.initial}>
+                          {getUserInitial(user.name)}
+                        </span>
+                      )}
+                    </div>  
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleLogin}
+                className={styles.loginButton}
+                rounded={true}
+              >
+                تسجيل الدخول
+              </Button>
+            )}
+          </>
+        )}
       </div>
-    </div>
+    </header>
   );
-};
+}
 
 export default Header;

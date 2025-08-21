@@ -39,6 +39,7 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    direction: rtl;
   }
   
   /* Apply Beiruti to all text elements */

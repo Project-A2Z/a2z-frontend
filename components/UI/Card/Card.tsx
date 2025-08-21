@@ -1,0 +1,90 @@
+"use client"
+import { useState } from 'react';
+import type { StaticImageData } from "next/image";
+
+import styles from './card.module.css'
+import { CustomImage } from './../Image/Images'
+import Availablity from './Availablity';
+
+// Icons
+import Eheart from './../../../public/icons/emptyHeart.svg'
+import Fheart from './../../../public/icons/FilledHeart.svg'
+import { useRouter } from 'next/navigation';
+
+interface CardProps {
+    productImg?: string | StaticImageData;
+    productName?: string;
+    productCategory?: string;
+    productPrice?: string;
+    productId?: string;
+}
+
+// This is already a function component, but here's a cleaner version
+function Card({ productImg , productName , productCategory , productPrice , productId} : CardProps) {
+    const [loved, setLoved] = useState(false);
+
+    const router = useRouter();
+    
+    const toggleLoved = () => {
+        setLoved(prev => !prev);
+    };
+
+    return (
+        <div className={styles.card} onClick={() => router.push('/product/' + productId)}>
+            <div className={styles.cardHeader}>
+                <div className={styles.icon}>
+                    {loved ? (
+                        <Fheart 
+                            onClick={toggleLoved} 
+                            className={styles.heartIcon}
+                            role="button"
+                            aria-label="Remove from favorites"
+                        />
+                    ) : (
+                        <Eheart 
+                            onClick={toggleLoved} 
+                            className={styles.heartIcon}
+                            role="button"
+                            aria-label="Add to favorites"
+                        />
+                    )}
+                </div>
+                
+                <div className={styles.cardImage}>
+                    <CustomImage
+                    src={
+                        typeof productImg === 'string'
+                            ? productImg
+                            : productImg?.src || '/images/placeholder.jpg'
+                    }
+                    alt={productName || 'Product image'}
+                    width={192}
+                    height={192}
+                    rounded="md"
+                    className={styles.img}
+                    objectFit="cover" 
+                />
+                </div>
+                
+                
+                <div className={styles.available}>
+                    <Availablity available={true} />
+                </div>
+            </div>
+            
+            <div className={styles.cardBody}>
+                <div className={styles.category}>
+                    <span className={styles.categoryText}>{productCategory}</span>
+                </div>
+                <h2 className={styles.productName}>
+                    {productName || 'Product Name'} 
+                </h2>
+                <h3 className={styles.productName}>{productPrice}ج</h3>
+            </div>
+            
+            
+        </div>
+    );
+}
+
+export default Card;
