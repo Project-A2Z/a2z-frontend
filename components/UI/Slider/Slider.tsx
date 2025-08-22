@@ -83,7 +83,6 @@ const ImageSlider = React.memo(({
       const diff = touchStartXRef.current - touchEndX;
       
       if (Math.abs(diff) > 50) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         diff > 0 ? goToNext() : goToPrev();
       }
       touchStartXRef.current = null;
@@ -95,7 +94,7 @@ const ImageSlider = React.memo(({
 
   return (
     <div 
-      className={cn("relative h-full w-full overflow-hidden rounded-lg", className)}
+      className={cn("relative w-full aspect-[16/9] overflow-hidden rounded-lg", className)}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -105,7 +104,7 @@ const ImageSlider = React.memo(({
       aria-label="Image Slider"
     >
       <div 
-        className="flex h-full w-full transition-transform duration-500 ease-out"
+        className="flex transition-transform duration-500 ease-out w-full h-full"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((slide, index) => (
@@ -121,32 +120,32 @@ const ImageSlider = React.memo(({
 
       {showArrows && slides.length > 1 && (
         <>
-          <Button 
+          {/* <Button 
             onClick={goToPrev}
-            className="absolute top-1/2 left-4 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+            className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
           <Button 
             onClick={goToNext}
-            className="absolute top-1/2 right-4 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+            className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />
-          </Button>
+          </Button> */}
         </>
       )}
 
       {showDots && slides.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
               className={cn(
-                "w-3 h-3 rounded-full transition-all",
-                currentIndex === index ? "bg-white w-6" : "bg-white/50 hover:bg-white/80"
+                "w-2 sm:w-3 h-2 sm:h-3 rounded-full transition-all",
+                currentIndex === index ? "bg-secondary1 w-4 sm:w-6" : "bg-secondary1/50 hover:bg-secondary1/80"
               )}
               aria-label={`Go to slide ${index + 1}`}
             />

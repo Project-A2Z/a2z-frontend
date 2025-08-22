@@ -3,10 +3,9 @@ import MainSection from "./sections/MainSection/MainSection";
 
 const HomePage = () => {
   return (
-    <div>
-        <div>HomePage</div>;
-        {/* <MainSection/> */}
-        {/* <Footer/> */}
+    <div className="w-full h-screen flex flex-col justify-center items-center " >
+        <MainSection/>
+        <Footer/>
     </div>
   )
 };

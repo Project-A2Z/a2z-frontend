@@ -130,6 +130,14 @@
   }
 }
 
+
+/* Hide default password reveal/clear icons in Edge/IE to avoid double eyes */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
 @layer components {
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;

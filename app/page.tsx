@@ -7,6 +7,7 @@ import pic from './../public/acessts/download (47).jpg'
 
 export default function Home() {
   return (
+<<<<<<< HEAD
     //font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20
     <div className={style.container}>
       <Header />
@@ -15,6 +16,13 @@ export default function Home() {
       <h1>Hello World</h1>
       <HomePage/>
       
+=======
+    //border-b border-gray-300 px-6 md:px-12 py-4 mx-auto
+    <div className="w-full  h-screen flex flex-col items-center justify-center ">
+        <HomePage />
+        {/* <LogoSection /> */}
+>>>>>>> b46f0d2 (the responsive  Slider images and  not responsive footer section)
     </div>
+
   );
 }

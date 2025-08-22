@@ -1,39 +1,36 @@
-import React from 'react';
-const CategoriesSection = () => {
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-secondary1 mb-6">فئات</h3>
-        <nav className="flex flex-col space-y-3">
-          <a href="/categories/general-chemicals" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات عامة
-          </a>
-          <a href="/categories/cleaning-chemicals" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات منظفات
-          </a>
-          <a href="/categories/pesticides" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات مبيدات
-          </a>
-          <a href="/categories/agricultural-chemicals" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات زراعية
-          </a>
-          <a href="/categories/cosmetics-chemicals" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات مستحضرات التجميل
-          </a>
-          <a href="/categories/water-treatment" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات معالجة المياه
-          </a>
-          <a href="/categories/construction-materials" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات مواد البناء
-          </a>
-          <a href="/categories/vegetables" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            كيماويات الخضراء
-          </a>
-          <a href="/categories/laboratory-equipment" className="text-gray-200 hover:text-green-400 transition-colors text-sm cursor-pointer">
-            أجهزة مستلزمات المعامل
-          </a>
-        </nav>
-      </div>
-    );
-  };
-export default React.memo(CategoriesSection);
- 
+"use client";
+import React from 'react'
+import { useState } from "react";
+import Link from "next/link";
+
+const  CategoriesMenu = () =>{
+  const [categories] = useState([
+    { href: "/categories/general-chemicals", label: "كيماويات عامة" },
+    { href: "/categories/cleaning-chemicals", label: "كيماويات منظفات" },
+    { href: "/categories/pesticides", label: "كيماويات مبيدات" },
+    { href: "/categories/agricultural-chemicals", label: "كيماويات زراعية" },
+    { href: "/categories/cosmetics-chemicals", label: "كيماويات مستحضرات التجميل" },
+    { href: "/categories/water-treatment", label: "كيماويات معالجة المياه" },
+    { href: "/categories/construction-materials", label: "كيماويات مواد البناء" },
+    { href: "/categories/vegetables", label: "كيماويات الخضراء" },
+    { href: "/categories/laboratory-equipment", label: "أجهزة مستلزمات المعامل" },
+  ]);
+
+  return (
+    <div className="h-[100%] w-[20%]  gap-6   flex flex-col items-end justify-end ">
+      <h3 className="font-beiruti font-semibold text-2xl leading-none text-secondary1  ">فئات</h3>
+      <nav className="flex flex-col gap-2 ">
+        {categories.map((cat, index) => (
+          <Link
+            key={index}
+            href={cat.href}
+            className=" hover:text-green-400 transition-colors text-right text-sm cursor-pointer items-end justify-end text-black87"
+          >
+            {cat.label}
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
+export default React.memo(CategoriesMenu);

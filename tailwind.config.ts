@@ -78,6 +78,8 @@ const config: Config = {
       boxShadow: {
         brand: '0 4px 6px -1px rgba(136, 190, 70, 0.1), 0 2px 4px -1px rgba(136, 190, 70, 0.06)',
         'brand-lg': '0 10px 15px -3px rgba(136, 190, 70, 0.1), 0 4px 6px -2px rgba(136, 190, 70, 0.05)',
+      },fontFamily: {
+        beiruti: ['Beiruti', 'sans-serif'],
       },
     },
   },
