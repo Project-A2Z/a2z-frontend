@@ -10,7 +10,8 @@ export type ButtonVariant =
   | 'ghost'        // Transparent background
   | 'danger'       // Error/danger state
   | 'success'      // Success state
-  | 'warning';     // Warning state
+  | 'warning'      // Warning state
+  | 'custom';      // Custom CSS variables style
 
 // Button sizes
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -104,6 +105,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'focus:ring-warning-500 shadow-brand hover:shadow-brand-lg',
         'hover:-translate-y-0.5',
       ],
+      custom: [
+        'border border-[var(--primary)]',
+        'hover:bg-[var(--primary)] hover:text-[var(--background)]',
+        'focus:ring-[var(--primary)]',
+        'transition-colors duration-200',
+      ],
     };
 
     // Size-specific classes
@@ -137,6 +144,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       radiusClasses,
       className
     );
+
+    // Custom inline styles for the custom variant
+    const customStyle = variant === 'custom' ? {
+      backgroundColor: 'var(--background)',
+      color: 'var(--primary)',
+    } : {};
 
     // Loading spinner component
     const LoadingSpinner = () => (
@@ -173,7 +186,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       return (
         <>
           {leftIcon && <span className="mr-2">{leftIcon}</span>}
-          {children}
+          <span>{children}</span>
           {rightIcon && <span className="ml-2">{rightIcon}</span>}
         </>
       );
@@ -183,6 +196,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={buttonClasses}
+        style={customStyle}
         disabled={isDisabled}
         {...props}
       >
@@ -205,6 +219,7 @@ export const ButtonVariants = {
   Danger: (props: Omit<ButtonProps, 'variant'>) => <Button variant="danger" {...props} />,
   Success: (props: Omit<ButtonProps, 'variant'>) => <Button variant="success" {...props} />,
   Warning: (props: Omit<ButtonProps, 'variant'>) => <Button variant="warning" {...props} />,
+  Custom: (props: Omit<ButtonProps, 'variant'>) => <Button variant="custom" {...props} />,
 };
 
 // Pre-configured button sizes for easy use
@@ -261,5 +276,3 @@ export const SuccessButton = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'st
 );
 
 SuccessButton.displayName = 'SuccessButton';
-
-
