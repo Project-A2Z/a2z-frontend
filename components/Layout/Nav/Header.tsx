@@ -37,8 +37,8 @@ function Header({
   , dataSearch = []
 }: HeaderProps) {
   const router = useRouter();
-  const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
-  // const [user, setUser] = useState({ name: '', avatar: null as string | null });
+  // const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
+  const [user, setUser] = useState({ name: '', avatar: null as string | null });
   const [data, setData] = useState(dataSearch);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
