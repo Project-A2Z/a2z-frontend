@@ -27,29 +27,29 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
   };
 
   return (
-    <div className="w-[18%] h-[15vh] rounded-lg">
+    <div className="w-[18%] h-[15vh] rounded-lg bg-yellow-400">
       <h3 className="font-beiruti font-semibold text-base leading-none tracking-normal text-secondary1 text-right">
         تواصل معنا
       </h3>
-      <div className="text-right w-full h-[12vh] mt-4">
+      <div className="text-left w-full mt-4 grid grid-cols-2 gap-x-6 gap-y-3 md:flex md:flex-col md:gap-y-3">
         {finalContacts.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-end justify-end gap-4 text-black87 mb-3 text-center"
-          >
-            {/* content */}
-            {Array.isArray(item.value) ? (
-              <div className="text-sm">
-                {item.value.map((v, i) => (
-                  <div key={i}>{v}</div>
-                ))}
-              </div>
-            ) : (
-              <span className="text-sm">{item.value}</span>
-            )}
-            {/* icon */}
-            {icons[item.type]}
-          </div>
+                     <div
+             key={index}
+             className="flex items-center justify-start gap-3 text-black87"
+           >
+             {/* icon */}
+             {icons[item.type]}
+             {/* content */}
+             {Array.isArray(item.value) ? (
+               <div className="text-sm text-left leading-snug">
+                 {item.value.map((v, i) => (
+                   <div key={i}>{v}</div>
+                 ))}
+               </div>
+             ) : (
+               <span className="text-sm text-left leading-snug">{item.value}</span>
+             )}
+           </div>
         ))}
       </div>
     </div>

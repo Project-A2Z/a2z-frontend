@@ -4,6 +4,7 @@ import ContactSection from './Sections/ContactSection/ContactSection';
 import QuickLinks from './Sections/QuickLinksSection/QuickLinks';
 import CategoriesSection from './Sections/CategoriesSection/CategoriesSection';
 import AboutUsSection from './Sections/AboutUsSection/AboutUsSection';
+import MobileNavigation from './Sections/MobileNavigation/MobileNavigation';
 
 const Footer = () => {
   return (
@@ -15,11 +16,11 @@ const Footer = () => {
 
       <div className="relative max-w-[1440px] mx-auto">
         {/* Main Footer Content */}
-        <div className=" w-[93%] h-[32vh] flex flex-row justify-between ">
-          <ContactSection />
+        <div className=" w-[93%] h-[32vh] flex flex-row justify-around ">
+          <AboutUsSection /> 
           <QuickLinks />
           <CategoriesSection />
-          <AboutUsSection /> 
+          <ContactSection />
         </div>
 
         {/* Copyright */}
@@ -29,7 +30,8 @@ const Footer = () => {
           </p>
         </div>
       </div>
-
+      {/* Mobile Navigation - Only visible on small devices */}
+      <MobileNavigation />
     </footer>
   );
 };

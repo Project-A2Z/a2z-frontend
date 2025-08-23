@@ -13,14 +13,14 @@ const QuickLinks = ()=> {
   ]);
 
   return (
-    <div className=" w-[23%] h-[20vh]" >
+    <div className="w-[23%] h-[20vh]">
       <h3 className="font-beiruti font-semibold text-2xl leading-none text-secondary1 text-right mb-7">روابط سريعة</h3>
-      <nav className="flex flex-col space-y-3 text-right ">
+             <nav className="w-full flex flex-row flex-wrap items-center justify-start gap-x-6 gap-y-2 text-right md:flex-col md:items-start md:justify-start md:gap-0 md:space-y-3">        
         {links.map((link, index) => (
           <Link
             key={index}
             href={link.href}
-            className="text-black87 hover:text-green-400 transition-colors text-sm cursor-pointer"
+            className="text-black87 hover:text-green-400 transition-colors text-sm cursor-pointer text-right"
           >
             {link.label}
           </Link>
