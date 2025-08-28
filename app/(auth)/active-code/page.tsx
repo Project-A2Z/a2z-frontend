@@ -1,5 +1,5 @@
 import ActiveCodePage from "@/Pages/AuthPages/ActiveCodePage/ActiveCode";
-import './../../styles/variables.css';
+// import './../../styles/variables.css';
 
 export default function Page() {
   return (

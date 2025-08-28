@@ -168,7 +168,7 @@ function Header({
       </header>
 
       {/* Bottom Navigation for Mobile */}
-      {showUserActions && isAuthenticated && (
+      {showUserActions &&  (
         <nav className={styles.bottomNav}>
           <div className={styles.bottomNavContent}>
             {/* Search Icon */}
@@ -181,8 +181,9 @@ function Header({
                 <span className={styles.bottomNavText}>البحث</span>
               </button>
             )}
-            
-            {/* Notification */}
+            {isAuthenticated && (
+              <>
+                {/* Notification */}
             <button
               onClick={handleNotificationClick}
               className={styles.bottomNavItem}
@@ -202,6 +203,9 @@ function Header({
               <Cart className={styles.bottomNavIcon} />
               <span className={styles.bottomNavText}>السلة</span>
             </Link>
+              </>
+            )}
+            
           </div>
         </nav>
       )}

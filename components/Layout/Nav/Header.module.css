@@ -341,8 +341,8 @@
 }
 
 .bottomNavIcon svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   color: currentColor;
   transition: color 0.2s ease;
 }

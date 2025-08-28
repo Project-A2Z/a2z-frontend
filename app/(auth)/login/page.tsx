@@ -143,7 +143,7 @@ export default function LoginForm() {
               <button 
                 type="button"
                 className={styles.forgotPasswordLink}
-                onClick={() => router.push('/reset-password')}
+                onClick={() => router.push('/active-code')}
               >
                 هل نسيت كلمة المرور؟
               </button>
@@ -180,7 +180,7 @@ export default function LoginForm() {
                   </button>
                 </p>
               </div>
-                            
+
               <div className={styles.socialButtons}>
                 <button 
                   type="button"
