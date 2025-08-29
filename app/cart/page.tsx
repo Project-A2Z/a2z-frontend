@@ -1,3 +1,9 @@
-export default function CartPage() {
-  return <h1>Cart Page</h1>;
+import CartPage from '@/Pages/CartPage/CartPage'
+export default function Page() {
+  return (
+    <div>
+      <CartPage/>
+    </div>
+
+  )
 }

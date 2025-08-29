@@ -6,9 +6,9 @@ import styles from './card.module.css'
 import { CustomImage } from './../Image/Images'
 import Availablity from './Availablity';
 
-// Icons
-import Eheart from './../../../public/icons/emptyHeart.svg'
-import Fheart from './../../../public/icons/FilledHeart.svg'
+// Icons (use static paths to avoid requiring SVGR)
+const EHEART_SRC = '/icons/emptyHeart.svg';
+const FHEART_SRC = '/icons/FilledHeart.svg';
 import { useRouter } from 'next/navigation';
 
 interface CardProps {
@@ -34,18 +34,22 @@ function Card({ productImg , productName , productCategory , productPrice , prod
             <div className={styles.cardHeader}>
                 <div className={styles.icon}>
                     {loved ? (
-                        <Fheart 
-                            onClick={toggleLoved} 
+                        <img
+                            src={FHEART_SRC}
+                            onClick={toggleLoved}
                             className={styles.heartIcon}
                             role="button"
                             aria-label="Remove from favorites"
+                            alt="favorite"
                         />
                     ) : (
-                        <Eheart 
-                            onClick={toggleLoved} 
+                        <img
+                            src={EHEART_SRC}
+                            onClick={toggleLoved}
                             className={styles.heartIcon}
                             role="button"
                             aria-label="Add to favorites"
+                            alt="not favorite"
                         />
                     )}
                 </div>
