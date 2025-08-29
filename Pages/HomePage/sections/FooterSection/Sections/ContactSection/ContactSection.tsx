@@ -14,26 +14,26 @@ interface ContactInfoProps {
 const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
   const defaultContacts: ContactItem[] = [
     { type: "phone", value: "+201002866565" },
-    { type: "email", value: ["info@a2z-trading.com", "support@a2z-trading.com"] },
     { type: "address", value: "كوبرى القبة - القاهرة مصر" },
+    { type: "email", value: ["info@a2z-trading.com", "support@a2z-trading.com"] },
   ];
 
   const finalContacts = contacts || defaultContacts;
 
   const icons: Record<string, React.ReactNode> = {
     phone: <Phone className="w-5 h-5 text-secondary1 flex-shrink-0" />,
-    email: <Mail className="w-5 h-5 text-secondary1 flex-shrink-0 mt-0.5" />,
     address: <MapPin className="w-5 h-5 text-secondary1 flex-shrink-0 mt-0.5" />,
+    email: <Mail className="w-5 h-5 text-secondary1 flex-shrink-0 mt-0.5" />,
   };
 
   return (
-    <div className="w-[18%] h-[15vh] rounded-lg bg-yellow-400">
-      <h3 className="font-beiruti font-semibold text-base leading-none tracking-normal text-secondary1 text-right">
+    <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[23%] min-h-0">
+      <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none tracking-normal text-secondary1 text-right">
         تواصل معنا
       </h3>
-      <div className="text-left w-full mt-4 grid grid-cols-2 gap-x-6 gap-y-3 md:flex md:flex-col md:gap-y-3">
+      <div className="text-left w-full mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:flex md:flex-col md:gap-y-3">
         {finalContacts.map((item, index) => (
-                     <div
+            <div
              key={index}
              className="flex items-center justify-start gap-3 text-black87"
            >

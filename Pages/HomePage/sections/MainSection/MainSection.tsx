@@ -47,7 +47,7 @@ const MainSection = React.memo(() => {
   }, []);
 
   return (
-    <section className="w-full h-screen relative">
+    <section className="w-full flex-1 relative">
       <ImageSlider 
         slides={slides} 
         loading={loading}

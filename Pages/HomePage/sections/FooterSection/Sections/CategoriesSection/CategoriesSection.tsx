@@ -17,9 +17,9 @@ const  CategoriesMenu = () =>{
   ]);
 
   return (
-    <div className="h-[100%] w-[20%] gap-6 flex flex-col items-start justify-start bg-green-500">
-      <h3 className="font-beiruti font-semibold text-2xl leading-none text-secondary1 text-left ">فئات</h3>
-      <nav className="w-full flex flex-wrap justify-start items-start gap-x-8 gap-y-2 bg-blue-700 md:flex-col md:items-start md:justify-start">
+    <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[23%] min-h-0 gap-4 flex flex-col items-start justify-start">
+      <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none text-secondary1 text-left">فئات</h3>
+      <nav className="w-full flex flex-row flex-wrap justify-start items-start gap-x-4 gap-y-2 sm:gap-y-3 md:flex md:flex-col md:items-start md:justify-start md:gap-2">
         {categories.map((cat, index) => (
           <Link
             key={index}
