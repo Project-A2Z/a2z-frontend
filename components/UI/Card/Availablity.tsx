@@ -6,7 +6,7 @@ function Availablity ({available = true}: {available?: boolean}) {
       {available ? (
         <span className={styles.availableText}> متوفر في المخزون</span>
       ) : (
-        <span className={styles.unavailableText}>غير متوفر في المخزون</span>
+        <span className={styles.unavailableText}>نفذ من المخزون</span>
       )}
     </div>
   );

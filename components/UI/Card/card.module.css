@@ -5,8 +5,8 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: all 0.3s ease;
-  max-width: 280px;
-  width: 240px;
+  /* max-width: 280px; */
+  width: 200px;
   height: 338px;
   position: relative;
   font-family: var(--font-primary);
@@ -21,7 +21,7 @@
 /* Card Header */
 .cardHeader {
   position: absolute;
-  width: 100%;
+  width: 80%;
   height: 70%;
   overflow: hidden;
   border-radius: 16px;
@@ -33,7 +33,7 @@
   position: absolute;
   background-color: unset;
   top: 8%;
-  right: 6%;
+  right: 11%;
   width: 24px;
   height: 24px;
   z-index: 2;
@@ -41,8 +41,9 @@
 
 }
 
-.heartIcon {
-
+.heartIcon svg{
+  width: 20px;
+  height: 20px;
 
   color: var(--primary);
   display: flex;
@@ -58,8 +59,8 @@
   position: relative;
   margin: 16px;
   background-color: black;
-  width: 192px;
-  height: 192px;
+  width: 152px;
+  height: 172px;
   border-radius: 16px;
   overflow: hidden;
   display: flex;
@@ -75,14 +76,31 @@
 }
 
 /* Availability Badge */
-.available {
+
+.availableText {
   position: absolute;
   background: var(--primary);
   color: var(--onPrimary);
   padding: 4px 16px;
   border-radius: 24px;
-  bottom: 17%;
-  right: -6%;
+  bottom: 25%;
+  right: -25%;
+  transform: translateX(-50%);
+  z-index: 2;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 400;
+  height: 20px;
+  width: fit-content;
+}
+.unavailableText{
+  position: absolute;
+  background: var(--disabled);
+  color: var(--onPrimary);
+  padding: 4px 16px;
+  border-radius: 24px;
+  bottom: 25%;
+  right: -25%;
   transform: translateX(-50%);
   z-index: 2;
   gap: 8px;
@@ -93,7 +111,7 @@
 }
 .cardBody {
   position: relative;
-  margin-top: 100%; 
+  margin-top: 110%; 
   text-align: center;
   display: flex;
   flex-direction: column;

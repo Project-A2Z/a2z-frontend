@@ -17,10 +17,11 @@ interface CardProps {
     productCategory?: string;
     productPrice?: string;
     productId?: string;
+    available?: boolean;
 }
 
 // This is already a function component, but here's a cleaner version
-function Card({ productImg , productName , productCategory , productPrice , productId} : CardProps) {
+function Card({ productImg , productName , productCategory , productPrice , productId , available } : CardProps) {
     const [loved, setLoved] = useState(false);
 
     const router = useRouter();
@@ -30,7 +31,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
     };
 
     return (
-        <div className={styles.card} onClick={() => router.push('/product/' + productId)}>
+        <div className={styles.card} >
             <div className={styles.cardHeader}>
                 <div className={styles.icon}>
                     {loved ? (
@@ -54,7 +55,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                     )}
                 </div>
                 
-                <div className={styles.cardImage}>
+                <div className={styles.cardImage} onClick={() => router.push(`/${productId}`)}>
                     <CustomImage
                     src={
                         typeof productImg === 'string'
@@ -72,7 +73,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                 
                 
                 <div className={styles.available}>
-                    <Availablity available={true} />
+                    <Availablity available={available} />
                 </div>
             </div>
             

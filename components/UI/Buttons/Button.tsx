@@ -3,14 +3,15 @@ import { cn } from '@/lib/utils';
 
 // Button variants based on A2Z design system
 export type ButtonVariant = 
-  | 'primary'      // Main brand color (#88BE46)
-  | 'secondary'    // Secondary brand color (#4C9343)
-  | 'accent'       // Accent color (#06B590)
+  | 'primary'      // Main brand color (#4c9343)
+  | 'secondary'    // Secondary brand color (#88be46)
+  | 'accent'       // Accent color (#06b590)
   | 'outline'      // Outlined style
   | 'ghost'        // Transparent background
   | 'danger'       // Error/danger state
   | 'success'      // Success state
-  | 'warning';     // Warning state
+  | 'warning'      // Warning state
+  | 'custom';      // Custom CSS variables style
 
 // Button sizes
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -61,48 +62,45 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'transform active:scale-95',
     ];
 
-    // Variant-specific classes
+    // Variant-specific classes using CSS custom properties
     const variantClasses = {
       primary: [
-        'bg-primary-500 hover:bg-primary-600 text-white',
-        'focus:ring-primary-500 shadow-brand hover:shadow-brand-lg',
-        'hover:-translate-y-0.5',
+        'text-white shadow-md hover:shadow-lg',
+        'hover:-translate-y-0.5 transition-all duration-200',
       ],
       secondary: [
-        'bg-secondary-500 hover:bg-secondary-600 text-white',
-        'focus:ring-secondary-500 shadow-brand hover:shadow-brand-lg',
-        'hover:-translate-y-0.5',
+        'text-white shadow-md hover:shadow-lg',
+        'hover:-translate-y-0.5 transition-all duration-200',
       ],
       accent: [
-        'bg-accent-500 hover:bg-accent-600 text-white',
-        'focus:ring-accent-500 shadow-brand hover:shadow-brand-lg',
-        'hover:-translate-y-0.5',
+        'text-white shadow-md hover:shadow-lg',
+        'hover:-translate-y-0.5 transition-all duration-200',
       ],
       outline: [
-        'border-2 border-primary-500 text-primary-500',
-        'hover:bg-primary-500 hover:text-white',
-        'focus:ring-primary-500 hover:shadow-brand',
+        'border-2 bg-transparent',
         'transition-colors duration-200',
       ],
       ghost: [
-        'text-primary-500 hover:bg-primary-50',
-        'focus:ring-primary-500',
-        'hover:text-primary-600',
+        'bg-transparent',
+        'transition-colors duration-200',
       ],
       danger: [
-        'bg-error-500 hover:bg-error-600 text-white',
-        'focus:ring-error-500 shadow-brand hover:shadow-brand-lg',
-        'hover:-translate-y-0.5',
+        'text-white shadow-md hover:shadow-lg',
+        'hover:-translate-y-0.5 transition-all duration-200',
       ],
       success: [
-        'bg-success-500 hover:bg-success-600 text-white',
-        'focus:ring-success-500 shadow-brand hover:shadow-brand-lg',
+        'bg-green-500 hover:bg-green-600 text-white',
+        'focus:ring-green-500 shadow-md hover:shadow-lg',
         'hover:-translate-y-0.5',
       ],
       warning: [
-        'bg-warning-500 hover:bg-warning-600 text-white',
-        'focus:ring-warning-500 shadow-brand hover:shadow-brand-lg',
+        'bg-yellow-500 hover:bg-yellow-600 text-white',
+        'focus:ring-yellow-500 shadow-md hover:shadow-lg',
         'hover:-translate-y-0.5',
+      ],
+      custom: [
+        'border bg-transparent',
+        'transition-colors duration-200',
       ],
     };
 
@@ -120,7 +118,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       default: '',
       loading: 'cursor-wait',
       disabled: 'cursor-not-allowed opacity-50',
-      success: 'bg-success-500 hover:bg-success-600',
+      success: 'bg-green-500 hover:bg-green-600',
     };
 
     // Width and border radius classes
@@ -137,6 +135,51 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       radiusClasses,
       className
     );
+
+    // Custom inline styles for different variants
+    const getVariantStyle = () => {
+      switch (variant) {
+        case 'primary':
+          return {
+            backgroundColor: 'var(--primary)',
+            borderColor: 'var(--primary)',
+          };
+        case 'secondary':
+          return {
+            backgroundColor: 'var(--secondary1)',
+            borderColor: 'var(--secondary1)',
+          };
+        case 'accent':
+          return {
+            backgroundColor: 'var(--secondary2)',
+            borderColor: 'var(--secondary2)',
+          };
+        case 'outline':
+          return {
+            borderColor: 'var(--primary)',
+            color: 'var(--primary)',
+            backgroundColor: 'transparent',
+          };
+        case 'ghost':
+          return {
+            color: 'var(--primary)',
+            backgroundColor: 'transparent',
+          };
+        case 'danger':
+          return {
+            backgroundColor: 'var(--error)',
+            borderColor: 'var(--error)',
+          };
+        case 'custom':
+          return {
+            backgroundColor: 'var(--background)',
+            color: 'var(--primary)',
+            borderColor: 'var(--primary)',
+          };
+        default:
+          return {};
+      }
+    };
 
     // Loading spinner component
     const LoadingSpinner = () => (
@@ -173,7 +216,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       return (
         <>
           {leftIcon && <span className="mr-2">{leftIcon}</span>}
-          {children}
+          <span>{children}</span>
           {rightIcon && <span className="ml-2">{rightIcon}</span>}
         </>
       );
@@ -183,7 +226,31 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={buttonClasses}
+        style={getVariantStyle()}
         disabled={isDisabled}
+        onMouseEnter={(e) => {
+          if (!isDisabled && variant !== 'ghost' && variant !== 'outline') {
+            const button = e.currentTarget;
+            const originalBg = button.style.backgroundColor;
+            // Create a slightly darker shade for hover
+            if (variant === 'primary') {
+              button.style.backgroundColor = '#3a6f33'; // Darker shade of primary
+            } else if (variant === 'secondary') {
+              button.style.backgroundColor = '#7aa83c'; // Darker shade of secondary1
+            } else if (variant === 'accent') {
+              button.style.backgroundColor = '#059669'; // Darker shade of secondary2
+            } else if (variant === 'danger') {
+              button.style.backgroundColor = '#c53030'; // Darker shade of error
+            }
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isDisabled) {
+            const button = e.currentTarget;
+            // Reset to original color
+            Object.assign(button.style, getVariantStyle());
+          }
+        }}
         {...props}
       >
         {renderContent()}
@@ -205,6 +272,7 @@ export const ButtonVariants = {
   Danger: (props: Omit<ButtonProps, 'variant'>) => <Button variant="danger" {...props} />,
   Success: (props: Omit<ButtonProps, 'variant'>) => <Button variant="success" {...props} />,
   Warning: (props: Omit<ButtonProps, 'variant'>) => <Button variant="warning" {...props} />,
+  Custom: (props: Omit<ButtonProps, 'variant'>) => <Button variant="custom" {...props} />,
 };
 
 // Pre-configured button sizes for easy use
@@ -261,5 +329,3 @@ export const SuccessButton = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'st
 );
 
 SuccessButton.displayName = 'SuccessButton';
-
-

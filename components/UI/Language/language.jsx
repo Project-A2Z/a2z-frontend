@@ -7,46 +7,48 @@ const LanguageSelector = () => {
   
   const languages = [
     { code: 'ar', name: 'العربية', flag: 'AR' },
-    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'en', name: 'English', flag: 'US' },
   ];
 
   const handleLanguageChange = (langCode) => {
     setCurrentLanguage(langCode);
     setIsOpen(false);
-    // Handle language change logic here
     console.log('Language changed to:', langCode);
   };
 
   return (
     <div className="relative">
+      {/* Toggle button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+        className="flex items-center gap-1 px-2 py-1 text-gray-600 hover:text-gray-900 transition-colors"
       >
-        
-        <span className="text-sm">
+        <span className="text-sm font-medium">
           {languages.find(lang => lang.code === currentLanguage)?.name}
         </span>
         <ChevronDown className="w-4 h-4" />
       </button>
 
+      {/* Dropdown */}
       {isOpen && (
         <>
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)} 
           />
-          <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-50">
+          <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border z-50 overflow-hidden">
             {languages.map((language) => (
               <button
                 key={language.code}
                 onClick={() => handleLanguageChange(language.code)}
-                className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 first:rounded-t-lg last:rounded-b-lg ${
-                  currentLanguage === language.code ? 'bg-green-50 text-green-600' : 'text-gray-700'
-                }`}
+                className={`w-full px-4 py-2 text-sm flex justify-between items-center 
+                  hover:bg-gray-50 transition-colors
+                  ${currentLanguage === language.code 
+                    ? 'text-green-600 font-semibold bg-green-50' 
+                    : 'text-gray-700'}`}
               >
-                <span>{language.flag}</span>
-                <span className="text-sm">{language.name}</span>
+                <span>{language.name}</span>
+                <span className="text-xs text-gray-400">{language.flag}</span>
               </button>
             ))}
           </div>
