@@ -6,14 +6,15 @@
 .container {
   display: flex;
   width: 100vw;
+  height: fit-content;
   margin: 5% auto;
   padding: 20px;
   gap: 30px;
   font-family: var(--font-primary);
   direction: rtl;
   background-color: #f8f9fa;
-  
 }
+
 .title{
     text-align: center;
     margin: 40px 0px;
@@ -27,6 +28,7 @@
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 70%;
+  height: fit-content; /* Add this to make it dynamic */
 }
 
 /* Filter sidebar */
@@ -39,12 +41,12 @@
   height: fit-content;
   position: sticky;
   top: 20px;
-  display: fixed;
 }
 
 /* ProductSlider Styles */
 .sliderContainer {
   width: 100%;
+  height: fit-content; /* Add this */
 }
 
 .sliderHeader {
@@ -111,23 +113,29 @@
 /* Grid Wrapper */
 .gridWrapper {
   margin-bottom: 30px;
+  height: fit-content; /* Add this */
 }
 
 .productGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  min-height: 1500px; /* 5 rows × 300px */
+  /* Remove min-height: 1500px; */
+  height: fit-content; /* Add this instead */
+  min-height: auto; /* Reset min-height */
 }
 
 .gridItem {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: fit-content; /* Make grid items fit their content */
 }
 
 .emptySlot {
   background: transparent;
+  height: 0; /* Make empty slots take no space */
+  display: none; /* Hide empty slots completely */
 }
 
 /* Bottom Pagination */
@@ -332,60 +340,6 @@
   font-size: 13px;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .container {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .container > div:last-child {
-    width: 100%;
-    position: static;
-  }
-  
-  .productGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 968px) {
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .sliderHeader {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  
-  .bottomPagination {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 640px) {
-  .container {
-    padding: 12px;
-  }
-  
-  .productGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .lettersGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  .sliderTitle {
-    font-size: 24px;
-  }
-}
-/* Add these styles to your existing Product.module.css */
-
 /* Mobile Filter Button - Hidden on desktop */
 .mobileFilterButton {
   display: none;
@@ -476,23 +430,12 @@
   }
 }
 
-/* Keep the desktop filter visible by default */
-.container > div:last-child {
-  width: 280px;
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: fit-content;
-  position: sticky;
-  top: 20px;
-}
-
-/* Responsive Design Updates */
+/* Responsive Design */
 @media (max-width: 1200px) {
   .container {
     flex-direction: column;
     gap: 20px;
+    height: fit-content;
   }
   
   .container > div:first-child {
@@ -514,6 +457,10 @@
 }
 
 @media (max-width: 968px) {
+  .container {
+    padding: 12px;
+    height: fit-content;
+  }
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -531,8 +478,12 @@
 }
 
 @media (max-width: 640px) {
+  .containerSection{
+    margin-top: -95%;
+  }
   .container {
     padding: 12px;
+    height: fit-content;
   }
   
   .productGrid {

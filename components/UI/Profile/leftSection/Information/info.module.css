@@ -1,0 +1,252 @@
+.container_form {
+  height: fit-content;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  position: absolute;
+  top: -10%;
+  right: 0%;
+}
+
+/* Form Card */
+.formCard {
+  width: 100%;
+  background: var(--background);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--black8);
+  position: relative;
+  overflow: hidden;
+}
+
+.formCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--background);
+}
+
+/* Title */
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--black87);
+  text-align: flex-start;
+  margin-bottom: 2rem;
+  direction: rtl;
+  font-family: var(--font-primary);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Input Group */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.input {
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.input:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
+}
+
+.input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.2), var(--shadow-md);
+}
+
+/* Error Text */
+.errorText {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-right: 1rem;
+  direction: rtl;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button Group */
+.buttonGroup {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 25%;
+  justify-self: center;
+  align-self: center;
+}
+
+.submitButton {
+  direction: rtl;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  position: relative;
+  overflow: hidden;
+}
+
+.submitButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--primary);
+  transition: left 0.5s;
+}
+
+.submitButton:hover::before {
+  left: 100%;
+}
+
+/* Loading Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* FIXED RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .container_form {
+    position: static; /* Remove absolute positioning */
+    top: auto; /* Reset top */
+    right: auto; /* Reset right */
+    padding: 1rem 0.5rem;
+    margin-top: 0; /* Remove excessive margin */
+    width: 100%;
+  }
+ 
+  .formCard {
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin: 0; /* Remove margin that was causing overlap */
+    width: 100%;
+    max-width: none;
+  }
+ 
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+ 
+  .form {
+    gap: 1.25rem;
+  }
+
+  .buttonGroup {
+    width: 100%; /* Make button group full width on mobile */
+    max-width: 300px; /* But limit maximum width */
+  }
+}
+
+@media (max-width: 640px) {
+  .container_form {
+    padding: 0.5rem;
+  }
+ 
+  .formCard {
+    padding: 1rem;
+    margin: 0;
+  }
+ 
+  .title {
+    font-size: 1.25rem;
+  }
+ 
+  .input {
+    font-size: 0.9rem;
+  }
+
+  .buttonGroup {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .formCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+ 
+  .title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+ 
+  .input {
+    font-size: 0.9rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .container_form {
+    background: var(--background);
+  }
+}
+
+/* Focus states for accessibility */
+.input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.submitButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Hover effects */
+.inputGroup:hover .input {
+  border-color: var(--primary);
+}
+
+/* Animation for form appearance */
+.formCard {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

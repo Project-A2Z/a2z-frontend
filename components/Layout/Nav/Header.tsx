@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './Header.module.css';
 import "../../../app/globals.css";
+// import Dock from './Dock';
 
 // Components
 import SearchComponent from './../../UI/search/search';
@@ -37,10 +38,17 @@ function Header({
   , dataSearch = []
 }: HeaderProps) {
   const router = useRouter();
-  // const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
-  const [user, setUser] = useState({ name: '', avatar: null as string | null });
+  const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
+  // const [user, setUser] = useState({ name: '', avatar: null as string | null });
   const [data, setData] = useState(dataSearch);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // const items = [
+  //   { icon  : <Heart className={styles.icon} />, label: 'المفضلة', link: '/favorites' },
+  //   { icon  : <Cart className={styles.icon} />, label: 'عربة التسوق', link: '/cart' },
+  //   { icon  : <Notification className={styles.icon} />, label: '  الإشعارات', link: '/notifications' },
+
+  // ]
 
   const getUserInitial = (name: string): string => {
     return name ? name.charAt(0).toUpperCase() : '';
@@ -133,7 +141,7 @@ function Header({
                   
                   <div className={styles.prof}>
                     <Link href="/profile">
-                      <div className={styles.avatar}>
+                      <div className={styles.avatar} onClick={()=> router.push('/profile')}>
                         {user.avatar ? (
                           <Image 
                             src={user.avatar} 
