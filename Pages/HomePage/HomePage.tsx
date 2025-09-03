@@ -3,11 +3,15 @@ import MainSection from "./sections/MainSection/MainSection";
 import Header from "@/components/Layout/Nav/Header";
 import ProductSection from "./sections/OurProductSection/ProductSection";
 import { products } from "@/public/Test_data/products";
+import styles from './Home.module.css'
 
 const HomePage = () => {
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center " >
+    <div className={styles.conatiner} >
+      <Header/>
         <MainSection/>
+        <ProductSection />
+
         <Footer/>
     </div>
   );

@@ -1,0 +1,104 @@
+.container{
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+.content_wrapper{
+    display: flex;
+    flex-direction: column;
+    
+    gap: 16px;
+    /* background-color: black; */
+    /* max-width: 800px; */
+    margin: 7% auto;
+    padding: 0 0.6%;
+    width: 85%;
+    height: fit-content;
+    border: 1.5px solid var(--black8);
+    border-radius: 24px;
+    padding: 16px;
+    position: relative;
+    
+    
+    
+    /* transform: translate(-50%, -20%); */
+}
+.title{
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--black87);
+    text-align: flex-start;
+    margin-bottom: 16px;
+    direction: rtl;
+    font-family: var(--font-primary);
+}
+
+.info_section{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1.5px solid var(--black8);
+    border-radius: 24px;
+    background-color: white;
+    margin-bottom: 50%;
+}
+.items_container{
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* max-height: 400px; */
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+.items_title{
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--black87);
+    text-align: flex-start;
+    margin-top: 26%;
+    direction: rtl;
+    font-family: var(--font-primary);
+    /* border-bottom: 1px solid var(--black8); */
+    padding: 25px 10px;
+}
+.items_list{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    /* border-bottom: 1px solid var(--black8); */
+    padding-bottom: 24px;
+    padding-top: 3%;
+
+}
+
+/* Make each item take up roughly half the width minus gap */
+.items_list > * {
+    flex: 0 0 calc(50% - 8px);
+    /* 50% width minus half of the gap (16px/2 = 8px) */
+}
+
+/* Alternative approach using CSS Grid (more modern) */
+.items_list_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    border-bottom: 1px solid var(--black8);
+    padding-bottom: 8px;
+}
+
+/* Responsive: single column on smaller screens */
+@media (max-width: 768px) {
+    .items_list > * {
+        flex: 0 0 100%;
+    }
+    
+    .items_list_grid {
+        grid-template-columns: 1fr;
+    }
+}

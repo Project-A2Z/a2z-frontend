@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import styles from './search.module.css';
 import SearchIcon from './../../../public/icons/search.svg';
 
@@ -29,8 +29,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sample data for demonstration - replace with your actual data
-  const sampleData: Product[] = [
+  // Sample data for demonstration - memoized to prevent recreation on every render
+  const sampleData: Product[] = useMemo(() => [
     { name: 'زنك كبريتات (1 كجم)', category: 'كيميائيات مبيدات', price: 150.00, status: true, img: null },
     { name: 'نحاس كبريتات (500 جم)', category: 'كيميائيات مبيدات', price: 85.00, status: true, img: null },
     { name: 'مبيد حشري طبيعي', category: 'مبيدات حشرية', price: 120.00, status: true, img: null },
@@ -39,12 +39,18 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     { name: 'أدوات تقليم', category: 'أدوات زراعية', price: 75.00, status: false, img: null },
     { name: 'خرطوم ري (25 متر)', category: 'معدات الري', price: 95.00, status: true, img: null },
     { name: 'تربة زراعية مخصبة', category: 'تربة ومواد نمو', price: 65.00, status: true, img: null }
-  ];
+  ], []);
 
-  const searchData = data.length > 0 ? data : sampleData;
+  // Memoize searchData to prevent infinite re-renders
+  const searchData = useMemo(() => {
+    return data.length > 0 ? data : sampleData;
+  }, [data, sampleData]);
 
-  // Popular searches based on your product categories
-  const popularSearches = ['مبيدات', 'أسمدة', 'بذور', 'أدوات زراعية', 'معدات الري'];
+  // Popular searches based on your product categories - memoized
+  const popularSearches = useMemo(() => 
+    ['مبيدات', 'أسمدة', 'بذور', 'أدوات زراعية', 'معدات الري'], 
+    []
+  );
 
   // Filter results based on search term
   useEffect(() => {
@@ -100,7 +106,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     if (onClose) onClose();
   };
 
-  // Format price helper function
+  // Format price helper function - memoized with useCallback would be even better
   const formatPrice = (price: number) => {
     return `${price.toFixed(2)} جنيه`;
   };
