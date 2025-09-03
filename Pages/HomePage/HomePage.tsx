@@ -6,14 +6,9 @@ import { products } from "@/public/Test_data/products";
 
 const HomePage = () => {
   return (
-    <div className="w-full min-h-screen flex flex-col">
-        <Header dataSearch ={products}/>
-      
-      <main className="flex-1">
-        <MainSection />
-        <ProductSection />
-      </main>
-      <Footer />
+    <div className="w-full h-screen flex flex-col justify-center items-center " >
+        <MainSection/>
+        <Footer/>
     </div>
   );
 };

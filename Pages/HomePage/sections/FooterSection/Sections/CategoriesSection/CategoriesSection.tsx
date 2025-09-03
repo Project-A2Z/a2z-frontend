@@ -17,14 +17,14 @@ const  CategoriesMenu = () =>{
   ]);
 
   return (
-    <div className="h-[100%] w-[20%]  gap-6   flex flex-col items-end justify-end ">
-      <h3 className="font-beiruti font-semibold text-2xl leading-none text-secondary1  ">فئات</h3>
-      <nav className="flex flex-col gap-2 ">
+    <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[23%] min-h-0 gap-4 flex flex-col items-start justify-start">
+      <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none text-secondary1 text-left">فئات</h3>
+      <nav className="w-full flex flex-row flex-wrap justify-start items-start gap-x-4 gap-y-2 sm:gap-y-3 md:flex md:flex-col md:items-start md:justify-start md:gap-2">
         {categories.map((cat, index) => (
           <Link
             key={index}
             href={cat.href}
-            className=" hover:text-green-400 transition-colors text-right text-sm cursor-pointer items-end justify-end text-black87"
+            className="hover:text-green-400 transition-colors text-left text-sm cursor-pointer text-black87"
           >
             {cat.label}
           </Link>
