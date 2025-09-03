@@ -2,13 +2,13 @@ import LogoSection from "@/Pages/AuthPages/ActiveCodePage/sections/LogoSection/L
 import HomePage from "@/Pages/HomePage/HomePage";
 // import Header  from './../components/Layout/Nav/Header'
 // import Card from "@/components/UI/Card/Card";
-// import style from './page.module.css';
+import style from './page.module.css';
 // import pic from './../public/acessts/download (47).jpg'
 import RegistrationForm from "./(auth)/register/page";
 
 export default function Home() {
   return (
-<<<<<<< HEAD
+
     //font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20
     <div className={style.container}>
       {/* <Header />
@@ -16,15 +16,8 @@ export default function Home() {
       
       <h1>Hello World</h1>*/}
       <HomePage/> 
-      
-=======
+     </div> 
 
-    //border-b border-gray-300 px-6 md:px-12 py-4 mx-auto
-    <div className="w-full  h-screen flex flex-col items-center justify-center ">
-        <HomePage />
-      {/* <RegistrationForm/> */}
->>>>>>> 527552275fd9061bd169dd594b1aca6e09019d17
-    </div>
 
   );
 }
