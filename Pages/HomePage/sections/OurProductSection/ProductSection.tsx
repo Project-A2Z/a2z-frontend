@@ -88,7 +88,12 @@ export default function ProductSection() {
       </div>
 
       {/* Mobile Filter Button */}
-      <div className={style.mobileFilterButton}>
+      
+
+      <div className={style.container}>
+        
+        <div>
+          <div className={style.mobileFilterButton}>
         <Button 
           variant="custom" 
           size="md" 
@@ -97,17 +102,18 @@ export default function ProductSection() {
             <FilterIcon/>
           }
           rounded={true}
+          
         >
           فيلتر
         </Button>
       </div>
-
-      <div className={style.container}>
-        <ProductSlider products={filteredProducts} />
+          <ProductSlider products={filteredProducts} />
+        </div>
         <Filter 
           getByCategory={handleCategoryFilter} 
           getByLetter={handleLetterFilter} 
         />
+
       </div>
 
       {/* Mobile Filter Modal */}

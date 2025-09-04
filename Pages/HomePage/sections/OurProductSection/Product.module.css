@@ -2,10 +2,13 @@
 .containerSection {
   width: 100%;
   margin-top: 15%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
+
 .container {
   display: flex;
-  width: 100vw;
+  width: 100%; /* Changed from 100vw to 100% */
+  max-width: 100%; /* Ensure it doesn't exceed container width */
   height: fit-content;
   margin: 5% auto;
   padding: 20px;
@@ -13,6 +16,7 @@
   font-family: var(--font-primary);
   direction: rtl;
   background-color: #f8f9fa;
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .title{
@@ -29,11 +33,14 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 70%;
   height: fit-content; /* Add this to make it dynamic */
+  min-width: 0; /* Allow flex item to shrink */
+  box-sizing: border-box;
 }
 
 /* Filter sidebar */
 .container > div:last-child {
   width: 280px;
+  min-width: 280px; /* Prevent shrinking */
   background: white;
   border-radius: 12px;
   padding: 24px;
@@ -41,12 +48,14 @@
   height: fit-content;
   position: sticky;
   top: 20px;
+  box-sizing: border-box;
 }
 
 /* ProductSlider Styles */
 .sliderContainer {
   width: 100%;
   height: fit-content; /* Add this */
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .sliderHeader {
@@ -114,15 +123,17 @@
 .gridWrapper {
   margin-bottom: 30px;
   height: fit-content; /* Add this */
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .productGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  /* Remove min-height: 1500px; */
   height: fit-content; /* Add this instead */
   min-height: auto; /* Reset min-height */
+  width: 100%;
+  max-width: 100%; /* Ensure grid doesn't exceed container */
 }
 
 .gridItem {
@@ -130,6 +141,7 @@
   justify-content: center;
   align-items: center;
   height: fit-content; /* Make grid items fit their content */
+  min-width: 0; /* Allow grid items to shrink */
 }
 
 .emptySlot {
@@ -229,6 +241,7 @@
 /* Filter Styles */
 .filterContainer {
   width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .categoriesSection,
@@ -345,6 +358,8 @@
   display: none;
   width: 100%;
   margin-bottom: 20px;
+  padding: 0 20px; /* Add padding to match container */
+  box-sizing: border-box;
 }
 
 /* Filter Modal Styles */
@@ -406,6 +421,7 @@
 .filterModalBody {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
   padding: 0 24px;
   padding-top: 20px;
 }
@@ -436,6 +452,8 @@
     flex-direction: column;
     gap: 20px;
     height: fit-content;
+    padding: 16px; /* Reduce padding on smaller screens */
+    margin-top: 80%;
   }
   
   .container > div:first-child {
@@ -446,9 +464,17 @@
   .container > div:last-child {
     display: none;
   }
+  .containerSection{
+    position: relative;
+  }
   
   .mobileFilterButton {
     display: block;
+    /* margin-top: 100%; */
+    /* position: absolute;
+    top: 2%; */
+
+    margin-right: -2%;
   }
   
   .productGrid {
@@ -460,6 +486,7 @@
   .container {
     padding: 12px;
     height: fit-content;
+    margin-top: 80%;
   }
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -484,6 +511,7 @@
   .container {
     padding: 12px;
     height: fit-content;
+    margin-top: 80%;
   }
   
   .productGrid {
@@ -517,3 +545,12 @@
     width: 100%;
   }
 }
+
+/* Global fix for horizontal scrolling */
+/* *{
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+} */
