@@ -10,6 +10,7 @@
     /* background-attachment: fixed;  */
 }
 
+
 /* Responsive adjustments */
 @media (min-width: 640px) {
     .background {
@@ -29,3 +30,135 @@
     }
 } 
 
+
+/* Footer.module.css */
+
+.footer {
+  width: 100%;
+  border-top: 1px solid var(--black16, #1a1a1a);
+  padding: 1rem;
+  padding-bottom: 5rem;
+  gap: 1rem;
+  margin-top: 200px;
+  position: relative;
+  transform: rotate(0deg);
+  opacity: 1;
+  /* top: 2851px; */
+}
+
+/* Responsive padding */
+@media (min-width: 640px) {
+  .footer {
+    padding: 1.5rem;
+    gap: 1.5rem;
+    /* margin-top: 80%; */
+    /* position: absolute; */
+    /* bottom: 0; */
+    /* margin-bottom: -50%; */
+    position: relative;
+    bottom: -10%;
+    /* visibility: hidden; */
+  }
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding: 2rem;
+    position: relative;
+    bottom: -10%;
+    /* visibility: hidden; */
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer {
+    padding: 3rem;
+    gap: 2rem;
+    position: relative;
+    bottom: 0;
+    /* visibility: hidden; */
+  }
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footerOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.container {
+  position: relative;
+  z-index: 10;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.mainContent {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+/* Responsive main content */
+@media (min-width: 640px) {
+  .mainContent {
+    width: 95%;
+    min-height: 220px;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mainContent {
+    width: 93%;
+    height: 32vh;
+    gap: 0;
+  }
+}
+
+.copyright {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--black16, #1a1a1a);
+  text-align: center;
+  background-color: #fed7aa; /* orange-300 equivalent */
+}
+
+@media (min-width: 640px) {
+  .copyright {
+    margin-top: 2rem;
+    padding-top: 2rem;
+  }
+}
+
+.copyrightText {
+  color: black;
+  font-family: 'Beiruti', sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1;
+  letter-spacing: normal;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .copyrightText {
+    font-size: 0.875rem; /* 14px */
+  }
+}

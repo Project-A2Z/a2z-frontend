@@ -1,8 +1,12 @@
 /* Product.module.css */
 .containerSection {
   width: 100%;
-  margin-top: 15%;
+  /* position: absolute; */
+  position: relative;
+  top: 40%;
+  margin-top: 5%; 
   overflow-x: hidden; /* Prevent horizontal scroll */
+  /* background-color: #2d3436; */
 }
 
 .container {
@@ -448,12 +452,17 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .containerSection {
+    margin-top: 10%; /* Reduced from 6000px */
+    position: relative;
+    /* top: ; */
+  }
+  
   .container {
     flex-direction: column;
     gap: 20px;
     height: fit-content;
     padding: 16px; /* Reduce padding on smaller screens */
-    margin-top: 80%;
   }
   
   .container > div:first-child {
@@ -464,16 +473,13 @@
   .container > div:last-child {
     display: none;
   }
-  .containerSection{
+  
+  .containerSection {
     position: relative;
   }
   
   .mobileFilterButton {
     display: block;
-    /* margin-top: 100%; */
-    /* position: absolute;
-    top: 2%; */
-
     margin-right: -2%;
   }
   
@@ -483,11 +489,16 @@
 }
 
 @media (max-width: 968px) {
+  .containerSection {
+    position: relative;
+    top: 45%;
+  }
+  
   .container {
     padding: 12px;
     height: fit-content;
-    margin-top: 80%;
   }
+  
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -505,13 +516,13 @@
 }
 
 @media (max-width: 640px) {
-  .containerSection{
-    margin-top: -95%;
+  .containerSection {
+    margin-top: 80%; /* Reduced from 7000px */
   }
+  
   .container {
     padding: 12px;
     height: fit-content;
-    margin-top: 80%;
   }
   
   .productGrid {
@@ -545,12 +556,3 @@
     width: 100%;
   }
 }
-
-/* Global fix for horizontal scrolling */
-/* *{
-  box-sizing: border-box;
-}
-
-html, body {
-  overflow-x: hidden;
-} */

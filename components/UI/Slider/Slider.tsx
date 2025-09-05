@@ -8,7 +8,7 @@ import { Button } from '@/components/UI/Buttons/Button';
 
 export interface SlideData {
   id: number;
-  image: string;
+  image: string | object;
   title: string;
   description?: string;
   alt?: string;
