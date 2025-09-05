@@ -133,11 +133,11 @@
 }
 
 .copyright {
-  margin-top: 1.5rem;
+  /* margin-top: 3rem; */
   padding-top: 1.25rem;
   border-top: 1px solid var(--black16, #1a1a1a);
   text-align: center;
-  background-color: #fed7aa; /* orange-300 equivalent */
+  /* background-color: #fed7aa; */
 }
 
 @media (min-width: 640px) {
