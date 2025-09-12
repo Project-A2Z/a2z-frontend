@@ -8,10 +8,9 @@ import styles from './Home.module.css'
 const HomePage = () => {
   return (
     <div className={styles.conatiner} >
-      <Header/>
+        <Header/>
         <MainSection/>
-        <ProductSection />
-
+        {/* <ProductSection /> */}
         <Footer/>
     </div>
   );
