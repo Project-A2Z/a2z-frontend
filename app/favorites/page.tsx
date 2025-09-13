@@ -1,3 +1,7 @@
-export default function FavourtsPage() {
-  return <h1>Favourts Page</h1>;
+"use client";
+import React from 'react';
+import FavoritesPage from "../../Pages/FavoritesPage";
+
+export default function FavoritesRoutePage() {
+  return <FavoritesPage />;
 }

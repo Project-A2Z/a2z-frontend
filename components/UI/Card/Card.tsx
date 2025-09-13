@@ -55,7 +55,13 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                     )}
                 </div>
                 
-                <div className={styles.cardImage} onClick={() => router.push(`/${productId}`)}>
+                <div
+                    className={styles.cardImage}
+                    onClick={() => {
+                        const slug = encodeURIComponent(productName || String(productId || ''));
+                        router.push(`/product/${slug}`);
+                    }}
+                >
                     <CustomImage
                     src={
                         typeof productImg === 'string'
