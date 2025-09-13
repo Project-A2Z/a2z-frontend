@@ -82,7 +82,10 @@ export default function ProductSection() {
 
   return (
     <div className={style.containerSection}>
-      
+      <div className={style.title}>
+        <h2 className={style.titleText}>منتجاتنا و خدماتنا</h2>
+        <p className={style.titleDesc}>جميع الكيميائيات في مكان واحد</p>
+      </div>
 
       {/* Mobile Filter Button */}
       <div className={style.mobileFilterButton}>

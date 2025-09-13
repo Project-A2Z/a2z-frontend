@@ -1,0 +1,227 @@
+[
+  {
+    "id": 1,
+    "name": "L-Arginine",
+    "price": 25000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=1",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 2,
+    "name": "مكمل غذائي طبيعي",
+    "price": 30000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=2",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 3,
+    "name": "فيتامينات متعددة",
+    "price": 35000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=3",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 4,
+    "name": "مكمل البروتين",
+    "price": 40000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=4",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 5,
+    "name": "أوميغا 3",
+    "price": 28000,
+    "quantity": 3,
+    "image": "https://picsum.photos/80/80?random=5",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 6,
+    "name": "Vitamin C 1000mg",
+    "price": 20000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=6",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 7,
+    "name": "مغنيسيوم",
+    "price": 22000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=7",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 8,
+    "name": "Collagen Peptides",
+    "price": 45000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=8",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 9,
+    "name": "زيت السمك",
+    "price": 32000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=9",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 10,
+    "name": "Probiotic Blend",
+    "price": 38000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=10",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 11,
+    "name": "كالسيوم مع فيتامين د",
+    "price": 27000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=11",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 12,
+    "name": "Iron Supplement",
+    "price": 18000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=12",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 13,
+    "name": "مكمل الزنك",
+    "price": 15000,
+    "quantity": 3,
+    "image": "https://picsum.photos/80/80?random=13",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 14,
+    "name": "Biotin Complex",
+    "price": 33000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=14",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 15,
+    "name": "فيتامين ب المركب",
+    "price": 24000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=15",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 16,
+    "name": "Turmeric Curcumin",
+    "price": 29000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=16",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 17,
+    "name": "مكمل الكركم",
+    "price": 31000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=17",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 18,
+    "name": "Green Tea Extract",
+    "price": 21000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=18",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 19,
+    "name": "مستخلص الشاي الأخضر",
+    "price": 23000,
+    "quantity": 3,
+    "image": "https://picsum.photos/80/80?random=19",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 20,
+    "name": "Ashwagandha Root",
+    "price": 36000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=20",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 21,
+    "name": "مكمل الجنسنغ",
+    "price": 42000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=21",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 22,
+    "name": "CoQ10 Supplement",
+    "price": 48000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=22",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 23,
+    "name": "مكمل الكولاجين البحري",
+    "price": 52000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=23",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 24,
+    "name": "Spirulina Powder",
+    "price": 26000,
+    "quantity": 2,
+    "image": "https://picsum.photos/80/80?random=24",
+    "unit": "طن",
+    "availability": "متوفر"
+  },
+  {
+    "id": 25,
+    "name": "مسحوق الكلوريلا",
+    "price": 28000,
+    "quantity": 1,
+    "image": "https://picsum.photos/80/80?random=25",
+    "unit": "طن",
+    "availability": "متوفر"
+  }
+]

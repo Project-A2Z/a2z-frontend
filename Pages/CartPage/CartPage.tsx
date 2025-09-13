@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CartHeader from './Sections/CartHeader';
 import CartItemsList from './Sections/CartItemsList';
 import OrderSummary from './Sections/OrderSummary';
@@ -7,80 +7,27 @@ import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from './Sections/RelatedProducts';
 import FloatingWhatsApp from './Sections/FloatingWhatsApp';
 import type { CartItem } from './Sections/types';
+import { div } from 'motion/react-client';
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: 'L-Arginine',
-      price: 25000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=1'
-    },
-    {
-      id: 2,
-      name: 'مكمل غذائي طبيعي',
-      price: 30000,
-      quantity: 2,
-      image: 'https://picsum.photos/80/80?random=2'
-    },
-    {
-      id: 3,
-      name: 'فيتامينات متعددة',
-      price: 35000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=3'
-    },
-    {
-      id: 4,
-      name: 'مكمل البروتين',
-      price: 40000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=4'
-    },
-    {
-      id: 5,
-      name: 'أوميغا 3',
-      price: 28000,
-      quantity: 3,
-      image: 'https://picsum.photos/80/80?random=5'
-    },
-    {
-      id: 6,
-      name: 'Vitamin C 1000mg',
-      price: 20000,
-      quantity: 2,
-      image: 'https://picsum.photos/80/80?random=6'
-    },
-    {
-      id: 7,
-      name: 'مغنيسيوم',
-      price: 22000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=7'
-    },
-    {
-      id: 8,
-      name: 'Collagen Peptides',
-      price: 45000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=8'
-    },
-    {
-      id: 9,
-      name: 'زيت السمك',
-      price: 32000,
-      quantity: 2,
-      image: 'https://picsum.photos/80/80?random=9'
-    },
-    {
-      id: 10,
-      name: 'Probiotic Blend',
-      price: 38000,
-      quantity: 1,
-      image: 'https://picsum.photos/80/80?random=10'
-    }
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      try {
+        const response = await fetch('/data/cartItems.json');
+        const data = await response.json();
+        setCartItems(data);
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
 
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -102,21 +49,28 @@ const CartPage = () => {
   const shipping = 5000;
   const total = subtotal + shipping;
 
-  return (
-    <div className="min-h-screen bg-background font-beiruti">
-      <CartHeader itemCount={cartItems.length} />
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black8 font-beiruti mt-[93px] flex items-center justify-center">
+        <div className="text-black87">جاري التحميل...</div>
+      </div>
+    );
+  }
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+  return (
+    <div className="min-h-screen bg-black8 font-beiruti mt-[93px]">
+      <div className="max-w-6xl mx-auto px-4 py-6 ">
+        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 ` }>
           {/* Cart Items */}
-          <div   className={cartItems.length > 0 ? 'lg:col-span-2' : ''}>
+          <div   className={cartItems.length > 0 ? 'lg:col-span-2 space-y-4 sm:space-y-6   p-[10px]' : 'space-y-4 sm:space-y-6  p-[10px]'} >
+            <CartHeader itemCount={cartItems.length} />
             <CartItemsList items={cartItems} onUpdateQuantity={updateQuantity} onRemove={removeItem} />
           </div>
 
           {/* Order Summary */}
           {cartItems.length > 0 && (
             <div className="lg:col-span-1">
-              <OrderSummary subtotal={subtotal} shipping={shipping} total={total} hasItems={cartItems.length > 0} />
+              <OrderSummary itemCount={cartItems.length} total={total} hasItems={cartItems.length > 0} />
               <ContactHelp />
             </div>
           )}

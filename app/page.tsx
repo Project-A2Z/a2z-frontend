@@ -5,7 +5,8 @@ import HomePage from "@/Pages/HomePage/HomePage";
 import style from './page.module.css';
 // import pic from './../public/acessts/download (47).jpg'
 import RegistrationForm from "./(auth)/register/page";
-
+// import { style } from "motion/react-client";
+// duplicate import removed
 export default function Home() {
   return (
     //font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20

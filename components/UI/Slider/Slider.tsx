@@ -278,4 +278,4 @@ const Slider: React.FC<SliderProps> = ({
   );
 };
 
-export default Slider;
+export default React.memo(Slider);

@@ -1,12 +1,9 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Slider } from '../../../../components/UI/Slider';
 import type { SlideItem } from '../../../../components/UI/Slider';
-
 const MainSection = React.memo(() => {
   const [slides, setSlides] = useState<SlideItem[]>([]);
-
   useEffect(() => {
     const data: SlideItem[] = [
       {
@@ -54,7 +51,6 @@ const MainSection = React.memo(() => {
             />
           </div>
         </div>
-
         {/* Title block under slider */}
         <div className="w-full max-w-[1440px] mx-auto text-center mt-4">
           <h2 className="font-beiruti font-bold text-[20px] sm:text-[24px] md:text-[28px] leading-snug text-gray-800">

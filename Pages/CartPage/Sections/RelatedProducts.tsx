@@ -1,9 +1,21 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  status: boolean | string;
+  image: string;
+}
+
 const RelatedProducts: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: true,
     mode: 'free-snap',
@@ -28,9 +40,35 @@ const RelatedProducts: React.FC = () => {
     }
   };
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/Test_data/products.json');
+        const data = await response.json();
+        // Get first 8 products for the slider
+        setProducts(data.slice(0, 8));
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
     start();
     return () => stop();
   }, [instanceRef]);
+
+  if (loading) {
+    return (
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+        <div className="text-black60">جاري التحميل...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-12">
@@ -41,12 +79,21 @@ const RelatedProducts: React.FC = () => {
         onMouseEnter={stop}
         onMouseLeave={start}
       >
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-          <div key={item} className="keen-slider__slide">
-            <div className="bg-white rounded-lg shadow-sm border p-4 mx-1 hover:shadow-md transition-shadow">
-              <div className="aspect-square bg-card rounded-lg mb-3"></div>
-              <h3 className="font-medium text-black87 text-sm mb-2">مكمل غذائي</h3>
-              <div className="text-primary font-bold">25,000 ج.م</div>
+        {products.map((product) => (
+          <div key={product.id} className="keen-slider__slide">
+            <div className="bg-white rounded-[20px] shadow-sm border p-4 mx-1 hover:shadow-md transition-shadow">
+              <div className="aspect-square bg-card rounded-lg mb-3 overflow-hidden">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="font-medium text-black87 text-sm mb-2 truncate" title={product.name}>
+                {product.name}
+              </h3>
+              <div className="text-primary font-bold">{product.price.toLocaleString()} ج.م</div>
+              <div className="text-xs text-black60 mt-1">{product.category}</div>
             </div>
           </div>
         ))}

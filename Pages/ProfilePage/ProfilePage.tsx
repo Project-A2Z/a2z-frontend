@@ -105,7 +105,7 @@ const ProfilePage = () => {
           </div>
         )}
         
-        <EditProfileSection box={box} setBox={setBox}  className={styles.main}/>
+        <EditProfileSection box={box} setBox={setBox}  />
       </div>
       </div>
 

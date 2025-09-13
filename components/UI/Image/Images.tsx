@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+// import type { StaticImport } from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface ImageProps {
-  src: string;
+  src: string | any;
   alt: string;
   width?: number;
   height?: number;
@@ -31,8 +32,16 @@ export function CustomImage({
   fill = false,
   onClick,
   ...props
-}: ImageProps & React.ComponentPropsWithoutRef<typeof Image>) {
-  const [imgSrc, setImgSrc] = useState<string>(src);
+}: ImageProps & Omit<React.ComponentPropsWithoutRef<typeof Image>, keyof ImageProps>) {
+  // Helper function to get string src from import object or string
+  const getSrcString = (source: string | { src: string; [key: string]: any }): string => {
+    if (typeof source === 'string') {
+      return source;
+    }
+    return source.src;
+  };
+
+  const [imgSrc, setImgSrc] = useState<string | { src: string; [key: string]: any }>(src);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
 
@@ -67,6 +76,7 @@ export function CustomImage({
         'relative overflow-hidden',
         roundedClasses[rounded],
         fill ? 'w-full h-full' : '',
+        onClick ? 'cursor-pointer' : '',
         className
       )}
       onClick={onClick}
@@ -95,12 +105,7 @@ export function CustomImage({
           objectFit === 'scale-down' && 'object-scale-down',
           isLoading ? 'opacity-0' : 'opacity-100'
         )}
-        {...(priority ? { loading: undefined } : {})}
-        {...Object.fromEntries(
-          Object.entries(props).filter(([key]) => 
-            !['priority', 'loading'].includes(key)
-          )
-        )}
+        {...props}
       />
       
       {error && !fallbackSrc && (
