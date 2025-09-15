@@ -1,10 +1,11 @@
 "use client"
-import { useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { StaticImageData } from "next/image";
 
 import styles from './card.module.css'
 import { CustomImage } from './../Image/Images'
 import Availablity from './Availablity';
+import { useFavorites } from '@/services/favorites/FavoritesContext';
 
 // Icons (use static paths to avoid requiring SVGR)
 const EHEART_SRC = '/icons/emptyHeart.svg';
@@ -22,13 +23,31 @@ interface CardProps {
 
 // This is already a function component, but here's a cleaner version
 function Card({ productImg , productName , productCategory , productPrice , productId , available } : CardProps) {
-    const [loved, setLoved] = useState(false);
-
+    const { toggle, isFavorite } = useFavorites();
     const router = useRouter();
-    
-    const toggleLoved = () => {
-        setLoved(prev => !prev);
-    };
+
+    const numericPrice = useMemo(() => {
+        const n = parseFloat(String(productPrice ?? '0').replace(/[^0-9.]/g, ''));
+        return isNaN(n) ? 0 : n;
+    }, [productPrice]);
+
+    const imageSrc: string = useMemo(() => {
+        return typeof productImg === 'string' ? productImg : (productImg?.src || '/images/placeholder.jpg');
+    }, [productImg]);
+
+    const id = useMemo(() => productId || productName || imageSrc, [productId, productName, imageSrc]);
+
+    const loved = isFavorite(id!);
+
+    const onHeartClick = useCallback(() => {
+        if (!id) return;
+        toggle({
+            id,
+            name: productName || 'منتج',
+            price: numericPrice,
+            image: imageSrc,
+        });
+    }, [id, toggle, productName, numericPrice, imageSrc]);
 
     return (
         <div className={styles.card} >
@@ -37,7 +56,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                     {loved ? (
                         <img
                             src={FHEART_SRC}
-                            onClick={toggleLoved}
+                            onClick={onHeartClick}
                             className={styles.heartIcon}
                             role="button"
                             aria-label="Remove from favorites"
@@ -46,7 +65,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                     ) : (
                         <img
                             src={EHEART_SRC}
-                            onClick={toggleLoved}
+                            onClick={onHeartClick}
                             className={styles.heartIcon}
                             role="button"
                             aria-label="Add to favorites"
@@ -63,11 +82,7 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                     }}
                 >
                     <CustomImage
-                    src={
-                        typeof productImg === 'string'
-                            ? productImg
-                            : productImg?.src || '/images/placeholder.jpg'
-                    }
+                    src={imageSrc}
                     alt={productName || 'Product image'}
                     width={192}
                     height={192}

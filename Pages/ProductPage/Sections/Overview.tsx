@@ -1,9 +1,11 @@
 "use client";
 import React from 'react';
 import { Heart, ShoppingCart } from 'lucide-react';
+import { useFavorites } from '@/services/favorites/FavoritesContext';
 import { Minus, Plus } from 'lucide-react';
 
 type Props = {
+  id: number | string;
   title: string;
   description?: string;
   price: number;
@@ -12,7 +14,9 @@ type Props = {
   ratingCount: number;
 };
 
-const Overview: React.FC<Props> = ({ title, description, price, image, rating, ratingCount }) => {
+const Overview: React.FC<Props> = ({ id, title, description, price, image, rating, ratingCount }) => {
+  const { toggle, isFavorite } = useFavorites();
+  const loved = isFavorite(id);
   return (
     <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -29,8 +33,12 @@ const Overview: React.FC<Props> = ({ title, description, price, image, rating, r
           {/* Header row: title + wishlist */}
           <div className="flex items-start justify-between gap-3 mb-2">
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">{title}</h1>
-            <button aria-label="add to wishlist" className="p-2 rounded-full border hover:border-primary hover:text-primary text-black60">
-              <Heart className="w-5 h-5" />
+            <button
+              aria-label={loved ? 'remove from wishlist' : 'add to wishlist'}
+              onClick={() => toggle({ id, name: title, price, image })}
+              className={`p-2 rounded-full border hover:border-primary transition-colors ${loved ? 'text-primary border-primary' : 'text-black60'}`}
+            >
+              <Heart className={`w-5 h-5 ${loved ? 'fill-current' : ''}`} />
             </button>
           </div>
 

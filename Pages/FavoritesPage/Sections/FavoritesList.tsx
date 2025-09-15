@@ -1,5 +1,7 @@
-"use client";
+  "use client";
 import React from 'react';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/UI/Buttons';
 
 export type FavoriteItem = {
   id: number | string;
@@ -17,45 +19,52 @@ const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
   if (!items?.length) return null;
 
   return (
-    <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-      <h2 className="text-lg sm:text-xl font-bold text-black87 mb-4">المفضلة</h2>
-
-      {/* List on mobile, grid on desktop */}
-      <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+    <section className="bg-white rounded-2xl border border-black8/50 shadow-sm p-3 sm:p-4">
+      {/* Grid of product cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {items.map((item) => (
-          <div
+          <article
             key={item.id}
-            className="rounded-xl border border-black8 p-3 sm:p-4 flex items-center justify-between gap-3 hover:shadow-sm transition-shadow"
-         >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-16 h-16 rounded-lg bg-card overflow-hidden flex-shrink-0">
+            className="group rounded-2xl border border-black8 bg-white hover:shadow-md transition-shadow flex flex-col items-stretch overflow-hidden"
+            aria-label={item.name}
+          >
+            {/* Image */}
+            <div className="px-4 pt-4">
+              <div className="aspect-[3/4] w-full rounded-2xl border border-black8 bg-white flex items-center justify-center overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-contain p-3"
                 />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-sm sm:text-base font-medium text-black87 truncate" title={item.name}>
-                  {item.name}
-                </h3>
-                <div className="text-primary font-bold">{item.price.toLocaleString()} ج.م</div>
-                <button className="text-secondary1 text-xs mt-1 hover:underline">أضف إلى السلة</button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Content */}
+            <div className="p-4 flex flex-col gap-2 items-start">
+              <h3 className="text-base font-medium text-black87 leading-snug line-clamp-2 min-h-[2.5rem]" title={item.name}>
+                {item.name}
+              </h3>
+              <div className="text-emerald-600 text-sm">متوفر</div>
+
+              <div className="mt-1 flex items-baseline justify-center gap-2">
+                <div className="text-2xl sm:text-3xl font-extrabold text-black87">{item.price.toLocaleString()}</div>
+                <div className="text-black60 text-base">ج</div>
+              </div>
+
               {onRemove && (
-                <button
+                <Button
                   onClick={() => onRemove(item.id)}
-                  className="px-3 py-1 rounded-full border text-sm hover:border-primary hover:text-primary"
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<Trash2 className="w-4 h-4" />}
+                  className="mt-2 w-full inline-flex items-center justify-center gap-2 text-secondary1 hover:text-red-600 border-0 whitespace-nowrap"
                 >
-                  إزالة
-                </button>
+                  حذف المنتج من المفضلة
+                </Button>
               )}
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </section>

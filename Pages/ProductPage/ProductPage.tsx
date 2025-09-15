@@ -77,6 +77,7 @@ const ProductPage: React.FC<{ data?: ProductData }> = ({ data = mockProduct }) =
         {/* <TopNav /> */}
         {/* Overview */}
         <Overview
+          id={data.id}
           title={data.title}
           description={data.description}
           price={data.price}
