@@ -1,9 +1,9 @@
 "use client";
 import React, { useMemo } from 'react';
-import EmptyState from './Sections/EmptyState';
 import FavoritesList, { FavoriteItem } from './Sections/FavoritesList';
-import RelatedProducts from '../CartPage/Sections/RelatedProducts';
+import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
+import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
 
 // In a real app this would come from API or global store
 const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
@@ -19,12 +19,21 @@ const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
 
         {/* Content */}
         {list.length === 0 ? (
-          <EmptyState />
+          <section className="flex flex-col items-center justify-center py-16">
+            <ActionEmptyState
+              imageSrc="/icons/empty-cart.png"
+              imageAlt="لا يوجد منتجات في المفضلة"
+              message="لا يوجد منتجات فالمفضلة"
+              actionLabel="اذهب للتسوق"
+              actionHref="/products"
+              imageClassName="w-64 h-auto mb-6"
+            />
+          </section>
         ) : (
           <FavoritesList items={list} onRemove={remove} />
         )}
 
-        {/* Related products (منتجات قد تعجبك) */}
+        {/* Related products */}
         <section>
           <h2 className="text-xl font-bold text-black87 mb-4">منتجات قد تعجبك</h2>
           <RelatedProducts />

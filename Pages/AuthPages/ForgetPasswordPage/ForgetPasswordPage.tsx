@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import LogoSection from './sections/LogoSection/Logo';
 import InstructionSection from './sections/InstructionSection/InstructionSection';
 import NextButtonSection from './sections/NextButtonSection/NextButtonSection';
@@ -10,6 +11,11 @@ import { resetPassword } from '@/services/auth/authService';
 type FormState = { password: string; confirmPassword: string };
 
 export default function ForgetPasswordPage() {
+    const router = useRouter();
+    // Step: 1) get email, 2) set new password
+    const [step, setStep] = useState<1 | 2>(1);
+    const [email, setEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
     const [formData, setFormData] = useState<FormState>({
         password: '',
         confirmPassword: ''
@@ -26,7 +32,7 @@ export default function ForgetPasswordPage() {
         setError('');
     };
 
-    const isDisabled = useMemo(() => {
+    const isPwdDisabled = useMemo(() => {
         return (
             submitting ||
             !formData.password ||
@@ -36,11 +42,33 @@ export default function ForgetPasswordPage() {
         );
     }, [formData, submitting]);
 
+    const isValidEmail = (value: string) => {
+        // Simple email validation
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    };
+
+    const handleNextFromEmail = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        // Validate email before moving to step 2
+        if (!email) {
+            setEmailError('يرجى إدخال البريد الإلكتروني');
+            return;
+        }
+        if (!isValidEmail(email)) {
+            setEmailError('بريد إلكتروني غير صالح');
+            return;
+        }
+        setEmailError('');
+        setStep(2);
+    };
+
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (isDisabled) return;
+        if (isPwdDisabled) return;
         try {
             setSubmitting(true);
+            // In a real flow, you would also send the email and a token.
+            // Here we proceed to reset with the provided new password.
             await resetPassword({ password: formData.password });
             // TODO: navigate or show success toast
         } catch (err) {
@@ -50,21 +78,60 @@ export default function ForgetPasswordPage() {
         }
     };
 
+    const handleGoToActivation = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        // Route to activation code entry page, include email if available
+        const q = email ? `?email=${encodeURIComponent(email)}` : '';
+        router.push(`/active-code${q}`);
+    };
+
     return (
         <div className="flex flex-col items-center justify-center w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] xl:max-w-[850px] min-h-[280px] xs:min-h-[300px] sm:min-h-[350px] md:min-h-[380px] lg:min-h-[400px] rounded-[16px] xs:rounded-[20px] sm:rounded-[22px] lg:rounded-[24px] gap-3 xs:gap-4 sm:gap-6 lg:gap-8 p-3 xs:p-4 sm:p-5 lg:p-6 bg-card  backdrop-blur-sm shadow-lg border border-black16 mx-2 xs:mx-4 sm:mx-6 lg:mx-auto">
             <div className="flex flex-col items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-[320px] xs:max-w-[340px] sm:max-w-[368px] min-h-[80px] xs:min-h-[90px] sm:min-h-[100px] lg:min-h-[124px]">
                 <LogoSection />
                 <InstructionSection />
             </div>
-            <InputsFieldsSection 
-                formData={formData}
-                onInputChange={handleInputChange}
-                error={error}
-            />
-            <NextButtonSection
-                onClick={handleSubmit}
-                disabled={isDisabled}
-            />
+            {step === 1 ? (
+                <div className="w-full max-w-[420px]">
+                    <label htmlFor="email" className="block text-sm font-medium text-black87 mb-2">
+                        البريد الإلكتروني
+                    </label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            setEmailError('');
+                        }}
+                        placeholder="example@mail.com"
+                        className="w-full rounded-lg border border-black16 bg-white px-3 py-2 text-black87 placeholder-black60 focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoComplete="email"
+                        inputMode="email"
+                    />
+                    {emailError && (
+                        <p className="mt-2 text-sm text-red-600">{emailError}</p>
+                    )}
+                    <div className="mt-4">
+                        <NextButtonSection
+                            onClick={handleNextFromEmail}
+                            disabled={submitting || !email}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <InputsFieldsSection 
+                        formData={formData}
+                        onInputChange={handleInputChange}
+                        error={error}
+                    />
+                    <NextButtonSection
+                        onClick={handleGoToActivation}
+                        disabled={isPwdDisabled}
+                    />
+                </>
+            )}
         </div>
     );
 }

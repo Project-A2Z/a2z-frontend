@@ -4,7 +4,7 @@ import CartHeader from './Sections/CartHeader';
 import CartItemsList from './Sections/CartItemsList';
 import OrderSummary from './Sections/OrderSummary';
 import ContactHelp from './Sections/ContactHelp';
-import RelatedProducts from './Sections/RelatedProducts';
+import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 import FloatingWhatsApp from './Sections/FloatingWhatsApp';
 import type { CartItem } from './Sections/types';
 import { div } from 'motion/react-client';
@@ -80,7 +80,7 @@ const CartPage = () => {
       </div>
 
       {/* Fixed WhatsApp Button - Mobile */}
-      <FloatingWhatsApp />
+      {/* <FloatingWhatsApp /> */}
     </div>
   );
 };

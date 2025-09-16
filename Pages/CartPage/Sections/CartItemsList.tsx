@@ -4,6 +4,7 @@ import { Button, IconButton } from '@/components/UI/Buttons/Button';
 import type { CartItem } from './types';
 import { div, h2 } from 'motion/react-client';
 import { useRouter } from 'next/navigation';
+import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
 
 type Props = {
   items: CartItem[];
@@ -18,11 +19,13 @@ const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) =
     return (
       <div className="bg-black8 rounded-lg shadow-sm border">
         <div className="p-12 text-center">
-          <img src="/icons/empty-cart.png" alt="السلة فارغة" className="w-56 h-auto mx-auto mb-6" />
-          <p className="text-black60 mb-6">لا يوجد منتجات فالسلة</p>
-          <Button onClick={() => router.push('/product')} variant="primary" size="lg" rounded>
-            اذهب للتسوق
-          </Button>
+          <ActionEmptyState
+            imageSrc="/icons/empty-cart.png"
+            imageAlt="السلة فارغة"
+            message="لا يوجد منتجات فالسلة"
+            actionLabel="اذهب للتسوق"
+            actionHref="/product"
+          />
         </div>
       </div>
     );

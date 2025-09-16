@@ -5,7 +5,7 @@ import TopNav from './Sections/TopNav';
 import Specs, { Spec } from './Sections/Specs';
 import Ratings from './Sections/Ratings';
 import Reviews from './Sections/Reviews';
-import RelatedProducts from '../CartPage/Sections/RelatedProducts';
+import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 
 export type ProductData = {
   id: number | string;
