@@ -1,0 +1,14 @@
+[
+  {"id":1,"name":"محلول أكتسيل ميكرو (1 لتر)","category":"كيميائيات مبيدات","price":210.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":2,"name":"محلول أكتسيل ميكرو (5 لتر)","category":"كيميائيات مبيدات","price":1020.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":3,"name":"ميثام sodium n-  (1 لتر)","category":"كيميائيات مبيدات","price":260.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":4,"name":"أمينواسيد بلص (5 كجم)","category":"كيميائيات الخضراء","price":1050.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":5,"name":"هيوميك أسيد بودر (1 كجم)","category":"كيميائيات مبيدات","price":130.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":6,"name":"سوبر فوسفات أحادي (1 كجم)","category":"كيميائيات الخضراء","price":65.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":7,"name":"كالسيوم بورون (250 جم)","category":"كيميائيات الخضراء","price":55.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":8,"name":"بوتاسيوم سلفات (1 كجم)","category":"كيميائيات الخضراء","price":175.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":9,"name":"هيوميك أسيد سائل (1 لتر)","category":"كيميائيات مبيدات","price":95.0,"status":false,"image":"/acessts/download (47).jpg"},
+  {"id":10,"name":"بوتاسيوم سلفات (5 كجم)","category":"كيميائيات الخضراء","price":800.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":11,"name":"كالسيوم نترات (1 كجم)","category":"كيميائيات الخضراء","price":130.0,"status":true,"image":"/acessts/download (47).jpg"},
+  {"id":12,"name":"هيوميك أسيد (1 كجم)","category":"كيميائيات مبيدات","price":200.0,"status":"نفذ المخزون","image":"/acessts/download (47).jpg"}
+]
