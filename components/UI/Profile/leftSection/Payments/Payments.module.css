@@ -1,0 +1,163 @@
+/* Payments.module.css */
+
+.container {
+  /* max-width: 800px; */
+  /* margin: 0 auto; */
+    width: 100%;
+  padding: 20px;
+  font-family: var(--font-primary);
+  direction: rtl;
+    background-color: var(--background);
+    border: 1.5px solid var(--black8);
+    border-radius: 24px;
+    padding: 20px;
+    position: relative;
+    margin: -5.9% 2%;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  text-align: flex-start;
+  margin: 0;
+}
+
+.recordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recordItem {
+  background: var(--background);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--black8);
+  color: var(--black60);
+}
+
+.recordContent {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top section with date on the right */
+.topSection {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end; 
+  direction: ltr;
+  border-bottom: 1px solid var(--black8);
+
+}
+
+.dateSection {
+  display: flex;
+  align-items: center;
+}
+
+.date {
+  font-size: 16px;
+  color: var(--black60);
+  font-weight: 600;
+}
+
+/* Dividing line */
+/* .divider {
+  height: 0.5px;
+  background-color: #e0e0e0;
+  margin: 0;
+} */
+
+/* Bottom section with order details on right and button on left */
+.bottomSection {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.orderDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+    font-size: 16px;
+  font-weight: 600;
+  color: var(--black60);
+}
+
+/* .orderNumber {
+  
+}
+
+
+
+.description {
+  font-size: 14px;
+  color: #666;
+} */
+
+.actionSection {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.viewDetailsBtn {
+  background-color: unset;
+  color: var(--primary);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.viewDetailsBtn:hover {
+  background-color: var(--disable);
+}
+
+.viewDetailsBtn:active {
+  transform: translateY(1px);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+    margin: 5% 0;
+  }
+  
+  .bottomSection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .actionSection {
+    justify-content: flex-end;
+  }
+  
+  .viewDetailsBtn {
+    width: auto;
+    align-self: flex-end;
+  }
+}
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+    margin: 5% 0;
+  }
+}

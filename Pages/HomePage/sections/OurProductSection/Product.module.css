@@ -1,0 +1,558 @@
+/* Product.module.css */
+.containerSection {
+  width: 100%;
+  /* position: absolute; */
+  position: relative;
+  top: 40%;
+  margin-top: 5%; 
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  /* background-color: #2d3436; */
+}
+
+.container {
+  display: flex;
+  width: 100%; /* Changed from 100vw to 100% */
+  max-width: 100%; /* Ensure it doesn't exceed container width */
+  height: fit-content;
+  margin: 5% auto;
+  padding: 20px;
+  gap: 30px;
+  font-family: var(--font-primary);
+  direction: rtl;
+  background-color: #f8f9fa;
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.title{
+    text-align: center;
+    margin: 40px 0px;
+}
+
+/* Main content area (ProductSlider) */
+.container > div:first-child {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 70%;
+  height: fit-content; /* Add this to make it dynamic */
+  min-width: 0; /* Allow flex item to shrink */
+  box-sizing: border-box;
+}
+
+/* Filter sidebar */
+.container > div:last-child {
+  width: 280px;
+  min-width: 280px; /* Prevent shrinking */
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+  box-sizing: border-box;
+}
+
+/* ProductSlider Styles */
+.sliderContainer {
+  width: 100%;
+  height: fit-content; /* Add this */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.sliderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.sliderTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3436;
+  margin: 0;
+  position: relative;
+}
+
+.sliderTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  right: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(45deg, #00b894, #00cec9);
+  border-radius: 2px;
+}
+
+.sliderControls {
+  display: flex;
+  gap: 8px;
+}
+
+.sliderButton {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #636e72;
+}
+
+.sliderButton:hover:not(.disabled) {
+  border-color: #00b894;
+  background: #00b894;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+}
+
+.sliderButton.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f8f9fa;
+}
+
+/* Grid Wrapper */
+.gridWrapper {
+  margin-bottom: 30px;
+  height: fit-content; /* Add this */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  height: fit-content; /* Add this instead */
+  min-height: auto; /* Reset min-height */
+  width: 100%;
+  max-width: 100%; /* Ensure grid doesn't exceed container */
+}
+
+.gridItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: fit-content; /* Make grid items fit their content */
+  min-width: 0; /* Allow grid items to shrink */
+}
+
+.emptySlot {
+  background: transparent;
+  height: 0; /* Make empty slots take no space */
+  display: none; /* Hide empty slots completely */
+}
+
+/* Bottom Pagination */
+.bottomPagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  margin-top: 20px;
+}
+
+.paginationInfo {
+  color: #636e72;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationArrow {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #636e72;
+}
+
+.paginationArrow:hover:not(.disabled) {
+  border-color: #00b894;
+  background: #00b894;
+  color: white;
+}
+
+.paginationArrow.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageNumbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 12px;
+}
+
+.pageNumber {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 500;
+  color: #636e72;
+}
+
+.pageNumber:hover {
+  border-color: #00b894;
+  background: #e8f5f3;
+  color: #00b894;
+}
+
+.pageNumber.active {
+  background: #00b894;
+  border-color: #00b894;
+  color: white;
+}
+
+.ellipsis {
+  padding: 0 8px;
+  color: #636e72;
+  font-size: 13px;
+}
+
+/* Filter Styles */
+.filterContainer {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.categoriesSection,
+.lettersSection {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d3436;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.categoriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.categoryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.categoryItem:hover {
+  background-color: #f8f9fa;
+}
+
+.categoryLabel {
+  font-size: 14px;
+  color: #2d3436;
+  font-weight: 500;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  appearance: none;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.checkbox:checked {
+  background: #00b894;
+  border-color: #00b894;
+}
+
+.checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Letters Grid */
+.lettersGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.letterButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #636e72;
+  transition: all 0.2s ease;
+}
+
+.letterButton:hover {
+  border-color: #00b894;
+  background: #e8f5f3;
+  color: #00b894;
+}
+
+.letterButton.active {
+  background: #00b894;
+  border-color: #00b894;
+  color: white;
+}
+
+.letterButton.all {
+  grid-column: span 2;
+  width: auto;
+  font-size: 13px;
+}
+
+/* Mobile Filter Button - Hidden on desktop */
+.mobileFilterButton {
+  display: none;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 0 20px; /* Add padding to match container */
+  box-sizing: border-box;
+}
+
+/* Filter Modal Styles */
+.filterModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  transition: opacity 0.3s ease;
+}
+
+.filterModalContent {
+  background: white;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+.filterModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.filterModalHeader h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3436;
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  color: #636e72;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #f8f9fa;
+}
+
+.filterModalBody {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  padding: 0 24px;
+  padding-top: 20px;
+}
+
+.filterModalFooter {
+  padding: 20px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  background: white;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Animation for modal */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .containerSection {
+    margin-top: 10%; /* Reduced from 6000px */
+    position: relative;
+    /* top: ; */
+  }
+  
+  .container {
+    flex-direction: column;
+    gap: 20px;
+    height: fit-content;
+    padding: 16px; /* Reduce padding on smaller screens */
+  }
+  
+  .container > div:first-child {
+    width: 100%;
+  }
+  
+  /* Hide desktop filter on mobile */
+  .container > div:last-child {
+    display: none;
+  }
+  
+  .containerSection {
+    position: relative;
+  }
+  
+  .mobileFilterButton {
+    display: block;
+    margin-right: -2%;
+  }
+  
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 968px) {
+  .containerSection {
+    position: relative;
+    top: 45%;
+  }
+  
+  .container {
+    padding: 12px;
+    height: fit-content;
+  }
+  
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sliderHeader {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .bottomPagination {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .containerSection {
+    margin-top: 40%; /* Reduced from 7000px */
+  }
+  
+  .container {
+    padding: 12px;
+    height: fit-content;
+  }
+  
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .lettersGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .sliderTitle {
+    font-size: 24px;
+  }
+  
+  .filterModalHeader {
+    padding: 16px 20px;
+  }
+  
+  .filterModalBody {
+    padding: 0 20px;
+    padding-top: 16px;
+  }
+  
+  .filterModalFooter {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+  
+  .filterModalFooter button {
+    width: 100%;
+  }
+}

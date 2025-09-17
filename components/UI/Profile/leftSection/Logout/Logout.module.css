@@ -1,0 +1,117 @@
+/* Logout.module.css */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.container {
+  background: var(--background);
+  border: 1.5px solid var(--black8);
+  border-radius: 24px;
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-out;
+  min-width: 320px;
+  max-width: 400px;
+  font-family: var(--font-primary);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.question {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--black87);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-direction: row-reverse; /* RTL layout */
+}
+
+.button {
+  padding: 12px 24px;
+  border-radius: 16px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.logoutButton {
+  background: unset;
+  color: var(--error);
+}
+
+.logoutButton:hover {
+  background: #f56e6ea1;
+  /* color: var(--background); */
+  transform: translateY(-1px);
+  /* box-shadow: 0 4px 12px rgba(221, 61, 61, 0.3); */
+}
+
+.logoutButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(221, 61, 61, 0.2);
+}
+
+.cancelButton {
+  background: unset;
+  color: var(--primary);
+}
+
+.cancelButton:hover {
+  background: var(--disabled);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 147, 67, 0.2);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(76, 147, 67, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .container {
+    margin: 20px;
+    padding: 24px 28px;
+    min-width: auto;
+  }
+  
+  .buttonGroup {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  
+  .button {
+    width: 100%;
+  }
+}
