@@ -109,7 +109,7 @@ const ProfilePage = () => {
       </div>
       </div>
 
-      <Footer/>
+      {/* <Footer/> */}
     </div>
   );
 }

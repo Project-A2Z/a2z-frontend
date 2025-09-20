@@ -132,7 +132,7 @@
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  color: #6b7280;
+  color: var(--black60);
 }
 
 .pageNumber:hover {
@@ -141,8 +141,9 @@
 }
 
 .pageNumber.active {
-  background: #3b82f6;
-  color: white;
+  background: var(--background);
+  border: 1px solid var(--black8);
+  
 }
 
 .ellipsis {

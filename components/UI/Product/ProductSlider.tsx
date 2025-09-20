@@ -101,9 +101,9 @@ function ProductSlider({
               onClick={prevPage}
               disabled={currentPage === 0}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg> 
             </button>
             
             <div className={styles.pageNumbers}>
@@ -135,6 +135,11 @@ function ProductSlider({
                 }
                 return null;
               })}
+
+              {/* Show "من" only between current page and last page */}
+              {currentPage < totalPages - 2 && (
+                <span className={styles.ellipsis}>من</span>
+              )}
               
               {/* Show last page */}
               {currentPage < totalPages - 3 && (
@@ -155,8 +160,9 @@ function ProductSlider({
               onClick={nextPage}
               disabled={currentPage >= totalPages - 1}
             >
+              
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
