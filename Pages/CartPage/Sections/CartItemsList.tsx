@@ -58,15 +58,18 @@ const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) =
                   <h4 className="text-[14px] font-medium leading-[1] text-right w-[71px] h-[17px]  text-secondary1 font-beiruti mb-2">
                     {item.availability}
                   </h4>
-                  <button
-                    aria-label="remove item"
-                    title="حذف المنتج من السلة "
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    state="default"
+                    leftIcon={<Trash className="w-4 h-4 sm:w-5 sm:h-5" />}
                     onClick={() => onRemove(item.id)}
-                    className="text-secondary1 flex  -50 p-1 rounded-full transition-colors flex-shrink-0"
+                    className="text-secondary1 hover:bg-black12 w-full sm:w-auto justify-start sm:justify-center p-1 sm:px-2"
                   >
-                    <Trash className='w-5 h-5'/>
-                    <h4>حذف المنتج من السلة </h4>
-                  </button>
+                    <span className="text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis">
+                      حذف المنتج من السلة
+                    </span>
+                  </Button>
                 </div>
 
                 <div className="flex flex-col  items-start justify-start  w-[35%] sm:flex-col   sm:items-center sm:justify-between gap-4 ">
