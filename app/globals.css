@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #4c9343;
+  --secondary1: #88be46;
+  --secondary2: #06b590;
+  --disabled: #a5c9a1;
+  --background: #ffffff;
+  --card: #f7ffee;
+  --cardblur: #f7ffeeb3;
+  --onPrimary: #ffffff;
+  --black87: #3e3e3e;
+  --black60: #666666;
+  --black37: #a1a1a1;
+  --black16: #d6d6d6;
+  --black8: #f0f0f0;
+  --error: #dd3d3d;
+  --star: #f59e0b;
+  
+  /* Font family variables */
+  --font-primary: 'Beiruti', 'Cairo', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  html {
+    font-family: var(--font-primary);
+  }
+  
+  body {
+    @apply bg-white text-gray-900;
+    font-family: var(--font-primary);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    direction: rtl;
+  }
+  
+  /* Apply Beiruti to all text elements */
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, label {
+    font-family: var(--font-primary);
+  }
+  
+  /* Specific font weights for headings */
+  h1 {
+    @apply text-4xl font-bold;
+    font-family: var(--font-primary);
+    font-weight: 700;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold;
+    font-family: var(--font-primary);
+    font-weight: 600;
+  }
+  
+  h3 {
+    @apply text-2xl font-medium;
+    font-family: var(--font-primary);
+    font-weight: 500;
+  }
+  
+  h4 {
+    @apply text-xl font-medium;
+    font-family: var(--font-primary);
+    font-weight: 500;
+  }
+  
+  h5 {
+    @apply text-lg font-normal;
+    font-family: var(--font-primary);
+    font-weight: 400;
+  }
+  
+  h6 {
+    @apply text-base font-normal;
+    font-family: var(--font-primary);
+    font-weight: 400;
+  }
+  
+  /* Custom scrollbar with brand colors */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-400 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-500;
+  }
+  
+  /* Selection color */
+  ::selection {
+    @apply bg-primary-200 text-gray-900;
+  }
+  
+  /* Focus outline */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+  
+  /* Input and form elements */
+  input, textarea, select {
+    font-family: var(--font-primary);
+    direction: rtl;
+  }
+  
+  /* Button elements */
+  button {
+    font-family: var(--font-primary);
+  }
+  
+  /* Placeholder text for RTL */
+  input::placeholder,
+  textarea::placeholder {
+    text-align: right;
+    direction: rtl;
+  }
+}
+
+
+/* Hide default password reveal/clear icons in Edge/IE to avoid double eyes */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+    font-family: var(--font-primary);
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 hover:bg-secondary-600 text-white;
+  }
+  
+  .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white;
+  }
+  
+  .btn-ghost {
+    @apply text-primary-500 hover:bg-primary-50;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md border border-gray-200;
+  }
+  
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    font-family: var(--font-primary);
+    direction: rtl;
+    text-align: right;
+  }
+  
+  /* RTL-specific component classes */
+  .rtl-text {
+    direction: rtl;
+    text-align: right;
+    font-family: var(--font-primary);
+  }
+  
+  .ltr-text {
+    direction: ltr;
+    text-align: left;
+    font-family: var(--font-primary);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-brand {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500;
+  }
+  
+  .shadow-brand {
+    @apply shadow-lg;
+    box-shadow: 0 4px 14px 0 rgba(136, 190, 70, 0.15);
+  }
+  
+  /* Font utility classes */
+  .font-beiruti {
+    font-family: var(--font-primary);
+  }
+  
+  .font-beiruti-light {
+    font-family: var(--font-primary);
+    font-weight: 300;
+  }
+  
+  .font-beiruti-regular {
+    font-family: var(--font-primary);
+    font-weight: 400;
+  }
+  
+  .font-beiruti-medium {
+    font-family: var(--font-primary);
+    font-weight: 500;
+  }
+  
+  .font-beiruti-semibold {
+    font-family: var(--font-primary);
+    font-weight: 600;
+  }
+  
+  .font-beiruti-bold {
+    font-family: var(--font-primary);
+    font-weight: 700;
+  }
+  
+  .font-beiruti-extrabold {
+    font-family: var(--font-primary);
+    font-weight: 800;
+  }
+  
+  .font-beiruti-black {
+    font-family: var(--font-primary);
+    font-weight: 900;
+  }
+}
+
+/* Performance optimization for font loading */
+.font-loading {
+  font-display: swap;
+}
+
+/* Ensure consistent line height for Arabic text */
+body, p, span, div {
+  line-height: 1.6;
+}
+
+/* Fix for Arabic text rendering in different browsers */
+@supports (font-variation-settings: normal) {
+  body {
+    font-variation-settings: normal;
+  }
+}
