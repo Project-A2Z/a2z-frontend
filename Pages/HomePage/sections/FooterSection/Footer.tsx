@@ -48,7 +48,7 @@ const Footer = () => {
       </div>
       
       {/* Mobile Navigation */}
-      <MobileNavigation />
+      {/* <MobileNavigation /> */}
     </footer>
   );
 };

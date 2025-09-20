@@ -517,7 +517,7 @@
 
 @media (max-width: 640px) {
   .containerSection {
-    margin-top: 40%; /* Reduced from 7000px */
+    margin-top: 10%; 
   }
   
   .container {

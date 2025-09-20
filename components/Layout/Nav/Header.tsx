@@ -14,10 +14,12 @@ import { Button } from '../../UI/Buttons/Button';
 
 // Icons
 import Logo from './../../../public/icons/logo.svg';
-import Heart from './../../../public/icons/emptyHeart.svg';
-import Cart from './../../../public/icons/Cart Large 2.svg';
-import Notification from './../../../public/icons/notification.svg';
-import SearchIcon from './../../../public/icons/search.svg'; // 
+import Heart from './../../../public/icons/Header/Heart.svg';
+import Cart from './../../../public/icons/Header/Cart Large 2.svg';
+import Notification from './../../../public/icons/Header/Bell Bing.svg';
+import SearchIcon from './../../../public/icons/Header/Rounded Magnifer.svg'; // 
+import  MessageCircle  from './../../../public/icons/Header/float-btn.svg';
+import MessIcon from './../../../public/icons/Header/float-btn (1).svg'
 
 interface HeaderProps {
   className?: string;
@@ -43,6 +45,9 @@ function Header({
   const [data, setData] = useState(dataSearch);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
+  const [chat , setChat ] = useState(false)
+  const [open , setOpen] = useState(false)
+
   // const items = [
   //   { icon  : <Heart className={styles.icon} />, label: 'المفضلة', link: '/favorites' },
   //   { icon  : <Cart className={styles.icon} />, label: 'عربة التسوق', link: '/cart' },
@@ -63,6 +68,11 @@ function Header({
     setUser({ name: '', avatar: null });
     console.log('User logged out');
   };
+
+  const handleChat = () => {
+    setChat(!chat)
+    setOpen(!open)
+  }
 
   const handleNotificationClick = (): void => {
     console.log('Notification clicked');
@@ -175,8 +185,8 @@ function Header({
         </div>
       </header>
 
-      {/* Bottom Navigation for Mobile */}
-      {showUserActions &&  (
+   {/* Bottom Navigation for Mobile */}
+      {showUserActions && (
         <nav className={styles.bottomNav}>
           <div className={styles.bottomNavContent}>
             {/* Search Icon */}
@@ -189,30 +199,116 @@ function Header({
                 <span className={styles.bottomNavText}>البحث</span>
               </button>
             )}
+            
             {isAuthenticated && (
               <>
                 {/* Notification */}
-            <button
-              onClick={handleNotificationClick}
-              className={styles.bottomNavItem}
-            >
-              <Notification className={styles.bottomNavIcon} />
-              <span className={styles.bottomNavText}>الإشعارات</span>
-            </button>
-            
-            {/* Favorites */}
-            <Link href="/favorites" className={styles.bottomNavItem}>
-              <Heart className={styles.bottomNavIcon} />
-              <span className={styles.bottomNavText}>المفضلة</span>
-            </Link>
-            
-            {/* Cart */}
-            <Link href="/cart" className={styles.bottomNavItem}>
-              <Cart className={styles.bottomNavIcon} />
-              <span className={styles.bottomNavText}>السلة</span>
-            </Link>
+                <button
+                  onClick={handleNotificationClick}
+                  className={styles.bottomNavItem}
+                >
+                  <Notification className={styles.bottomNavIcon} />
+                  <span className={styles.bottomNavText}>الإشعارات</span>
+                </button>
+
+                {/* Favorites */}
+                <Link href="/favorites" className={styles.bottomNavItem}>
+                  <Heart className={styles.bottomNavIcon} />
+                  <span className={styles.bottomNavText}>المفضلة</span>
+                </Link>
+                
+                {/* Cart */}
+                <Link href="/cart" className={styles.bottomNavItem}>
+                  <Cart className={styles.bottomNavIcon} />
+                  <span className={styles.bottomNavText}>السلة</span>
+                </Link>
               </>
             )}
+          </div>
+          
+          {/* Center Floating Button */}
+          <div className={styles.MessageCircle}>
+            {chat ? (
+              
+              <MessIcon onClick={ handleChat}/>
+
+            ):(
+              <MessageCircle onClick={ handleChat}/>
+            )}
+            {open && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Modal Content */}
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-primary text-white p-4 text-center relative">
+              <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
+              <button 
+                onClick={() => setOpen(false)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200"
+                aria-label="إغلاق"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form */}
+            <form className="p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="الاسم"
+                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div>
+                  <input
+                    type="tel"
+                    placeholder="رقم الهاتف"
+                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <input
+                  type="email"
+                  placeholder="البريد الإلكتروني"
+                  className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <textarea
+                  rows={4}
+                  placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
+                  className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
+                >
+                  إرسال
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
             
           </div>
         </nav>
