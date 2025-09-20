@@ -5,7 +5,6 @@ import CartItemsList from './Sections/CartItemsList';
 import OrderSummary from './Sections/OrderSummary';
 import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import FloatingWhatsApp from './Sections/FloatingWhatsApp';
 import type { CartItem } from './Sections/types';
 import { div } from 'motion/react-client';
 
@@ -71,16 +70,12 @@ const CartPage = () => {
           {cartItems.length > 0 && (
             <div className="lg:col-span-1">
               <OrderSummary itemCount={cartItems.length} total={total} hasItems={cartItems.length > 0} />
-              <ContactHelp />
             </div>
           )}
         </div>
 
         <RelatedProducts />
       </div>
-
-      {/* Fixed WhatsApp Button - Mobile */}
-      {/* <FloatingWhatsApp /> */}
     </div>
   );
 };
