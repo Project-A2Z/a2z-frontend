@@ -6,7 +6,6 @@
   border: 1px solid var(--black8);
   display: flex;
   flex-direction: column;
-  /* gap: 16px; */
   font-family: var(--font-primary);
   direction: rtl;
   text-align: flex-start;
@@ -18,15 +17,15 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--black60);
-  /* margin-bottom: 8px; */
-  text-align:start ;
+  text-align: start;
   display: block;
 }
-.SummaryContainer span {
-    display: inline;
-  font-family: var(--font-primary);
 
+.SummaryContainer span {
+  display: inline;
+  font-family: var(--font-primary);
 }
+
 .details {
   font-size: 1rem;
   font-weight: 400;
@@ -37,7 +36,6 @@
   margin-bottom: 4px;
   display: inline;
   position: relative;
-  /* right: -35%; */
 }
 
 .details::after {
@@ -52,7 +50,6 @@
   font-weight: 500;
   color: var(--black60);
   margin-top: -14%;
-  /* text-align: left; */
   direction: ltr;
 }
 
@@ -97,7 +94,6 @@
   box-shadow: 0 2px 8px rgba(76, 147, 67, 0.2) !important;
 }
 
-
 /* Enabled button styles */
 .button:not(:disabled) {
   background-color: var(--primary) !important;
@@ -125,49 +121,6 @@
   box-shadow: none !important;
 }
 
-/* Responsive design */
-@media (max-width: 480px) {
-  .SummaryContainer {
-    max-width: 100%;
-    margin: 0;
-    padding: 20px;
-  }
-  
-  .title {
-    font-size: 16px;
-  }
-  
-  .details, .price {
-    font-size: 13px;
-  }
-  
-  .button {
-    padding: 14px 20px !important;
-    font-size: 14px !important;
-  }
-}
-
-/* Additional styling for better alignment */
-.SummaryContainer > *:not(.button) {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.SummaryContainer > .title {
-  justify-content: center;
-  text-align: center;
-  border-bottom: 1px solid var(--black16);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-/* Ensure proper RTL layout for prices */
-.price {
-  font-family: 'Arial', sans-serif;
-}
-
 .Container {
   width: 80%;
   font-family: var(--font-primary);
@@ -193,19 +146,35 @@
   position: relative;
   margin-top: 0.6rem;
 }
-.editbtn{
-    background-color: unset;
-    color: var(--primary);
-    position: absolute;
-    top : 5%;
-    left: 1%;
-    border: none;
+
+.AddContainer {
+  background-color: var(--background);
+  border-radius: 16px;
+  border: 2px solid var(--black8);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  margin-top: 0.6rem;
+}
+
+.editbtn {
+  background-color: unset;
+  color: var(--primary);
+  position: absolute;
+  top: 5%;
+  left: 1%;
+  border: none;
 }
 
 .detailsAdress {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
+  justify-self: flex-start;
+  align-self: flex-start;
+  margin-right: 4%;
+  margin-top: -4%;
 }
 
 .title {
@@ -316,39 +285,6 @@
   margin-top: 4px;
 }
 
-/* Button styling overrides */
-/* .Container button {
-  font-family: var(--font-primary) !important;
-  align-self: flex-start;
-} */
-
-/* Edit button in normal mode */
-/* .mineContainer button {
-  background-color: transparent !important;
-  color: var(--primary) !important;
-  border: 1px solid var(--primary) !important;
-  padding: 8px 16px !important;
-  border-radius: 8px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-end;
-  margin-top: 8px;
-} */
-/* 
-.mineContainer button:hover {
-  background-color: var(--primary) !important;
-  color: var(--onPrimary) !important;
-} */
-/* 
-.mineContainer button svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-} */
-
 /* Add new address button styling */
 .confirm {
   background-color: var(--primary) !important;
@@ -378,34 +314,6 @@
   width: 18px;
   height: 18px;
   fill: currentColor;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .Container {
-    padding: 0 16px;
-  }
-  
-  .mineContainer {
-    padding: 16px;
-  }
-  
-  .add {
-    padding: 16px;
-  }
-  
-  .title {
-    font-size: 16px;
-  }
-  
-  .addressName {
-    font-size: 15px;
-  }
-  
-  .addressPhone,
-  .addressText {
-    font-size: 13px;
-  }
 }
 
 /* Animation for mode switching */
@@ -443,9 +351,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px; /* Space for scrollbar */
-  /* margin-bottom: 1rem; */
-    
   margin: 1rem 0;
+  
   /* Custom scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: var(--primary) transparent;
@@ -558,89 +465,6 @@
   animation: fadeInUp 0.3s ease forwards;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .Container {
-    padding: 20px;
-  }
-  
-  .mineContainer {
-    padding: 20px;
-  }
-  
-  .orderItemsContainer {
-    max-height: 50vh; /* Reduce height on tablets */
-    padding-right: 4px;
-  }
-  
-  .title {
-    font-size: 16px;
-  }
-  
-  .details {
-    font-size: 13px;
-  }
-  
-  .orderItem {
-    gap: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-  
-  .orderImage {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .orderName {
-    font-size: 13px;
-  }
-  
-  .orderPrice {
-    font-size: 13px;
-  }
-  
-  .ordTitle {
-    font-size: 15px;
-    padding: 10px;
-  }
-  
-  .mineContainer button {
-    padding: 14px 20px !important;
-    font-size: 15px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .Container {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .mineContainer {
-    padding: 16px;
-    gap: 16px;
-  }
-  
-  .orderItemsContainer {
-    max-height: 40vh; /* Further reduce height on mobile */
-  }
-  
-  .orderItem {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  
-  .orderDetails {
-    text-align: center;
-  }
-  
-  .orderImage {
-    align-self: center;
-  }
-}
 /* Cash.module.css */
 .Container {
   background: var(--background);
@@ -709,10 +533,10 @@
   cursor: pointer;
   accent-color: var(--primary);
   flex-shrink: 0;
-  /* display: block; */
 }
-.In{
-    margin: 2% 0;
+
+.In {
+  margin: 2% 0;
 }
 
 .radioLabel {
@@ -737,17 +561,6 @@
   border-radius: 12px;
   border: 1px solid var(--black8);
 }
-
-/* .priceSection {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--background);
-  padding: 16px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--black16);
-  margin-bottom: 20px;
-} */
 
 .priceForm {
   font-size: 1rem;
@@ -890,19 +703,7 @@
   border-radius: 12px;
   margin: 1.25rem 0.2rem;
   border: 1px solid var(--black16);
-  /* display: flex; */
-
-  /* width: ; */
-    
 }
-
-/* .infoTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--black87);
-  margin-bottom: 16px;
-  text-align: start;
-} */
 
 .infoGrid {
   display: grid;
@@ -920,20 +721,19 @@
   color: var(--primary);
   margin-bottom: 8px;
 }
+
 .infoItem {
   display: flex;
   align-items: center;
   margin-bottom: 4px;
   font-size: 12px;
   direction: rtl;
-  /* Remove justify-content: space-between to prevent wide gaps */
   gap: 4px; /* Use a small, consistent gap instead */
 }
 
 .infoLabel {
   color: var(--black60);
   white-space: nowrap;
-  /* Remove any margin that might cause spacing */
   margin: 0;
 }
 
@@ -942,8 +742,6 @@
   font-weight: 500;
   white-space: nowrap;
   margin: 0;
-  /* If you want the value to be bold/highlighted */
-  /* You can wrap it in ** in the JSX instead of CSS */
 }
 
 /* Alternative approach - keep everything in one line without flex space-between */
@@ -964,6 +762,7 @@
   color: var(--black87);
   font-weight: 500;
 }
+
 .confirmButton {
   width: 100%;
   padding: 14px 24px;
@@ -984,11 +783,193 @@
   background: var(--secondary1);
 }
 
+/* iPad Pro specific styles (1024px x 1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .Container {
+    margin: 6% 8%; /* Increased margins for iPad Pro */
+    padding: 3%;
+  }
+  
+  .SummaryContainer {
+    margin: 8% auto; /* Increased margin for iPad Pro */
+    max-width: 380px; /* Slightly larger for iPad Pro */
+    padding: 32px;
+  }
+  
+  .mineContainer {
+    padding: 28px;
+    margin: 2% 0;
+  }
+  
+  .AddContainer {
+    margin: 2% 0;
+  }
+  
+  .orderItemsContainer {
+    padding-right: 12px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .details, .price {
+    font-size: 16px;
+  }
+  
+  .button {
+    padding: 18px 28px !important;
+    font-size: 17px !important;
+  }
+}
 
-/* Responsive design */
+/* iPhone XR specific styles (414px x 896px) */
+@media (max-width: 414px) and (min-height: 800px) {
+  .SummaryContainer {
+    padding: 18px;
+    margin: 5% auto;
+  }
+  
+  .price {
+    margin-top: -8%; /* Reduced negative margin to move price down */
+    margin-bottom: 8px; /* Added bottom margin */
+  }
+  
+  /* Fix for radio button alignment in cash component */
+  .radioOption {
+    padding: 20px 16px; /* Increased padding for better spacing */
+    align-items: flex-start; /* Align items to start instead of center */
+    gap: 12px; /* Add gap between radio and label */
+  }
+  
+  .radio {
+    margin-top: 2px; /* Slightly move radio down */
+    margin-left: 0;
+    flex-shrink: 0;
+  }
+  
+  .radioLabel {
+    margin-top: -2px; /* Move label up slightly to align with radio */
+    line-height: 1.5;
+    padding: 0; /* Remove any padding */
+  }
+  
+  .In {
+    margin: 8px 0;
+  }
+  
+  .Container {
+    margin: 3% 2%;
+    padding: 16px;
+  }
+}
+
+/* General mobile styles (tablets and small screens) */
 @media (max-width: 768px) {
   .Container {
-    margin-top: 16px;
+    padding: 0 16px;
+    margin: 2% 1%;
+  }
+  
+  .SummaryContainer {
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .details, .price {
+    font-size: 13px;
+  }
+  
+  .button {
+    padding: 14px 20px !important;
+    font-size: 14px !important;
+  }
+  
+  .mineContainer {
+    padding: 16px;
+  }
+  
+  .add {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .addressName {
+    font-size: 15px;
+  }
+  
+  .addressPhone,
+  .addressText {
+    font-size: 13px;
+  }
+  
+  .orderItemsContainer {
+    max-height: 50vh; /* Reduce height on tablets */
+    padding-right: 4px;
+  }
+  
+  .orderItem {
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .orderImage {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .orderName {
+    font-size: 13px;
+  }
+  
+  .orderPrice {
+    font-size: 13px;
+  }
+  
+  .ordTitle {
+    font-size: 15px;
+    padding: 10px;
+  }
+}
+
+/* Very small mobile devices */
+@media (max-width: 480px) {
+  .Container {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .mineContainer {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .orderItemsContainer {
+    max-height: 40vh; /* Further reduce height on mobile */
+  }
+  
+  .orderItem {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .orderDetails {
+    text-align: center;
+  }
+  
+  .orderImage {
+    align-self: center;
   }
   
   .paymentHeader {
@@ -1010,11 +991,367 @@
   
   .infoGrid {
     grid-template-columns: 1fr;
-    /* gap: 16px; */
   }
   
   .confirmButton {
     margin: 20px;
     margin-top: 0;
+  }
+}
+
+/* Address Component Mobile Styles */
+@media (max-width: 768px) {
+  .detailsAdress {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .mineContainer {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .editbtn {
+    align-self: flex-start;
+    min-height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* Delivery Component Mobile Styles */
+@media (max-width: 768px) {
+  .orderItemsContainer {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 12px 0;
+  }
+
+  .orderItem {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #f8f9fa;
+  }
+
+  .orderImage {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+  }
+
+  .itemImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .orderDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .orderName {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .orderPrice {
+    font-size: 14px;
+    color: #28a745;
+    font-weight: 500;
+  }
+
+  .confirm {
+    width: 100%;
+    margin-top: 16px;
+  }
+}
+
+/* Cash/Payment Component Mobile Styles */
+@media (max-width: 768px) {
+  .radioLabel {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px;
+    display: block;
+  }
+
+  .In {
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+  }
+
+  .In:hover {
+    border-color: #28a745;
+  }
+
+  .radio {
+    margin: 0 8px 0 0;
+  }
+
+  /* Form fields in mobile */
+  .formContainer {
+    margin-top: 16px;
+  }
+
+  .fieldGroup {
+    margin-bottom: 16px;
+  }
+
+  .label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #333;
+  }
+
+  .customInput {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .imageUploadContainer {
+    margin-top: 8px;
+  }
+
+  .uploadLabel {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+    border: 2px dashed #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+
+  .uploadLabel:hover {
+    border-color: #28a745;
+  }
+
+  .uploadPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .uploadedImage {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .hiddenInput {
+    display: none;
+  }
+
+  .priceForm {
+    font-size: 16px;
+    font-weight: 600;
+    color: #28a745;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  /* Payment information section */
+  .paymentInfo {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+  }
+
+  .title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+  }
+
+  .infoSection {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .infoSection:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .infoSectionTitle {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+  }
+
+  .infoItem {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .infoLabel {
+    color: #666;
+  }
+
+  .infoValue {
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+/* Summary Component Mobile Styles */
+@media (max-width: 768px) {
+  .SummaryContainer {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+    display: block;
+  }
+
+  .details {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    display: block;
+    text-align: left;
+  }
+
+  .button {
+    width: 100%;
+    margin-top: 16px;
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+/* WhatsApp floating button positioning for mobile */
+@media (max-width: 768px) {
+  .whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+  }
+}
+
+/* Loading state */
+.Container > div:only-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 18px;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .Container > div:only-child {
+    border-radius: 8px;
+    font-size: 16px;
+    min-height: 150px;
+  }
+}
+
+/* Additional improvements for better responsiveness */
+
+/* iPad Air and similar tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .Container {
+    margin: 4% 6%;
+    padding: 2.5%;
+  }
+  
+  .SummaryContainer {
+    margin: 6% auto;
+    max-width: 350px;
+    padding: 28px;
+  }
+  
+  .mineContainer {
+    padding: 24px;
+  }
+}
+
+/* Large phones in landscape */
+@media (max-width: 896px) and (orientation: landscape) {
+  .orderItemsContainer {
+    max-height: 35vh;
+  }
+  
+  .SummaryContainer {
+    margin: 3% auto;
+  }
+  
+  .Container {
+    margin: 2% 3%;
+  }
+}
+
+/* Extra fixes for radio button alignment across all devices */
+@media (max-width: 768px) {
+  .radioOption {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    gap: 12px;
+    min-height: 60px;
+  }
+  
+  .radio {
+    margin-top: 4px;
+    margin-left: 0;
+    position: relative;
+    top: 0;
+  }
+  
+  .radioLabel {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 }

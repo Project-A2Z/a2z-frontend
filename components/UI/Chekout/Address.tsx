@@ -48,7 +48,7 @@ const Address: React.FC<AddressProp> = ({ defaultAdd, Addresses, setDef }) => {
     return (
         <div className={styles.Container}>
             {!edit ? (
-                <div className={styles.mineContainer}>
+                <div className={styles.AddContainer}>
                     <div className={styles.detailsAdress}>
                         <span className={styles.title}>
                             العنوان
