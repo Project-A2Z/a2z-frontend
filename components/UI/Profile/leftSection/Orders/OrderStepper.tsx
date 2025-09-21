@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './order.module.css';
+import styles from './order.module.css'
 
 export type OrderStatus = 'pending' | 'reviewed' | 'processing' | 'shipped' | 'delivered';
 
@@ -31,23 +31,31 @@ const statusSteps: { key: OrderStatus; label: string }[] = [
   }
 ];
 
-const CheckIcon = () => (
-  <svg className={styles.checkIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+const CheckIcon = ({ className = '' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
   </svg>
 );
 
 export default function OrderStatusStepper({ 
-  currentStatus = 'pending',
+  currentStatus = 'delivered',
   onStatusUpdate 
 }: OrderStatusStepperProps) {
+  console.log('Component props - currentStatus:', currentStatus, 'typeof:', typeof currentStatus);
+  
   const [activeStatus, setActiveStatus] = useState<OrderStatus>(currentStatus);
 
   const getCurrentStepIndex = (status: OrderStatus): number => {
-    return statusSteps.findIndex(step => step.key === status);
+    const index = statusSteps.findIndex(step => step.key === status);
+    console.log(`getCurrentStepIndex for "${status}":`, index);
+    console.log('Available steps:', statusSteps.map(s => s.key));
+    
+    // Fallback: if status not found, return 0 (first step)
+    return index === -1 ? 0 : index;
   };
 
-  const currentStepIndex = getCurrentStepIndex(activeStatus);
+  const currentStepIndex = getCurrentStepIndex(currentStatus); // Max allowed step
+  const activeStepIndex = getCurrentStepIndex(activeStatus); // Currently selected step
 
   const handleStepClick = (stepIndex: number) => {
     const status = statusSteps[stepIndex]?.key;
@@ -57,59 +65,97 @@ export default function OrderStatusStepper({
     }
   };
 
-  const handleDemoClick = (status: OrderStatus) => {
-    setActiveStatus(status);
-    onStatusUpdate?.(status);
+  // Determine step state based on both current status (max) and active status (selected)
+  const getStepState = (stepIndex: number) => {
+    if (stepIndex < activeStepIndex) {
+      return 'complete';
+    } else if (stepIndex === activeStepIndex) {
+      return 'active';
+    } else {
+      return 'inactive';
+    }
   };
 
-  const getConnectorWidth = () => {
-    if (currentStepIndex <= 0) return 0;
-    return (currentStepIndex / (statusSteps.length - 1)) * 100;
+  // Determine if step is clickable (based on max allowed currentStatus)
+  const isStepClickable = (stepIndex: number) => {
+    return stepIndex <= currentStepIndex;
   };
+
+  // Determine if connector line should be active (based on selected activeStatus)
+  const isConnectorActive = (stepIndex: number) => {
+    return stepIndex < activeStepIndex;
+  };
+
+  // Debug logging to help understand the issue
+  console.log('Current Status:', currentStatus, 'Index:', currentStepIndex);
+  console.log('Active Status:', activeStatus, 'Index:', activeStepIndex);
 
   return (
     <div className={styles.stepperContainer}>
       <div className={styles.stepsWrapper}>
-        {/* Connector Line */}
-        <div className={styles.connector}>
-          <div 
-            className={styles.connectorProgress}
-            style={{ width: `${getConnectorWidth()}%` }}
-          />
-        </div>
-        
-        {/* Steps */}
         {statusSteps.map((step, index) => {
-          const isActive = currentStepIndex === index;
-          const isComplete = currentStepIndex > index;
-          const isClickable = index <= currentStepIndex;
-          
+          const stepState = getStepState(index);
+          const isClickable = isStepClickable(index);
+          const showConnector = index < statusSteps.length - 1;
+          const connectorActive = isConnectorActive(index);
+
           const circleClasses = [
             styles.stepCircle,
-            isComplete ? styles.complete : 
-            isActive ? styles.active : styles.inactive,
+            stepState === 'active' ? styles.active : '',
+            stepState === 'complete' ? styles.complete : '',
+            stepState === 'inactive' ? styles.inactive : '',
             !isClickable ? styles.disabled : ''
           ].filter(Boolean).join(' ');
 
+          // Fix: Show check icon for both complete and active states
+          const shouldShowCheckIcon = stepState === 'complete' || stepState === 'active';
+
+          // Debug logging for each step
+          console.log(`Step ${index} (${step.key}):`, {
+            stepState,
+            shouldShowCheckIcon,
+            isClickable,
+            connectorActive
+          });
+
           return (
-            <div 
-              key={step.key} 
-              className={styles.stepItem}
-              onClick={() => isClickable && handleStepClick(index)}
-            >
-              <div className={circleClasses}>
-                {isComplete ? (
-                  <CheckIcon />
-                ) : (
-                  <span>{step.label}</span>
-                )}
+            <React.Fragment key={step.key}>
+              <div 
+                className={styles.stepItem}
+                onClick={() => isClickable && handleStepClick(index)}
+              >
+                <div className={circleClasses}>
+                  {/* Text shown on desktop */}
+                  <span className={styles.stepText}>
+                    {step.label}
+                  </span>
+                  
+                  {/* Icon shown on mobile - Fixed logic */}
+                  <span className={styles.stepCheckIcon}>
+                    {shouldShowCheckIcon ? (
+                      <CheckIcon />
+                    ) : (
+                      <span></span>
+                    )}
+                  </span>
+                </div>
+                
+                {/* Label shown below on mobile */}
+                <div className={styles.stepLabel}>
+                  {step.label}
+                </div>
               </div>
-            </div>
+
+              {/* Individual connector line between each step */}
+              {showConnector && (
+                <div className={`${styles.stepConnector} ${connectorActive ? styles.stepConnectorActive : styles.stepConnectorInactive}`}>
+                  <div className={styles.connectorLine}></div>
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>
-
-      
     </div>
   );
 }

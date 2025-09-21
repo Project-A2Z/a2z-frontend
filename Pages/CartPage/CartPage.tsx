@@ -69,7 +69,7 @@ const CartPage = () => {
           {/* Order Summary */}
           {cartItems.length > 0 && (
             <div className="lg:col-span-1">
-              <OrderSummary itemCount={cartItems.length} total={total} hasItems={cartItems.length > 0} />
+              <OrderSummary  order = {cartItems} itemCount={cartItems.length} total={total} hasItems={cartItems.length > 0} />
             </div>
           )}
         </div>

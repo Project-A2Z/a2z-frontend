@@ -8,19 +8,27 @@ import { Button } from "./../Buttons/Button"
 import Edit from './../../../public/icons/Pen.svg'
 import Location from './../../../public/icons/addLocation.svg'
 
-interface Add {
-    userName: string,
-    id: string,
-    address: string,
-    userNum: string
+interface Address {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  isDefault?: boolean;
+  
+  firstName?: string;
+  lastName?: string;
+//   phoneNumber?: string;
+  governorate?: string;
+  city?: string;
 }
 
 interface AddressProp {
-    defaultAdd: Add,
-    Addresses: Array<Add>
+    defaultAdd: Address,
+    Addresses: Array<Address>
+    setDef : (address: Address) => void
 }
 
-const Address: React.FC<AddressProp> = ({ defaultAdd, Addresses }) => {
+const Address: React.FC<AddressProp> = ({ defaultAdd, Addresses, setDef }) => {
     const [edit, setEdit] = useState(false)
     const router = useRouter()
 
@@ -29,31 +37,38 @@ const Address: React.FC<AddressProp> = ({ defaultAdd, Addresses }) => {
     }
 
     const handleNewAddressClick = () => {
-        router.push('/NewAddress') // Adjust the route as needed
+        router.push('/addAddress') // Adjust the route as needed
+    }
+
+    const handleAddressSelect = (address: Address) => {
+        setDef(address)
+        setEdit(false) // Close edit mode after selection
     }
 
     return (
         <div className={styles.Container}>
             {!edit ? (
                 <div className={styles.mineContainer}>
-                    <div className={styles.details}>
+                    <div className={styles.detailsAdress}>
                         <span className={styles.title}>
                             العنوان
                         </span>
-                        <span className={styles.details}>
-                            {defaultAdd.userName}
+                        <span className={styles.detailsAdress}>
+                            {defaultAdd.name}
                         </span>
-                        <span className={styles.details}>
-                            {defaultAdd.userNum}
+                        <span className={styles.detailsAdress}>
+                            {defaultAdd.phone}
                         </span>
-                        <span className={styles.details}>
+                        <span className={styles.detailsAdress}>
                             {defaultAdd.address}
                         </span>
                     </div>
                     <Button
-                        leftIcon={<Edit />}
+                        variant="custom"
+                        rightIcon={<Edit />}
                         size='sm'
                         onClick={handleEditClick}
+                        className={styles.editbtn}
                     >
                         تعديل
                     </Button>
@@ -67,13 +82,14 @@ const Address: React.FC<AddressProp> = ({ defaultAdd, Addresses }) => {
                             className={`${styles.add} ${
                                 defaultAdd.id === address.id ? styles.def : ''
                             }`}
+                            onClick={() => handleAddressSelect(address)}
                         >
                             <div className={styles.addressInfo}>
                                 <span className={styles.addressName}>
-                                    {address.userName}
+                                    {address.name}
                                 </span>
                                 <span className={styles.addressPhone}>
-                                    {address.userNum}
+                                    {address.phone}
                                 </span>
                                 <span className={styles.addressText}>
                                     {address.address}

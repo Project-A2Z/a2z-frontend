@@ -1,19 +1,19 @@
 'use client'
 import React , {useState , useEffect} from "react";
 import styles from './Style.module.css'
-import {Button} from '../Buttons/Button.tsx'
+import {Button} from './../../UI/Buttons/Button'
 // import {useRouter} from "next/navigatation";
 import { useRouter } from 'next/navigation';
 
 
 interface SummaryInter {
     Total : number,
-    delivery : number,
+    delivery? : number ,
     numberItems : number,
     disabled : boolean
 }
 
-const Summary : React.FC<SummaryInter> = ({ Total , delivery , numberItems , disabled}) =>{
+const Summary : React.FC<SummaryInter> = ({ Total , delivery = 1000 , numberItems , disabled}) =>{
 
     const router = useRouter()
 

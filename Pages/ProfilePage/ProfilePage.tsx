@@ -60,7 +60,7 @@ const ProfilePage = () => {
 
   return (
     <div className={styles.profile_page}>  
-      <Header />
+      {/* <Header /> */}
       
       <TopMetrics
         metrics={[

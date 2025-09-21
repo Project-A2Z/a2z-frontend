@@ -50,15 +50,15 @@
     /* max-height: 400px; */
     overflow-y: auto;
     padding-right: 8px;
-    margin-top: 24px;
-    margin-bottom: 16px;
+    /* margin-top: 70%; */
+    /* margin-bottom: 16px; */
 }
 .items_title{
     font-size: 20px;
     font-weight: 600;
     color: var(--black87);
     text-align: flex-start;
-    margin-top: 26%;
+    /* margin-top: 100px; */
     direction: rtl;
     font-family: var(--font-primary);
     /* border-bottom: 1px solid var(--black8); */
@@ -94,6 +94,9 @@
 
 /* Responsive: single column on smaller screens */
 @media (max-width: 768px) {
+    .container{
+        margin-top: 20%;
+    }
     .items_list > * {
         flex: 0 0 100%;
     }

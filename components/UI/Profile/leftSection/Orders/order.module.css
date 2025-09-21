@@ -483,6 +483,7 @@
     padding: 6px 12px;
     font-size: 13px;
     min-height: 32px;
+    margin-top: 2%;
   }
 }
 
@@ -496,7 +497,6 @@
     padding: 4px 10px;
     font-size: 12px;
     min-height: 28px;
-    margin-top: 1%;
   }
   
   .filterCount {
@@ -587,45 +587,13 @@
 
   color: var(--error);
 }
-
-/* OrderStatusStepper.module.css */
-
-.orderStatusContainer {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  direction: rtl;
-  text-align: right;
-}
-
-.orderHeader {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.orderHeader h3 {
-  margin: 0 0 8px 0;
-  color: #1e293b;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.deliveryTime {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
+/* stepper */
 .stepperContainer {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  font-family: var(--font-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   direction: rtl;
 }
 
@@ -643,77 +611,102 @@
   align-items: center;
   position: relative;
   z-index: 2;
+  flex: 1;
+}
+
+.stepConnector {
+  flex: 1;
+  height: 4px;
+  width: 100%;
+  margin: 0 10px;
+  position: relative;
+  z-index: 1;
+  
+}
+
+.connectorLine {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.stepConnectorActive .connectorLine {
+  background-color: var(--primary);
+}
+
+.stepConnectorInactive .connectorLine {
+  background-color: var(--disabled);
 }
 
 .stepCircle {
   width: 90px;
   height: 40px;
   border-radius: 24px;
-    border:   2px  solid var(--background);
-    outline: 2px solid var(--primary);
+  border: 2px solid var(--background);
+  outline: 1px solid var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--onPrimary);
+  color: var(--background);
   transition: all 0.3s ease;
   cursor: pointer;
   text-align: center;
   line-height: 1.2;
   padding: 8px;
-  /* box-sizing: border-box; */
+  background-color: var(--primary);
+  box-sizing: border-box;
 }
 
 .stepCircle.inactive {
   background-color: var(--disabled);
-    border:   2px  solid var(--background);
-    outline: 2px solid var(--disabled);
-  color: var(--black60);
+  outline: 2px solid var(--disabled);
+  color: var(--background);
 }
 
 .stepCircle.active {
   background-color: var(--primary);
+  outline: 2px solid var(--primary);
   box-shadow: 0 4px 12px rgba(76, 147, 67, 0.3);
+  /* color: #ffffff; */
+  color: var(--background);
+
 }
 
 .stepCircle.complete {
   background-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(76, 147, 67, 0.3);
+  outline: 2px solid var(--primary);
+  /* box-shadow: 0 4px 12px rgba(76, 147, 67, 0.3); */
+  color: var(--background);
 }
 
 .stepCircle.disabled {
   cursor: default;
 }
 
-.connector {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--disabled);
-  z-index: 1;
-  transform: translateY(-50%);
+.stepText {
+  display: block;
 }
 
-.connectorProgress {
-  height: 100%;
-  background-color: var(--primary);
-  transition: width 0.5s ease;
-  border-radius: 2px;
+.stepCheckIcon {
+  display: none;
 }
 
-.checkIcon {
-  width: 20px;
-  height: 20px;
-  color: var(--onPrimary);
+.stepLabel {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--black60);
+  text-align: center;
+  font-weight: 500;
+  display: none;
 }
-
+/* 
 .demoControls {
   margin-top: 40px;
   padding: 20px;
-  background-color: var(--card);
+  background-color: #f9fafb;
   border-radius: 12px;
   text-align: center;
 }
@@ -721,7 +714,7 @@
 .demoTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--black87);
+  color: #374151;
   margin-bottom: 15px;
 }
 
@@ -743,30 +736,54 @@
 }
 
 .demoButton.active {
-  background-color: var(--primary);
-  color: var(--onPrimary);
+  background-color: #4c9343;
+  color: #ffffff;
 }
 
 .demoButton:not(.active) {
-  background-color: var(--black8);
-  color: var(--black60);
+  background-color: #e5e7eb;
+  color: #6b7280;
 }
 
 .demoButton:not(.active):hover {
-  background-color: var(--black16);
-}
+  background-color: #d1d5db;
+} */
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .stepperContainer {
     padding: 15px;
   }
   
   .stepCircle {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     font-size: 10px;
-    padding: 6px;
+    padding: 0;
+    min-width: 40px;
+  }
+  
+  .stepConnector {
+    margin: 0 5px;
+    height: 3px;
+    width: 10%;
+    margin-top: -12%;
+  }
+  
+  .stepLabel {
+    display: block;
+    font-size: 10px;
+    margin-top: 8px;
+    max-width: 60px;
+    word-wrap: break-word;
+  }
+  
+  .stepText {
+    display: none;
+  }
+  
+  .stepCheckIcon {
+    display: block;
   }
   
   .stepsWrapper {
@@ -785,13 +802,19 @@
 
 @media (max-width: 480px) {
   .stepCircle {
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35px;
     font-size: 9px;
   }
   
-  .connector {
-    height: 3px;
+  .stepLabel {
+    font-size: 9px;
+    margin-top: 6px;
+  }
+  
+  .stepConnector {
+    height: 2px;
+    margin: 0 3px;
   }
 }
 /* InfoCard.module.css */

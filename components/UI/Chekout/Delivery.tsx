@@ -13,10 +13,13 @@ interface Detailes {
 }
 
 interface Item {
-    image: string,
-    price: number,
-    id: string,
-    name: string
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  unit: string;
+  availability: string;
 }
 
 interface DeliveryProp {
@@ -28,66 +31,79 @@ interface DeliveryProp {
 
 const Delivery: React.FC<DeliveryProp> = ({ deliveryInfo, orders, editProp, setEditProp }) => {
     const [edit, setEdit] = useState<boolean>(editProp)
-
+    
     useEffect(() => {
         setEdit(editProp)
     }, [editProp])
-
+    
     const handleEditClick = () => {
         const newEditState = !edit
         setEdit(newEditState)
         setEditProp(newEditState)
     }
-
+    
     const handleConfirmClick = () => {
         setEdit(false)
         setEditProp(false)
     }
-
+    
     return (
         <div className={styles.Container}>
             <span className={styles.title}>تفاصيل التوصيل</span>
             <span className={styles.details}>مصاريف التوصيل: {deliveryInfo.price}ج</span>
+            <br/>
             <span className={styles.details}>التوصيل بين يومي {deliveryInfo.start} و {deliveryInfo.ends}</span>
-            
+           
             {edit ? (
                 <div className={styles.mineContainer}>
-                    <span className={styles.ordTitle}>طرد</span>
+                    <span className={styles.orderTitle}>طرد</span>
+                   
+                    {/* Scrollable container for order items */}
+                    <div className={styles.orderItemsContainer}>
+                        {orders.map((order, index) => (
+                            <div 
+                                key={order.id} 
+                                className={styles.orderItem}
+                                style={{
+                                    animationDelay: `${index * 0.1}s`
+                                }}
+                            >
+                                <div className={styles.orderImage}>
+                                    <img
+                                        src={order.image}
+                                        alt={order.name}
+                                        className={styles.itemImage}
+                                    />
+                                </div>
+                                <div className={styles.orderDetails}>
+                                    <span className={styles.orderName}>
+                                        {order.name}
+                                    </span>
+                                    <span className={styles.orderPrice}>
+                                        {order.price}ج
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                     
-                    {/* Map through orders when in edit mode */}
-                    {orders.map((order) => (
-                        <div key={order.id} className={styles.orderItem}>
-                            <div className={styles.orderImage}>
-                                <img 
-                                    src={order.image} 
-                                    alt={order.name}
-                                    className={styles.itemImage}
-                                />
-                            </div>
-                            <div className={styles.orderDetails}>
-                                <span className={styles.orderName}>
-                                    {order.name}
-                                </span>
-                                <span className={styles.orderPrice}>
-                                    {order.price}ج
-                                </span>
-                            </div>
-                        </div>
-                    ))}
                     <Button
                         variant="primary"
                         size="md"
                         onClick={handleConfirmClick}
                         rounded={true}
+                        className={styles.confirm}
                     >
                         تأكيد تفاصيل التوصيل
                     </Button>
                 </div>
             ) : (
                 <Button
-                    size="sm"
-                    leftIcon={<Edit />}
+                    variant="custom"
+                    rightIcon={<Edit />}
+                    size='sm'
                     onClick={handleEditClick}
+                    className={styles.editbtn}
                 >
                     تعديل
                 </Button>

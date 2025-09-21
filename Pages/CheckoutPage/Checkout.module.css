@@ -1,0 +1,85 @@
+/* Checkout.module.css */
+
+.Container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background);
+  font-family: var(--font-primary);
+  direction: rtl;
+  padding: 1.25rem;
+  gap: 1.5rem;
+  /* max-width: 1200px; */
+  margin: 5% auto;
+}
+
+/* Left side - Order Summary (now on the right visually) */
+.left {
+  flex: 0 0 350px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+  order: 2;
+}
+
+/* Right side - Checkout Forms (now on the left visually and much wider) */
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 70%;
+  order: 1;
+  max-width: calc(100% - 374px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .Container {
+    flex-direction: column;
+    padding: 16px;
+    gap: 20px;
+  }
+  
+  .left {
+    flex: none;
+    position: static;
+    order: 2;
+  }
+  
+  .right {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .Container {
+    padding: 12px;
+    gap: 16px;
+  }
+  
+  .left {
+    margin-top: 16px;
+  }
+}
+
+/* Loading state */
+.Container > div:only-child {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 18px;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure proper spacing for form components */
+.right > * {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}

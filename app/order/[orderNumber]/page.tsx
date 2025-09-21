@@ -8,14 +8,14 @@ import OrderStepper  from "./../../../components/UI/Profile/leftSection/Orders/O
 import type { OrderStatus } from "./../../../components/UI/Profile/leftSection/Orders/OrderStepper";
 import InfoCard from "../../../components/UI/Profile/leftSection/Orders/InfoCard";
 import ItemCard from "../../../components/UI/Profile/leftSection/Orders/ItemCard";
-import img from './../../../public/acessts/Frame 1321314984 (1).png'
+import img from './../../../public/acessts/Frame.png'
 import Header from "@/components/Layout/Nav/Header";
 import Footer from "@/Pages/HomePage/sections/FooterSection/Footer";
 
 const order = {
     id: '1',
     orderNumber: 'ORD-001',
-    status: 'pending' as OrderStatus,
+    status: 'processing' as OrderStatus,
     date: '2025-08-30',
     total: 150.00,
     items: [
@@ -35,7 +35,7 @@ const OrderDetails: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <Header/>
+      {/* <Header/> */}
       <div className={styles.content_wrapper}>
         <span className={styles.title}> تفاصيل الطلب {orderNumber} </span>
         <div className={styles.stepper}>
@@ -69,7 +69,7 @@ const OrderDetails: React.FC = () => {
 
         </div>
       </div>
-      <Footer/>
+      {/* <Footer/> */}
       
     </div>
   );

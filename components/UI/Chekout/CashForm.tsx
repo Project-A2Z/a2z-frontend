@@ -20,7 +20,7 @@ const Form: React.FC<Form> = ({ Total, way, setOpDate, setOpId, setOpImg, setOpP
     const [price, setPrice] = useState(Total)
     const [transactionId, setTransactionId] = useState('')
     const [transactionDate, setTransactionDate] = useState('')
-    const [receiptImage, setReceiptImage] = useState('')
+    const [receiptImage, setReceiptImage] = useState(Img)
 
     useEffect(() => {
         if (way === 'cash') {
@@ -59,68 +59,120 @@ const Form: React.FC<Form> = ({ Total, way, setOpDate, setOpId, setOpImg, setOpP
     }
 
     return (
-        <div className={styles.formContainer}>
-            <div className={styles.priceSection}>
-                <span className={styles.price}>المبلغ المطلوب: {price}ج</span>
-                <img src={Img} alt="Cart" className={styles.cartIcon} />
-            </div>
-
-            <div className={styles.formFields}>
-                <div className={styles.fieldGroup}>
-                    <label className={styles.label}>رقم المعاملة</label>
-                    <Input
-                        placeholder="أدخل رقم المعاملة"
-                        value={transactionId}
-                        onChange={(e) => setTransactionId(e.target.value)}
-                        className={styles.customInput}
-                    />
+        <>
+            
+            {/* Form Container */}
+            <div className={styles.formContainer}>
+                <div className={styles.priceSection}>
+                    <span className={styles.priceForm}>المبلغ المطلوب: {price}ج</span>
+                    {/* <img src={Img} alt="Cart" className={styles.cartIcon} /> */}
                 </div>
 
-                <div className={styles.fieldGroup}>
-                    <label className={styles.label}>التاريخ</label>
-                    <Input
-                        type="date"
-                        value={transactionDate}
-                        onChange={(e) => setTransactionDate(e.target.value)}
-                        className={styles.customInput}
-                    />
-                </div>
-
-                <div className={styles.fieldGroup}>
-                    <label className={styles.label}>صورة الإيصال</label>
-                    <div className={styles.imageUploadContainer}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className={styles.hiddenInput}
-                            id="receipt-upload"
+                <div className={styles.formFields}>
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>رقم المعاملة</label>
+                        <Input
+                            placeholder="أدخل رقم المعاملة"
+                            value={transactionId}
+                            onChange={(e) => setTransactionId(e.target.value)}
+                            className={styles.customInput}
                         />
-                        <label htmlFor="receipt-upload" className={styles.uploadLabel}>
-                            {receiptImage ? (
-                                <img src={receiptImage} alt="Receipt" className={styles.uploadedImage} />
-                            ) : (
-                                <div className={styles.uploadPlaceholder}>
-                                    <span>اضغط لرفع صورة الإيصال</span>
-                                </div>
-                            )}
-                        </label>
+                    </div>
+
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>التاريخ</label>
+                        <Input
+                            type="date"
+                            value={transactionDate}
+                            onChange={(e) => setTransactionDate(e.target.value)}
+                            className={styles.customInput}
+                        />
+                    </div>
+
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>صورة الإيصال</label>
+                        <div className={styles.imageUploadContainer}>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className={styles.hiddenInput}
+                                id="receipt-upload"
+                            />
+                            <label htmlFor="receipt-upload" className={styles.uploadLabel}>
+                                {receiptImage && receiptImage !== Img ? (
+                                    <img src={receiptImage} alt="Receipt" className={styles.uploadedImage} />
+                                ) : (
+                                    <div className={styles.uploadPlaceholder}>
+                                        <span>اضغط لرفع صورة الإيصال</span>
+                                    </div>
+                                )}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.buttonContainer}>
+                    <Button
+                        variant="primary"
+                        size="md"
+                        onClick={handleSubmit}
+                        disabled={!transactionId || !transactionDate}
+                        className={styles.confirm}
+                        rounded={true}
+                    >
+                        تأكيد العملية
+                    </Button>
+                </div>
+
+                {/* Payment Information Section */}
+            <div className={styles.paymentInfo}>
+                <div className={styles.title}>معلومات التحويل</div>
+                <div className={styles.infoGrid}>
+                    <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>للدفع باستخدام محفظة</div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>الرقم:</span>
+                            <span className={styles.infoValue}>01023456789</span>
+                        </div>
+                    </div>
+                    
+                    <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>للدفع باستخدام انستا باي</div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>الرقم:</span>
+                            <span className={styles.infoValue}>01023456789</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>حساب الدفع:</span>
+                            <span className={styles.infoValue}>atoz@instapay</span>
+                        </div>
+                    </div>
+                    
+                    <div className={styles.infoSection}>
+                        <div className={styles.infoSectionTitle}>للدفع باستخدام حساب بنكي</div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>اسم المستفيد:</span>
+                            <span className={styles.infoValue}>شركة التجارة الإلكترونية</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>رقم الحساب:</span>
+                            <span className={styles.infoValue}>1234567890123456</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>البنك:</span>
+                            <span className={styles.infoValue}>البنك الأهلي المصري</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>كود SWIFT:</span>
+                            <span className={styles.infoValue}>NBEGEGCX</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className={styles.buttonContainer}>
-                <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleSubmit}
-                    disabled={!transactionId || !transactionDate}
-                    className={styles.submitButton}
-                >
-                    تأكيد العملية
-                </Button>
             </div>
-        </div>
+        </>
     )
 }
 

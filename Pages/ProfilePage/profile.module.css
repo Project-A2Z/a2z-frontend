@@ -382,6 +382,7 @@
   gap: 0.5rem;
   margin-bottom: 1.5rem;
   position: relative;
+  z-index: 20;
 }
 
 .checkboxContainer {
@@ -426,207 +427,271 @@
   min-width: 120px;
 }
 
-/* Improved dropdown container */
 .container_drop {
-  width: 100%;
-  position: relative;
-  z-index: 10;
-  margin-bottom: 0.5rem;
-}
+          width: 100%;
+          position: relative;
+          z-index: 0;
+          background-color: var(--background, #ffffff);
+          margin-bottom: 0.5rem;
+        }
 
-/* Improved label styling */
-.label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--black87);
-  margin-bottom: 8px;
-  text-align: right;
-  direction: rtl;
-}
+        .container_drop_open {
+          z-index: 50;
+        }
 
-/* Improved button container */
-.buttonContainer {
-  position: relative;
-  width: 100%;
-}
+        .label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--black87, #1f2937);
+          margin-bottom: 8px;
+          text-align: right;
+          direction: rtl;
+        }
 
-/* Improved dropdown button */
-.dropdownButton {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: right;
-  background-color: var(--background);
-  border: 2px solid var(--black8);
-  border-radius: 24px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  font-size: 16px;
-  direction: rtl;
-}
+        .requiredStar {
+          color: #ef4444;
+          margin-left: 4px;
+        }
 
-.dropdownButton:hover:not(:disabled) {
-  border-color: var(--primary);
-}
+        .buttonContainer {
+          position: relative;
+          width: 100%;
+        }
 
-.dropdownButton:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
-}
+        .dropdownButton {
+          width: 100%;
+          padding: 12px 16px;
+          text-align: right;
+          background-color: var(--background, #ffffff);
+          border: 2px solid var(--black8, #e5e7eb);
+          border-radius: 24px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          cursor: pointer;
+          font-size: 16px;
+          direction: rtl;
+          outline: none;
+          font-family: inherit;
+        }
 
-/* Button States */
-.dropdownButtonOpen {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
-}
+        .dropdownButton:hover:not(:disabled) {
+          border-color: var(--primary, #4c9343);
+        }
 
-.dropdownButtonDisabled {
-  border-color: var(--black8);
-  background-color: #f9fafb;
-  cursor: not-allowed;
-  color: var(--black8);
-  opacity: 0.6;
-}
+        .dropdownButton:focus {
+          outline: none;
+          border-color: var(--primary, #4c9343);
+          box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
+        }
 
-/* Button Text */
-.buttonText {
-  flex: 1;
-  text-align: right;
-  color: var(--black87);
-  direction: rtl;
-}
+        .dropdownButtonOpen {
+          border-color: var(--primary, #4c9343);
+          box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
+        }
 
-.buttonTextPlaceholder {
-  color: var(--black60);
-}
+        .dropdownButtonDisabled {
+          border-color: var(--black8, #e5e7eb);
+          background-color: #f9fafb;
+          cursor: not-allowed;
+          opacity: 0.6;
+          position: relative;
+          z-index: 2;
+        }
 
-.buttonTextDisabled {
-  color: var(--black8);
-}
+        .dropdownButtonError {
+          border-color: #ef4444;
+        }
 
-/* Chevron Icon */
-.chevron {
-  width: 20px;
-  height: 20px;
-  color: var(--black60);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
+        .dropdownButtonError:focus {
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
 
-.chevronOpen {
-  transform: rotate(180deg);
-}
+        .buttonText {
+          flex: 1;
+          text-align: right;
+          color: var(--black87, #1f2937);
+          direction: rtl;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
-/* Options Container */
-.optionsContainer {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 4px;
-  background-color: var(--background);
-  border: 2px solid var(--primary);
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  z-index: 50;
-  max-height: 240px;
-  overflow-y: auto;
-  direction: rtl;
-  z-index: 10;
-}
+        .buttonTextPlaceholder {
+          color: var(--black60, #6b7280);
+        }
 
-/* Option Button */
-.optionButton {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: right;
-  transition: all 0.15s ease;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: var(--black87);
-  font-size: 16px;
-  direction: rtl;
-}
+        .buttonTextDisabled {
+          color: var(--black60, #9ca3af);
+        }
 
-.optionButton:hover {
-  background-color: rgba(76, 147, 67, 0.1);
-  color: var(--primary);
-}
+        .chevron {
+          width: 20px;
+          height: 20px;
+          color: var(--black60, #6b7280);
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+          margin-left: 8px;
+        }
 
-.optionButtonFirst {
-  border-radius: 14px 14px 0 0;
-}
+        .chevronOpen {
+          transform: rotate(180deg);
+        }
 
-.optionButtonLast {
-  border-radius: 0 0 14px 14px;
-}
+        .chevronDisabled {
+          color: var(--black60, #9ca3af);
+        }
 
-.optionButtonSelected {
-  background-color: rgba(76, 147, 67, 0.1);
-  color: var(--primary);
-  font-weight: 600;
-}
+        .optionsContainer {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          margin-top: 4px;
+          background-color: var(--background, #ffffff);
+          border: 2px solid var(--primary, #4c9343);
+          border-radius: 16px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          z-index: 50;
+          max-height: 240px;
+          overflow-y: auto;
+          direction: rtl;
+          animation: fadeIn 0.15s ease-out;
+        }
 
-/* Scrollbar Styling */
-.optionsContainer::-webkit-scrollbar {
-  width: 6px;
-}
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-.optionsContainer::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 3px;
-}
+        .searchContainer {
+          padding: 8px;
+          border-bottom: 1px solid var(--black8, #e5e7eb);
+          position: sticky;
+          top: 0;
+          background-color: var(--background, #ffffff);
+          border-radius: 14px 14px 0 0;
+        }
 
-.optionsContainer::-webkit-scrollbar-thumb {
-  background: var(--black8);
-  border-radius: 3px;
-}
+        .searchInput {
+          width: 100%;
+          padding: 8px 12px;
+          padding-right: 36px;
+          border: 1px solid var(--black8, #e5e7eb);
+          border-radius: 12px;
+          font-size: 14px;
+          text-align: right;
+          direction: rtl;
+          outline: none;
+          font-family: inherit;
+        }
 
-.optionsContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--black60);
-}
+        .searchInput:focus {
+          border-color: var(--primary, #4c9343);
+          box-shadow: 0 0 0 2px rgba(76, 147, 67, 0.1);
+        }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .container_newaddress {
-    padding: 1rem;
-  }
-  
-  .fieldGroup {
-    margin-bottom: 1.25rem;
-  }
-  
-  .buttonGroup {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .cancelButton, .saveButton {
-    max-width: none;
-    width: 100%;
-  }
-  
-  .dropdownButton {
-    padding: 14px 16px;
-  }
-  
-  .label {
-    font-size: 16px;
-  }
-}
+        .optionButton {
+          width: 100%;
+          padding: 12px 16px;
+          text-align: right;
+          transition: all 0.15s ease;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          color: var(--black87, #1f2937);
+          font-size: 16px;
+          direction: rtl;
+          font-family: inherit;
+          outline: none;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
-@media (max-width: 480px) {
-  .container_newaddress {
-    padding: 0.75rem;
-  }
-  
-  .title {
-    font-size: 1.25rem;
-  }
-}
+        .optionButton:hover,
+        .optionButtonFocused {
+          background-color: rgba(76, 147, 67, 0.1);
+          color: var(--primary, #4c9343);
+        }
+
+        .optionButton:focus {
+          background-color: rgba(76, 147, 67, 0.1);
+          color: var(--primary, #4c9343);
+        }
+
+        .optionButtonFirst {
+          border-radius: 14px 14px 0 0;
+        }
+
+        .optionButtonLast {
+          border-radius: 0 0 14px 14px;
+        }
+
+        .optionButtonSelected {
+          background-color: rgba(76, 147, 67, 0.1);
+          color: var(--primary, #4c9343);
+          font-weight: 600;
+        }
+
+        .errorMessage {
+          color: #ef4444;
+          font-size: 14px;
+          margin-top: 4px;
+          text-align: right;
+          direction: rtl;
+        }
+
+        .emptyState {
+          padding: 12px 16px;
+          text-align: center;
+          color: var(--black60, #6b7280);
+          font-style: italic;
+          direction: rtl;
+        }
+
+        .optionsContainer::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .optionsContainer::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 3px;
+        }
+
+        .optionsContainer::-webkit-scrollbar-thumb {
+          background: var(--black8, #e5e7eb);
+          border-radius: 3px;
+        }
+
+        .optionsContainer::-webkit-scrollbar-thumb:hover {
+          background: var(--black60, #6b7280);
+        }
+
+        @media (max-width: 640px) {
+          .dropdownButton {
+            padding: 14px 16px;
+          }
+          
+          .label {
+            font-size: 16px;
+          }
+          
+          .buttonText, .optionButton {
+            font-size: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .optionsContainer {
+            max-height: 200px;
+          }
+        }
