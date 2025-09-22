@@ -17,12 +17,79 @@ interface CardProps {
     productName?: string;
     productCategory?: string;
     productPrice?: string;
+    originalPrice?: string;
+    discount?: number;
     productId?: string;
     available?: boolean;
+    rating?: number;
+    reviewsCount?: number;
+    badge?: string; // For "New", "Sale", etc.
+    isLoading?: boolean;
 }
 
+// Helper function to format price
+const formatPrice = (price: string | number | undefined): string => {
+    if (!price) return '0';
+    const numericPrice = typeof price === 'string' 
+        ? parseFloat(price.replace(/[^0-9.]/g, ''))
+        : price;
+    
+    if (isNaN(numericPrice)) return '0';
+    
+    // Format with thousands separator
+    return numericPrice.toLocaleString('ar-EG');
+};
+
+// Helper function to calculate discount percentage
+const calculateDiscountPercentage = (originalPrice: number, currentPrice: number): number => {
+    if (!originalPrice || originalPrice <= currentPrice) return 0;
+    return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+};
+
+// Star rating component
+const StarRating = ({ rating, reviewsCount }: { rating?: number, reviewsCount?: number }) => {
+    if (!rating) return null;
+
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+        <div className={styles.ratingContainer}>
+            <div className={styles.stars}>
+                {/* Full stars */}
+                {Array.from({ length: fullStars }, (_, i) => (
+                    <span key={`full-${i}`} className={styles.starFull}>★</span>
+                ))}
+                {/* Half star */}
+                {hasHalfStar && <span className={styles.starHalf}>★</span>}
+                {/* Empty stars */}
+                {Array.from({ length: emptyStars }, (_, i) => (
+                    <span key={`empty-${i}`} className={styles.starEmpty}>☆</span>
+                ))}
+            </div>
+            {reviewsCount && reviewsCount > 0 && (
+                <span className={styles.reviewsCount}>({reviewsCount})</span>
+            )}
+        </div>
+    );
+};
+
 // This is already a function component, but here's a cleaner version
-function Card({ productImg , productName , productCategory , productPrice , productId , available } : CardProps) {
+function Card({ 
+    productImg, 
+    productName, 
+    productCategory, 
+    productPrice, 
+    originalPrice,
+    discount,
+    productId, 
+    available = true,
+    rating,
+    reviewsCount,
+    badge,
+    isLoading = false
+}: CardProps) {
     const { toggle, isFavorite } = useFavorites();
     const router = useRouter();
 
@@ -30,6 +97,12 @@ function Card({ productImg , productName , productCategory , productPrice , prod
         const n = parseFloat(String(productPrice ?? '0').replace(/[^0-9.]/g, ''));
         return isNaN(n) ? 0 : n;
     }, [productPrice]);
+
+    const numericOriginalPrice = useMemo(() => {
+        if (!originalPrice) return null;
+        const n = parseFloat(String(originalPrice).replace(/[^0-9.]/g, ''));
+        return isNaN(n) ? null : n;
+    }, [originalPrice]);
 
     const imageSrc: string = useMemo(() => {
         return typeof productImg === 'string' ? productImg : (productImg?.src || '/images/placeholder.jpg');
@@ -39,18 +112,64 @@ function Card({ productImg , productName , productCategory , productPrice , prod
 
     const loved = isFavorite(id!);
 
-    const onHeartClick = useCallback(() => {
-        if (!id) return;
+    const discountPercentage = useMemo(() => {
+        if (discount) return discount;
+        if (numericOriginalPrice && numericPrice) {
+            return calculateDiscountPercentage(numericOriginalPrice, numericPrice);
+        }
+        return 0;
+    }, [discount, numericOriginalPrice, numericPrice]);
+
+    const onHeartClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent navigation when clicking heart
+        if (!id || isLoading) return;
+        
         toggle({
             id,
             name: productName || 'منتج',
             price: numericPrice,
             image: imageSrc,
         });
-    }, [id, toggle, productName, numericPrice, imageSrc]);
+    }, [id, toggle, productName, numericPrice, imageSrc, isLoading]);
+
+    const handleCardClick = useCallback(() => {
+        if (isLoading) return;
+        
+        const slug = encodeURIComponent(productName || String(productId || ''));
+        router.push(`/product/${slug}`);
+    }, [router, productName, productId, isLoading]);
+
+    // Loading skeleton
+    if (isLoading) {
+        return (
+            <div className={`${styles.card} ${styles.loading}`}>
+                <div className={styles.cardHeader}>
+                    <div className={styles.skeletonImage}></div>
+                </div>
+                <div className={styles.cardBody}>
+                    <div className={styles.skeletonCategory}></div>
+                    <div className={styles.skeletonName}></div>
+                    <div className={styles.skeletonPrice}></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={styles.card} >
+        <div className={`${styles.card} ${!available ? styles.unavailable : ''}`}>
+            {/* Badges */}
+            {badge && (
+                <div className={styles.badge}>
+                    {badge}
+                </div>
+            )}
+            
+            {discountPercentage > 0 && (
+                <div className={styles.discountBadge}>
+                    -{discountPercentage}%
+                </div>
+            )}
+
             <div className={styles.cardHeader}>
                 <div className={styles.icon}>
                     {loved ? (
@@ -59,8 +178,8 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                             onClick={onHeartClick}
                             className={styles.heartIcon}
                             role="button"
-                            aria-label="Remove from favorites"
-                            alt="favorite"
+                            aria-label="إزالة من المفضلة"
+                            alt="مفضل"
                         />
                     ) : (
                         <img
@@ -68,30 +187,38 @@ function Card({ productImg , productName , productCategory , productPrice , prod
                             onClick={onHeartClick}
                             className={styles.heartIcon}
                             role="button"
-                            aria-label="Add to favorites"
-                            alt="not favorite"
+                            aria-label="إضافة إلى المفضلة"
+                            alt="غير مفضل"
                         />
                     )}
                 </div>
                 
                 <div
                     className={styles.cardImage}
-                    onClick={() => {
-                        const slug = encodeURIComponent(productName || String(productId || ''));
-                        router.push(`/product/${slug}`);
+                    onClick={handleCardClick}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            handleCardClick();
+                        }
                     }}
                 >
                     <CustomImage
-                    src={imageSrc}
-                    alt={productName || 'Product image'}
-                    width={192}
-                    height={192}
-                    rounded="md"
-                    className={styles.img}
-                    objectFit="cover" 
-                />
+                        src={imageSrc}
+                        alt={productName || 'صورة المنتج'}
+                        width={192}
+                        height={192}
+                        rounded="md"
+                        className={styles.img}
+                        objectFit="cover" 
+                    />
+                    
+                    {/* Hover overlay */}
+                    <div className={styles.hoverOverlay}>
+                        <span className={styles.viewDetails}>عرض التفاصيل</span>
+                    </div>
                 </div>
-                
                 
                 <div className={styles.available}>
                     <Availablity available={available} />
@@ -100,15 +227,47 @@ function Card({ productImg , productName , productCategory , productPrice , prod
             
             <div className={styles.cardBody}>
                 <div className={styles.category}>
-                    <span className={styles.categoryText}>{productCategory}</span>
+                    <span className={styles.categoryText}>{productCategory || 'غير محدد'}</span>
                 </div>
-                <h2 className={styles.productName}>
-                    {productName || 'Product Name'} 
+                
+                <h2 
+                    className={styles.productName}
+                    title={productName} // Show full name on hover
+                    onClick={handleCardClick}
+                >
+                    {productName || 'اسم المنتج'} 
                 </h2>
-                <h3 className={styles.productName}>{productPrice}ج</h3>
+                
+                {/* Rating */}
+                <StarRating rating={rating} reviewsCount={reviewsCount} />
+                
+                {/* Price section */}
+                <div className={styles.priceSection}>
+                    <div className={styles.currentPrice}>
+                        {formatPrice(productPrice)}
+                        <span className={styles.currency}>ج</span>
+                    </div>
+                    
+                    {numericOriginalPrice && numericOriginalPrice > numericPrice && (
+                        <div className={styles.originalPrice}>
+                            {formatPrice(originalPrice)}
+                            <span className={styles.currency}>ج</span>
+                        </div>
+                    )}
+                </div>
+                
+                {/* Quick action buttons (optional) */}
+                <div className={styles.quickActions}>
+                    <button 
+                        className={styles.quickViewBtn}
+                        onClick={handleCardClick}
+                        disabled={!available}
+                        aria-label="عرض سريع للمنتج"
+                    >
+                        عرض سريع
+                    </button>
+                </div>
             </div>
-            
-            
         </div>
     );
 }
