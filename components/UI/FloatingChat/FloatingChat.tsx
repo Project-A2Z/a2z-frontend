@@ -4,7 +4,7 @@ import { MessageCircle } from 'lucide-react';
 
 export default function FloatingChat() {
   const [open, setOpen] = useState(false);
-  const whatsappHref = 'https://wa.me/201000000000';
+  const whatsappHref = 'https://wa.me/2010957676137';
 
   return (
     //fixed right-4 bottom-1/2 transform translate-y-1/2 z-50 flex flex-col items-end gap-4
