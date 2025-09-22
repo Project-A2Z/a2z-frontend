@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import Card from './../Card/Card'; // Adjust the import path as needed
 import styles from './ProductSlider.module.css';
 
@@ -54,64 +54,7 @@ function ProductSlider({
   error = null
 }: ProductSliderProps) {
   const [currentPage, setCurrentPage] = useState(0);
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const sliderRef = useRef<HTMLDivElement>(null);
-
-  // Debug function to log image information
-  const debugImages = useCallback((products: Product[]) => {
-    console.log('=== PRODUCT SLIDER IMAGE DEBUG ===');
-    console.log(`Total products: ${products.length}`);
-    
-    products.slice(0, 5).forEach((product, index) => {
-      console.log(`Product ${index + 1}:`, {
-        id: product.id,
-        name: product.name || product.nameAr,
-        image: product.image,
-        img: product.img,
-        images: product.images,
-        imageFields: Object.keys(product).filter(key => 
-          key.toLowerCase().includes('image') || 
-          key.toLowerCase().includes('img') || 
-          key.toLowerCase().includes('photo') ||
-          key.toLowerCase().includes('pic')
-        ),
-        allFields: Object.keys(product)
-      });
-    });
-  }, []);
-
-  // Debug images when products change
-  useEffect(() => {
-    if (products.length > 0) {
-      debugImages(products);
-    }
-  }, [products, debugImages]);
-
-  // Test image URL accessibility
-  const testImageUrl = useCallback(async (url: string, productId: string | number) => {
-    try {
-      console.log(`Testing image URL for product ${productId}:`, url);
-      
-      const response = await fetch(url, { 
-        method: 'HEAD',
-        mode: 'no-cors' // Try no-cors first
-      });
-      
-      console.log(`Image test result for ${productId}:`, {
-        url,
-        status: response.status,
-        type: response.type,
-        ok: response.ok
-      });
-      
-    } catch (err) {
-      console.error(`Image test failed for product ${productId}: ${err}`)
-      //   url,
-      //   error: err?.message,
-      //   errorType: err?.name
-      // });
-    }
-  }, []);
 
   // Handle loading state
   if (isLoading) {
@@ -185,54 +128,13 @@ function ProductSlider({
 
   const currentProducts = getCurrentPageProducts();
 
-  // Enhanced helper function to get product image with debugging
-  const getProductImage = useCallback((product: Product): string => {
-    console.log(`Getting image for product ${product.id}:`, {
-      image: product.image,
-      img: product.img,
-      images: product.images
-    });
-
-    let imageUrl = '';
-    
-    // Try different image fields in order of preference
-    if (product.image && typeof product.image === 'string' && product.image.trim()) {
-      imageUrl = product.image.trim();
-    } else if (product.img && typeof product.img === 'string' && product.img.trim()) {
-      imageUrl = product.img.trim();
-    } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      imageUrl = product.images[0];
-    }
-
-    // If no image found, use placeholder
-    if (!imageUrl) {
-      console.warn(`No image found for product ${product.id}, using placeholder`);
-      return '/images/placeholder.jpg';
-    }
-
-    // Handle relative URLs - adjust this based on your API setup
-    if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 
-                     process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 
-                     window.location.origin;
-      imageUrl = `${baseUrl}${imageUrl}`;
-      console.log(`Converted relative URL for product ${product.id}:`, imageUrl);
-    }
-    
-    // Handle URLs without protocol
-    if (!imageUrl.startsWith('http') && !imageUrl.startsWith('data:') && !imageUrl.startsWith('//')) {
-      imageUrl = `https://${imageUrl}`;
-      console.log(`Added https protocol for product ${product.id}:`, imageUrl);
-    }
-
-    // Test the URL accessibility
-    if (typeof window !== 'undefined') {
-      testImageUrl(imageUrl, product.id);
-    }
-
-    console.log(`Final image URL for product ${product.id}:`, imageUrl);
-    return imageUrl;
-  }, [testImageUrl]);
+  // Helper function to get product image
+  const getProductImage = (product: Product): string => {
+    if (product.image) return product.image;
+    if (product.img) return product.img;
+    if (product.images && product.images.length > 0) return product.images[0];
+    return '/images/placeholder.jpg';
+  };
 
   // Helper function to get product status
   const getProductStatus = (product: Product): boolean => {
@@ -246,44 +148,8 @@ function ProductSlider({
     return product.nameAr || product.name || 'منتج غير محدد';
   };
 
-  // Handle image error
-  const handleImageError = useCallback((productId: string) => {
-    console.error(`Image failed to load for product: ${productId}`);
-    setImageErrors(prev => new Set([...prev, productId]));
-  }, []);
-
-  // Log current page products for debugging
-  useEffect(() => {
-    console.log('Current page products:', currentProducts.map(p => ({
-      id: p.id,
-      name: p.name,
-      image: getProductImage(p)
-    })));
-  }, [currentProducts, getProductImage]);
-
   return (
     <div className={styles.sliderContainer}>
-      {/* Debug Panel - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: '10px',
-          borderRadius: '5px',
-          fontSize: '12px',
-          zIndex: 9999,
-          maxWidth: '300px'
-        }}>
-          <div>Products: {products.length}</div>
-          <div>Current Page: {currentPage + 1}/{totalPages}</div>
-          <div>Image Errors: {imageErrors.size}</div>
-          <div>First Product Image: {products[0] ? getProductImage(products[0]) : 'N/A'}</div>
-        </div>
-      )}
-
       <div className={styles.gridWrapper}>
         <div 
           className={styles.productGrid}
@@ -295,29 +161,22 @@ function ProductSlider({
             minHeight: `${rows * 300}px` // Adjust based on your card height
           }}
         >
-          {currentProducts.map((product, index) => {
-            const productId = product.id?.toString() || (currentPage * itemsPerPage + index).toString();
-            const productImage = getProductImage(product);
-            const hasImageError = imageErrors.has(productId);
-
-            return (
-              <div key={`${product.id || product.name}-${currentPage}-${index}`} className={styles.gridItem}>
-                <Card
-                  productId={productId}
-                  productImg={hasImageError ? '/images/placeholder.jpg' : productImage}
-                  productName={getProductName(product)}
-                  productCategory={product.category || 'غير محدد'}
-                  productPrice={product.price?.toString() || '0'}
-                  available={getProductStatus(product)}
-                  originalPrice={product.originalPrice?.toString()}
-                  discount={product.discount}
-                  rating={product.rating}
-                  reviewsCount={product.reviewsCount}
-                  // onImageError={() => handleImageError(productId)}
-                />
-              </div>
-            );
-          })}
+          {currentProducts.map((product, index) => (
+            <div key={`${product.id || product.name}-${currentPage}-${index}`} className={styles.gridItem}>
+              <Card
+                productId={product.id?.toString() || (currentPage * itemsPerPage + index).toString()}
+                productImg={getProductImage(product)}
+                productName={getProductName(product)}
+                productCategory={product.category || 'غير محدد'}
+                productPrice={product.price?.toString() || '0'}
+                available={getProductStatus(product)}
+                originalPrice={product.originalPrice?.toString()}
+                discount={product.discount}
+                rating={product.rating}
+                reviewsCount={product.reviewsCount}
+              />
+            </div>
+          ))}
           
           {/* Fill empty slots if needed */}
           {Array.from({ length: itemsPerPage - currentProducts.length }).map((_, index) => (

@@ -428,7 +428,7 @@ export default function OptimizedProductSection({ initialData }: OptimizedProduc
 
   return (
     <div className={style.containerSection}>
-      
+    
 
       {/* Mobile Filter Button */}
       <div className={style.mobileFilterButton}>
@@ -462,7 +462,7 @@ export default function OptimizedProductSection({ initialData }: OptimizedProduc
         </Button>
       </div>
 
-   
+  
 
       <div className={style.container}>
         <ProductSlider 
