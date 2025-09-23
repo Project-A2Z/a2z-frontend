@@ -1,10 +1,9 @@
-// services/product/products-optimized.ts
+// services/product/products-optimized.ts (Performance optimized version)
 
-// Keep your existing API configuration
 const API_BASE_URL = 'https://a2z-backend.fly.dev/app/v1';
 const DEFAULT_LANGUAGE = 'ar';
 
-// Keep all your existing types
+// Product interface (unchanged from original)
 export interface Product {
   id: string | number;
   name: string;
@@ -16,8 +15,9 @@ export interface Product {
   price: number;
   originalPrice?: number;
   discount?: number;
-  image: string;
-  images?: string[];
+  image: string ;
+  images?: (string)[];
+  imageList?: (string)[]; 
   category: string;
   categoryId?: string | number;
   brand?: string;
@@ -65,130 +65,195 @@ export interface ProductFilters {
   lang?: string;
 }
 
-// Server-side function for Static Site Generation (SSG)
+// Lightweight image URL validation (no HTTP requests)
+const isValidImageUrl = (url: string): boolean => {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return false;
+  }
+  
+  // Check for obviously invalid URLs
+  if (url.includes('example.com') || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+    return false;
+  }
+  
+  // Check for common image extensions or cloud services
+  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i;
+  const cloudServices = /(cloudinary|amazonaws|imgix|unsplash|pexels)/i;
+  
+  return imageExtensions.test(url) || cloudServices.test(url);
+};
+
+// Fast image processing without HTTP validation (for build time)
+const processProductImagesStatic = (product: any): Product => {
+
+  const imageList = product.imageList || [];
+  const fallbackImages = product.images || [];
+  const fallbackImage = product.image || '';
+  
+  // Collect all possible images
+  const allImages: string[] = [];
+  
+  if (imageList.length > 0) {
+    allImages.push(...imageList.filter((img: any): img is string => img && typeof img === 'string'));
+  }
+  
+  // Add fallback images
+  if (fallbackImages.length > 0) {
+    allImages.push(...fallbackImages.filter((img: any): img is string => img && typeof img === 'string'));
+  }
+  // Add single fallback image
+  if (fallbackImage && !allImages.includes(fallbackImage)) {
+    allImages.push(fallbackImage);
+  }
+
+  // Remove duplicates and filter with basic validation
+  const uniqueImages = [...new Set(allImages)].filter(img => isValidImageUrl(img));
+  
+  return {
+    ...product,
+    name: product.nameAr || product.name || '',
+    description: product.descriptionAr || product.description || '',
+    category: product.category || '',
+    price: product.price || 0,
+    image: uniqueImages.length > 0 ? uniqueImages[0] : '',
+    images: uniqueImages.length > 0 ? uniqueImages : [],
+    imageList: uniqueImages.length > 0 ? uniqueImages : [],
+    inStock: product.inStock !== undefined ? product.inStock : true,
+  };
+};
+
+// Enhanced configuration for different environments
+const getRequestConfig = () => ({
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    // Add any authentication headers if needed
+    ...(process.env.API_KEY && { 'Authorization': `Bearer ${process.env.API_KEY}` }),
+  },
+});
+
+// Fast server-side function for Static Site Generation (getStaticProps)
 export async function getStaticProducts(): Promise<ProductsResponse> {
-  try {
-    const url = `${API_BASE_URL}/products`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      // No Next.js cache configuration here since this runs at build time
-    });
+  const maxRetries = 2; // Reduced retries for faster builds
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🚀 Fetching static products (attempt ${attempt}/${maxRetries})...`);
+      
+      const url = `${API_BASE_URL}/products`;
+      const config = getRequestConfig();
+      
+      // Set a reasonable timeout for build time
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        ...config,
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
-    }
+      clearTimeout(timeoutId);
 
-    const data: ProductsResponse = await response.json();
-    
-    return {
-      data: (data.data || []).map(product => ({
-        ...product,
-        name: product.nameAr || product.name || '',
-        description: product.descriptionAr || product.description || '',
-        category: product.category || '',
-        price: product.price || 0,
-        image: product.image || '',
-        inStock: product.inStock !== undefined ? product.inStock : true,
-      })),
-      pagination: data.pagination || {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 1
-      },
-      filters: data.filters
-    };
-  } catch (error) {
-    console.error('Error fetching static products:', error);
-    return {
-      data: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 1
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    };
+
+      const data: ProductsResponse = await response.json();
+      
+      console.log(`✅ Successfully fetched ${data.data?.length || 0} products`);
+      
+      // Fast processing without HTTP image validation
+      const processedProducts = (data.data || []).map(product => processProductImagesStatic(product));
+      
+      console.log(`⚡ Fast processing completed in milliseconds`);
+      
+      return {
+        data: processedProducts,
+        pagination: data.pagination || {
+          page: 1,
+          limit: processedProducts.length,
+          total: processedProducts.length,
+          totalPages: 1
+        },
+        filters: data.filters || {
+          categories: [],
+          brands: [],
+          priceRange: { min: 0, max: 0 }
+        }
+      };
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`❌ Attempt ${attempt} failed:`, error);
+      
+      // Shorter wait time for build performance
+      if (attempt < maxRetries) {
+        const delay = attempt * 2000; // 2s, 4s
+        console.log(`⏳ Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
+  
+  console.error('❌ All attempts failed for static generation:', lastError);
+  
+  // Return empty but valid response to prevent build failure
+  return {
+    data: [],
+    pagination: {
+      page: 1,
+      limit: 20,
+      total: 0,
+      totalPages: 1
+    },
+    filters: {
+      categories: [],
+      brands: [],
+      priceRange: {
+        min: 0,
+        max: 0
+      }
+    }
+  };
 }
 
-// Server-side function for Server-Side Rendering (SSR)
-export async function getServerSideProducts(filters: ProductFilters = {}): Promise<ProductsResponse> {
+// Client-side image validation (lazy loading)
+const validateImageUrl = async (url: string): Promise<boolean> => {
+  if (!isValidImageUrl(url)) return false;
+  
   try {
-    const url = `${API_BASE_URL}/products`;
-    
-    console.log('Server-side fetching products from:', url);
-    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      // Server-side fetch doesn't use Next.js cache
+      method: 'HEAD',
+      signal: controller.signal,
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const contentType = response.headers.get('content-type');
+      return !!(contentType && contentType.startsWith('image/'));
     }
-
-    const data: ProductsResponse = await response.json();
     
-    return {
-      data: (data.data || []).map(product => ({
-        ...product,
-        name: product.nameAr || product.name || '',
-        description: product.descriptionAr || product.description || '',
-        category: product.category || '',
-        price: product.price || 0,
-        image: product.image || '',
-        inStock: product.inStock !== undefined ? product.inStock : true,
-      })),
-      pagination: data.pagination || {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 1
-      },
-      filters: data.filters
-    };
+    return false;
   } catch (error) {
-    console.error('Error fetching server-side products:', error);
-    return {
-      data: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 1
-      }
-    };
+    console.warn(`Image validation failed for ${url}:`, error);
+    return false;
   }
-}
+};
 
-// Optimized client-side function with better caching
+// Client-side function with lazy image validation
 export const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
   try {
     const url = `${API_BASE_URL}/products`;
-    
-    console.log('Fetching products from:', url);
+    const config = getRequestConfig();
     
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      // Enhanced caching for client-side requests
-      next: { 
-        revalidate: 300, // 5 minutes
-        tags: ['products'] // For on-demand revalidation
-      }
+      ...config,
     });
 
     if (!response.ok) {
@@ -197,20 +262,15 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
 
     const data: ProductsResponse = await response.json();
     
+    // Use fast processing for initial load
+    const processedProducts = (data.data || []).map(product => processProductImagesStatic(product));
+    
     return {
-      data: (data.data || []).map(product => ({
-        ...product,
-        name: product.nameAr || product.name || '',
-        description: product.descriptionAr || product.description || '',
-        category: product.category || '',
-        price: product.price || 0,
-        image: product.image || '',
-        inStock: product.inStock !== undefined ? product.inStock : true,
-      })),
+      data: processedProducts,
       pagination: data.pagination || {
         page: 1,
         limit: 20,
-        total: 0,
+        total: data.data?.length || 0,
         totalPages: 1
       },
       filters: data.filters
@@ -221,35 +281,63 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
   }
 };
 
-// Keep all your existing functions
+// Utility function for lazy image validation (use in components)
+export const validateProductImages = async (products: Product[]): Promise<Product[]> => {
+  console.log('🔍 Starting lazy image validation...');
+  
+  return Promise.all(
+    products.map(async (product) => {
+      const images = getProductImages(product);
+      
+      if (images.length === 0) return product;
+      
+      // Validate primary image only for performance
+      const primaryImageValid = await validateImageUrl(images[0]);
+      
+      return {
+        ...product,
+        image: primaryImageValid ? images[0] : '',
+      };
+    })
+  );
+};
+
+// Helper functions remain the same but optimized
+export const getProductImages = (product: Product): string[] => {
+  if (product.imageList && product.imageList.length > 0) {
+    return product.imageList.filter(img => img !== null && isValidImageUrl(img)) as string[];
+  }
+  
+  if (product.images && product.images.length > 0) {
+    return product.images.filter(img => img !== null && isValidImageUrl(img)) as string[];
+  }
+  
+  if (product.image && isValidImageUrl(product.image)) {
+    return [product.image];
+  }
+  
+  return [];
+};
+
+export const getProductPrimaryImage = (product: Product): string | null => {
+  const images = getProductImages(product);
+  return images.length > 0 ? images[0] : null;
+};
+
+// Fast category filtering
 export const fetchProductsByCategory = async (
   categoryId: string | number,
   filters: Omit<ProductFilters, 'category'> = {}
 ): Promise<ProductsResponse> => {
   try {
-    const url = `${API_BASE_URL}/products`;
+    const allProducts = await fetchProducts(filters);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 300 }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products by category: ${response.status}`);
-    }
-
-    const data: ProductsResponse = await response.json();
-    
-    const filteredData = data.data ? data.data.filter(product => 
+    const filteredData = allProducts.data.filter(product => 
       product.categoryId === categoryId || product.category === categoryId
-    ) : [];
+    );
     
     return {
-      ...data,
+      ...allProducts,
       data: filteredData
     };
   } catch (error) {
@@ -258,37 +346,24 @@ export const fetchProductsByCategory = async (
   }
 };
 
+// Fast search
 export const searchProducts = async (
   query: string,
   filters: Omit<ProductFilters, 'search'> = {}
 ): Promise<ProductsResponse> => {
   try {
-    const url = `${API_BASE_URL}/products`;
+    const allProducts = await fetchProducts(filters);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 60 }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to search products: ${response.status}`);
-    }
-
-    const data: ProductsResponse = await response.json();
-    
-    const filteredData = data.data ? data.data.filter(product => 
-      product.name?.toLowerCase().includes(query.toLowerCase()) ||
-      product.nameAr?.toLowerCase().includes(query.toLowerCase()) ||
-      product.description?.toLowerCase().includes(query.toLowerCase()) ||
-      product.category?.toLowerCase().includes(query.toLowerCase())
-    ) : [];
+    const lowerQuery = query.toLowerCase();
+    const filteredData = allProducts.data.filter(product => 
+      product.name?.toLowerCase().includes(lowerQuery) ||
+      product.nameAr?.toLowerCase().includes(lowerQuery) ||
+      product.description?.toLowerCase().includes(lowerQuery) ||
+      product.category?.toLowerCase().includes(lowerQuery)
+    );
     
     return {
-      ...data,
+      ...allProducts,
       data: filteredData
     };
   } catch (error) {
@@ -297,33 +372,19 @@ export const searchProducts = async (
   }
 };
 
+// Fast featured products
 export const fetchFeaturedProducts = async (
   filters: ProductFilters = {}
 ): Promise<ProductsResponse> => {
   try {
-    const url = `${API_BASE_URL}/products`;
+    const allProducts = await fetchProducts(filters);
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 600 }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch featured products: ${response.status}`);
-    }
-
-    const data: ProductsResponse = await response.json();
-    
-    const filteredData = data.data ? data.data.filter(product => 
+    const filteredData = allProducts.data.filter(product => 
       product.rating && product.rating >= 4
-    ) : [];
+    );
     
     return {
-      ...data,
+      ...allProducts,
       data: filteredData
     };
   } catch (error) {
@@ -335,14 +396,11 @@ export const fetchFeaturedProducts = async (
 export const fetchCategories = async (lang: string = DEFAULT_LANGUAGE) => {
   try {
     const url = `${API_BASE_URL}/categories`;
+    const config = getRequestConfig();
     
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 3600 }
+      ...config,
     });
 
     if (!response.ok) {
@@ -356,7 +414,7 @@ export const fetchCategories = async (lang: string = DEFAULT_LANGUAGE) => {
   }
 };
 
-// Keep your existing utility functions
+// Utility functions
 export const getByCategory = (categories: string[] | null | undefined, allProducts: Product[] | null | undefined): Product[] => {
   if (!categories || !categories.length || !allProducts) return allProducts || [];
   
@@ -405,7 +463,6 @@ export const withErrorHandling = <T extends (...args: any[]) => Promise<any>>(
           }
         }
       } as ProductsResponse;
-      
     }
   }) as T;
 };

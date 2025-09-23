@@ -7,13 +7,17 @@ import { CustomImage } from './../Image/Images'
 import Availablity from './Availablity';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
 
+import Img from './../../../public/acessts/Logo-picsart.png'
+
+// const Img = './../../../public/acessts/Logo-picsart.png'
+
 // Icons (use static paths to avoid requiring SVGR)
 const EHEART_SRC = '/icons/emptyHeart.svg';
 const FHEART_SRC = '/icons/FilledHeart.svg';
 import { useRouter } from 'next/navigation';
 
 interface CardProps {
-    productImg?: string | StaticImageData;
+    productImg?: string | StaticImageData ;
     productName?: string;
     productCategory?: string;
     productPrice?: string;
@@ -77,7 +81,7 @@ const StarRating = ({ rating, reviewsCount }: { rating?: number, reviewsCount?: 
 
 // This is already a function component, but here's a cleaner version
 function Card({ 
-    productImg, 
+    productImg= Img, 
     productName, 
     productCategory, 
     productPrice, 
@@ -256,17 +260,8 @@ function Card({
                     )}
                 </div>
                 
-                {/* Quick action buttons (optional) */}
-                <div className={styles.quickActions}>
-                    <button 
-                        className={styles.quickViewBtn}
-                        onClick={handleCardClick}
-                        disabled={!available}
-                        aria-label="عرض سريع للمنتج"
-                    >
-                        عرض سريع
-                    </button>
-                </div>
+                
+                
             </div>
         </div>
     );

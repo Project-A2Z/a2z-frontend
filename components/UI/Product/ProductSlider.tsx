@@ -3,8 +3,10 @@ import { useState, useRef } from 'react';
 import Card from './../Card/Card'; // Adjust the import path as needed
 import styles from './ProductSlider.module.css';
 
+const Def=  './../../../public/acessts/Logo-picsart.png'
+
 // Updated Types to match API response
-interface Product {
+export interface Product {
   id: string | number;
   name: string;
   nameAr?: string;
@@ -15,8 +17,9 @@ interface Product {
   price: number;
   originalPrice?: number;
   discount?: number;
-  image: string;
-  images?: string[];
+  image: string ;
+  images?: (string)[];
+  imageList?: (string)[]; // Added imageList field for Cloudinary images
   category: string;
   categoryId?: string | number;
   brand?: string;
@@ -29,11 +32,7 @@ interface Product {
   specifications?: Record<string, any>;
   createdAt?: string;
   updatedAt?: string;
-  // Legacy compatibility
-  status?: boolean | string;
-  img?: any;
 }
-
 interface ProductSliderProps {
   products: Product[];
   title?: string;
@@ -131,15 +130,15 @@ function ProductSlider({
   // Helper function to get product image
   const getProductImage = (product: Product): string => {
     if (product.image) return product.image;
-    if (product.img) return product.img;
-    if (product.images && product.images.length > 0) return product.images[0];
-    return '/images/placeholder.jpg';
+    // if (product.img) return product.img;
+    if (product.images && product.images.length > 0) return product?.images[0];
+    return '/acessts/NoImage.jpg';
   };
 
   // Helper function to get product status
   const getProductStatus = (product: Product): boolean => {
     if (typeof product.inStock === 'boolean') return product.inStock;
-    if (typeof product.status === 'boolean') return product.status;
+    // if (typeof product.status === 'boolean') return product.status;
     return true; // Default to available
   };
 
@@ -237,7 +236,7 @@ function ProductSlider({
               })}
 
               {/* Show "من" only between current page and last page */}
-              {currentPage < totalPages - 2 && (
+              {currentPage < totalPages - 1 && (
                 <span className={styles.ellipsis}>من</span>
               )}
               
