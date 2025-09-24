@@ -27,7 +27,7 @@ interface HeaderProps {
   customStyles?: React.CSSProperties;
   showSearch?: boolean;
   showUserActions?: boolean;
-  dataSearch?: any[]; // Assuming this is the data for search component
+  dataSearch?: any[]; 
 }
 
 // Already a function component! Here's the cleaned up version:
@@ -40,8 +40,8 @@ function Header({
   , dataSearch = []
 }: HeaderProps) {
   const router = useRouter();
-  const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
-  // const [user, setUser] = useState({ name: '', avatar: null as string | null });
+  // const [user, setUser] = useState({ name: 'أحمد محمد', avatar: null as string | null });
+  const [user, setUser] = useState({ name: '', avatar: null as string | null });
   const [data, setData] = useState(dataSearch);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 

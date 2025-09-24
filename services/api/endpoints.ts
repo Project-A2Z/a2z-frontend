@@ -2,13 +2,13 @@ export const API_ENDPOINTS = {
   // Authentication endpoints
   AUTH: {
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    REGISTER: '/users/signup',
     LOGOUT: '/auth/logout',
     REFRESH_TOKEN: '/auth/refresh',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
-    VERIFY_EMAIL: '/auth/verify-email',
-    ACTIVE_CODE: '/auth/active-code',
+    VERIFY_EMAIL: '/users/OTPVerification',
+    ACTIVE_CODE: '/users/OTPVerification',
     PROFILE: '/auth/profile',
     UPDATE_PROFILE: '/auth/profile/update',
     CHANGE_PASSWORD: '/auth/change-password',
@@ -195,6 +195,8 @@ export const buildUrl = (endpoint: string, params: Record<string, string | numbe
   
   return url;
 };
+
+export const Api = 'https://a2z-backend.fly.dev/app/v1';
 
 export type ApiEndpoint = typeof API_ENDPOINTS;
 export type EndpointPath = string; 
