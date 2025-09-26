@@ -364,76 +364,61 @@ export const debugRegistrationEndpoint = async (): Promise<any> => {
   }
 };
 
-// FIXED: Export the verifyEmail function properly
-export const verifyEmail = async (code: string, email: string): Promise<any> => {
-  console.log('🔐 Starting email verification...');
-  console.log('🔐 Verification code:', code);
-  console.log('📧 Email:', email);
-  
-  const WORKING_URL = 'https://a2z-backend.fly.dev/app/v1/users/OTPVerification';
-  
-  const payload = {
-    email: email,
-    OTP: code,
-    type: "EmailVerification"
-  };
-  
-  console.log('🌐 Using URL:', WORKING_URL);
-  console.log('📤 Payload:', payload);
-  
+interface VerifyEmailRequest {
+  email: string;
+  OTP: string;
+  type: string;
+}
+
+interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  // Add other response properties based on your API response structure
+  data?: any;
+}
+
+export const verifyEmail = async (
+  code: string,
+  email: string
+): Promise<VerifyEmailResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`, {
+    const url = `${Api}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`;
+    
+    const requestBody: VerifyEmailRequest = {
+      email,
+      OTP: code,
+      type: "EmailVerification"
+    };
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(requestBody),
     });
-    
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response ok:', response.ok);
-    
-    const data = await response.json();
-    console.log('📄 Response data:', data);
-    
+
     if (!response.ok) {
-      console.log('❌ Verification failed');
-      const error = new Error(data?.message || 'Verification failed') as any;
-      error.status = response.status;
-      error.data = data;
-      throw error;
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
-    console.log('✅ Verification successful!');
-    
-    // Update user data on success
-    if (data.status === 'success') {
-      console.log('💾 Updating user data...');
-      const currentUser = UserStorage.getUser();
-      if (currentUser) {
-        UserStorage.updateUser({ isVerified: true });
-      }
-      
-      if (data.data?.token) {
-        console.log('🔑 Saving new token...');
-        UserStorage.saveToken(data.data.token);
-      }
-    }
-    
+
+    const data: VerifyEmailResponse = await response.json();
     return data;
+
+  } catch (error) {
+    console.error('Email verification failed:', error);
     
-  } catch (error: any) {
-    console.error('❌ Verification error:', error);
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('Network error - please check your internet connection');
-    }
-    
-    throw error;
+    // Return a standardized error response
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Email verification failed',
+    };
   }
 };
 
+interface ResendVerificationCodeRequest {
+  email: string;
+}
 export const resendVerificationCode = async (email: string): Promise<any> => {
   console.log('📤 Resending verification code...');
   console.log('📧 Email:', email);

@@ -295,17 +295,7 @@ const ActiveCodePage = () => {
                 </div>
             )}
 
-            {/* Loading Overlay */}
-            {(isVerifying || isResending) && (
-                <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-[16px] xs:rounded-[20px] sm:rounded-[22px] lg:rounded-[24px] flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                        <p className="text-sm text-gray-600 font-medium">
-                            {isVerifying ? 'جاري التحقق...' : 'جاري إعادة الإرسال...'}
-                        </p>
-                    </div>
-                </div>
-            )}
+            
         </div>
     );
 };
