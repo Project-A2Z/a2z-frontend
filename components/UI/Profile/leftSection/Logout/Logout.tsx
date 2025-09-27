@@ -2,17 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import styles from './Logout.module.css';
+import { on } from 'events';
 
 interface LogoutProps {
   onCancel?: (value : string) => void;
-
+  onLogout?: () => void;
 }
 
-export default function Logout({ onCancel }: LogoutProps) {
+export default function Logout({ onCancel , onLogout}: LogoutProps) {
   const router = useRouter();
 
   const handleLogout = () => {
-    // Add any logout logic here (clear tokens, etc.)
+    onLogout?.();
     router.push('/');
   };
 

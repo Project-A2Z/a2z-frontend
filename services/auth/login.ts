@@ -388,32 +388,27 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
 };
 
 // Logout function
+// Logout function - removes user data from localStorage
 export const logoutUser = async (): Promise<void> => {
+  console.log('🚪 Starting logout process...');
+  
   try {
-    const token = UserStorage.getToken();
-    
-    if (token) {
-      console.log('🚪 Calling logout endpoint...');
-      // Optional: Call logout endpoint if you have one
-      await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    }
-  } catch (error) {
-    console.warn('⚠️ Logout API call failed:', error);
-    // Continue with local logout even if API call fails
-  } finally {
-    // Clear local storage
-    console.log('🧹 Clearing user data from localStorage...');
+    // Clear all authentication data from localStorage
     UserStorage.removeUser();
-    console.log('✅ Logout completed!');
+    
+    console.log('✅ User logged out successfully - all auth data cleared');
+    console.log('🧹 Cleared items: user data, auth token, refresh token');
+    
+    // Optional: You can add any cleanup logic here if needed
+    // For example, clearing any other app-specific data
+    
+  } catch (error) {
+    console.error('❌ Error during logout:', error);
+    // Even if there's an error, we should still try to clear the data
+    UserStorage.removeUser();
+    throw new Error('حدث خطأ أثناء تسجيل الخروج');
   }
 };
-
 // Authentication Service Class (similar to your register service structure)
 export class AuthService {
   /**
