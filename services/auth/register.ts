@@ -371,10 +371,11 @@ interface VerifyEmailRequest {
 }
 
 interface VerifyEmailResponse {
+  status: string;
   success: boolean;
   message: string;
-  // Add other response properties based on your API response structure
-  data?: any;
+  
+  // data?: any;
 }
 
 export const verifyEmail = async (
@@ -383,6 +384,8 @@ export const verifyEmail = async (
 ): Promise<VerifyEmailResponse> => {
   try {
     const url = `${Api}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`;
+
+    console.log('url : ' , url)
     
     const requestBody: VerifyEmailRequest = {
       email,
@@ -390,109 +393,287 @@ export const verifyEmail = async (
       type: "EmailVerification"
     };
 
+    console.log('requestBody : ' , requestBody)
+
     const response = await fetch(url, {
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data: VerifyEmailResponse = await response.json();
-    return data;
-
-  } catch (error) {
-    console.error('Email verification failed:', error);
-    
-    // Return a standardized error response
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Email verification failed',
-    };
-  }
-};
-
-interface ResendVerificationCodeRequest {
-  email: string;
-}
-export const resendVerificationCode = async (email: string): Promise<any> => {
-  console.log('📤 Resending verification code...');
-  console.log('📧 Email:', email);
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.ACTIVE_CODE}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
-
-    console.log('📥 Resend response status:', response.status);
-    console.log('📥 Resend response headers:', Object.fromEntries(response.headers.entries()));
-
+    // Parse response data first
     let data;
     try {
       data = await response.json();
     } catch (parseError) {
-      console.error('❌ Failed to parse resend response:', parseError);
-      const textData = await response.text();
-      console.log('📄 Raw resend response:', textData);
+      console.error('❌ Failed to parse verification response:', parseError);
       throw new Error('Invalid response format from server');
     }
 
-    console.log('📄 Resend response data:', data);
+    console.log('data : ' , data);
 
     if (!response.ok) {
-      console.log('❌ Resend failed with status:', response.status);
+      console.error('❌ Verification request failed with status:', response.status);
       
-      let errorMessage = 'Failed to resend verification code';
+      // Even if the HTTP status is not ok, check if the data contains success info
+      // Some APIs return success data with non-200 status codes
+      if (data && (data.success === true || data.status === 'success')) {
+        console.log('✅ Email verification successful despite HTTP status!');
+        return data;
+      }
+      
+      // Handle different error status codes
+      let errorMessage = 'Email verification failed';
       
       switch (response.status) {
         case 400:
-          errorMessage = data?.message || 'Invalid email address';
+          errorMessage = data?.message || 'Invalid verification code or email';
           break;
         case 404:
-          errorMessage = 'Email address not found';
+          errorMessage = 'Verification code not found or expired';
           break;
         case 409:
           errorMessage = 'Email is already verified';
           break;
-        case 429:
-          errorMessage = 'Too many requests. Please wait before trying again';
-          break;
         default:
-          errorMessage = data?.message || `Failed to resend code (${response.status})`;
+          errorMessage = data?.message || `Verification failed (${response.status})`;
       }
       
-      const error = new Error(errorMessage) as any;
-      error.status = response.status;
-      error.data = data;
-      throw error;
+      throw new Error(errorMessage);
     }
 
-    console.log('✅ Verification code resent successfully!');
-    return data;
-    
-  } catch (error: any) {
-    console.error('❌ Resend verification error:', error);
-    
-    // Handle network errors
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      const networkError = new Error('Network error - please check your internet connection') as any;
-      networkError.original = error;
-      throw networkError;
+    // Check for successful verification in response data
+    if (data.success === true || data.status === 'success') {
+      console.log('✅ Email verification successful!');
+      
+      // Update user verification status in localStorage if user data is returned
+      if (data.data?.user) {
+        UserStorage.updateUser({ isVerified: true });
+      }
+      
+      return data;
+    } else {
+      console.error('❌ Email verification failed:', data.message);
+      throw new Error(data.message || 'Email verification failed');
     }
+
+  } catch (error) {
+    console.error('❌ Email verification failed:', error);
     
+    
+    
+    // Return a standardized error response for caught errors
     throw error;
   }
 };
 
+// interface ResendVerificationCodeRequest {
+//   email: string;
+// }
+// Types for the API request and response
+interface ResendOTPRequest {
+  email: string;
+  type: 'EmailVerification' | 'passwordReset';
+}
+
+interface ResendOTPResponse {
+  status: string;
+  message: string;
+}
+
+// Custom error class for API errors
+class APIError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = 'APIError';
+  }
+}
+
+// Configuration for different environments
+const API_CONFIG = {
+  // Use production URL - change this based on your environment
+  baseUrl: 'https://a2z-backend.fly.dev',
+  // For development, you might want to use: 'http://localhost:3000'
+  endpoints: {
+    primary: '/app/v1/users/OTPResend'
+  }
+};
+
+/**
+ * Resends verification code to the specified email
+ * @param email - The email address to send the verification code to
+ * @param type - Type of verification (defaults to 'EmailVerification')
+ * @param baseUrl - Optional custom base URL (defaults to localhost:3000)
+ * @returns Promise<ResendOTPResponse>
+ * @throws APIError when the request fails
+ */
+export async function resendVerificationCode(
+  email: string,
+  type: 'EmailVerification' | 'passwordReset' = 'EmailVerification',
+  baseUrl: string = API_CONFIG.baseUrl
+): Promise<ResendOTPResponse> {
+  const requestBody: ResendOTPRequest = {
+    email,
+    type
+  };
+
+  // Try the primary endpoint first
+  const primaryUrl = `${baseUrl}${API_CONFIG.endpoints.primary}`;
+  
+  try {
+    console.log(`🔄 Attempting to call: ${primaryUrl}`);
+    console.log(`📧 Request body:`, requestBody);
+    
+    const response = await fetch(primaryUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log(`📡 Response status: ${response.status}`);
+    
+    if (!response.ok) {
+      // Log the response for debugging
+      let errorText = '';
+      try {
+        errorText = await response.text();
+        console.log(`❌ Error response:`, errorText);
+      } catch (e) {
+        console.log(`❌ Could not read error response`);
+      }
+      
+      throw new APIError(
+        response.status,
+        `HTTP error! status: ${response.status}. Response: ${errorText}`
+      );
+    }
+
+    const data: ResendOTPResponse = await response.json();
+    console.log(`✅ Success response:`, data);
+    return data;
+
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    // Handle network errors or other fetch errors
+    console.error(`🚨 Network error:`, error);
+    throw new APIError(
+      0,
+      `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Debug function to test different endpoint variations
+ * Use this to find the correct endpoint if the main function fails
+ */
+export async function debugEndpoints(
+  email: string,
+  type: 'EmailVerification' | 'passwordReset' = 'EmailVerification',
+  baseUrl: string = API_CONFIG.baseUrl
+): Promise<void> {
+  const requestBody: ResendOTPRequest = { email, type };
+  
+  console.log(`🔍 Testing different endpoint variations for: ${email}`);
+  
+  const allEndpoints = [API_CONFIG.endpoints.primary, '/users/OTPResend', '/auth/OTPResend', '/users/OTPResendCode' ];
+  
+  for (const endpoint of allEndpoints) {
+    const url = `${baseUrl}${endpoint}`;
+    console.log(`\n🧪 Testing: ${url}`);
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log(`   Status: ${response.status}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`   ✅ SUCCESS! This endpoint works:`, data);
+        console.log(`   Use this URL: ${url}`);
+        return;
+      } else {
+        const errorText = await response.text().catch(() => 'Could not read response');
+        console.log(`   ❌ Failed: ${errorText}`);
+      }
+    } catch (error) {
+      console.log(`   🚨 Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  console.log(`\n❌ None of the endpoints worked. Check your server configuration.`);
+}
+
+// Usage examples:
+
+// Example 1: Resend email verification code
+async function example1() {
+  try {
+    const result = await resendVerificationCode('ahmed@example.com');
+    console.log('Success:', result.message);
+  } catch (error) {
+    if (error instanceof APIError) {
+      console.error(`API Error (${error.status}):`, error.message);
+    } else {
+      console.error('Unexpected error:', error);
+    }
+  }
+}
+
+// Example 2: Resend password reset code
+async function example2() {
+  try {
+    const result = await resendVerificationCode('user@example.com', 'passwordReset');
+    console.log('Password reset code sent:', result.message);
+  } catch (error) {
+    if (error instanceof APIError) {
+      console.error(`Failed to send password reset code:`, error.message);
+    }
+  }
+}
+
+// Example 3: With async/await in a React component or similar
+export const handleResendCode = async (userEmail: string) => {
+  try {
+    const response = await resendVerificationCode(userEmail, 'EmailVerification');
+    
+    // Show success message to user
+    alert(response.message);
+    
+    return response;
+  } catch (error) {
+    if (error instanceof APIError) {
+      // Handle different error status codes
+      switch (error.status) {
+        case 400:
+          alert('Invalid email address or request');
+          break;
+        case 404:
+          alert('User not found');
+          break;
+        case 429:
+          alert('Too many requests. Please wait before trying again');
+          break;
+        default:
+          alert('Failed to send verification code. Please try again');
+      }
+    } else {
+      alert('Network error. Please check your connection');
+    }
+    throw error;
+  }
+};
 // Utility functions
 export const getCurrentUser = (): User | null => {
   return UserStorage.getUser();

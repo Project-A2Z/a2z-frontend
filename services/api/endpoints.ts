@@ -1,14 +1,14 @@
 export const API_ENDPOINTS = {
   // Authentication endpoints
   AUTH: {
-    LOGIN: '/auth/login',
+    LOGIN: '/users/login',
     REGISTER: '/users/signup',
     LOGOUT: '/auth/logout',
     REFRESH_TOKEN: '/auth/refresh',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
     VERIFY_EMAIL: '/users/OTPVerification',
-    ACTIVE_CODE: '/users/OTPVerification',
+    ACTIVE_CODE: '/app/v1/users/OTPResend',
     PROFILE: '/auth/profile',
     UPDATE_PROFILE: '/auth/profile/update',
     CHANGE_PASSWORD: '/auth/change-password',
