@@ -8,8 +8,8 @@ import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
 
 type Props = {
   items: CartItem[];
-  onUpdateQuantity: (id: number, quantity: number) => void;
-  onRemove: (id: number) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
+  onRemove: (id: string) => void;
 };
 
 const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) => {
@@ -116,6 +116,6 @@ const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) =
   );
 };
 
-export default CartItemsList;
+export default React.memo(CartItemsList);
 
 

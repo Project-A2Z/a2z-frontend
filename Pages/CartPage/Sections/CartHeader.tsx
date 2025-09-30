@@ -21,6 +21,6 @@ const CartHeader: React.FC<Props> = ({ itemCount }) => {
   );
 };
 
-export default CartHeader;
+export default React.memo(CartHeader);
 
 

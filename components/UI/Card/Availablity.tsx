@@ -1,5 +1,4 @@
-
-import styles from './Card.module.css';
+import styles from './card.module.css';
 function Availablity ({available = true}: {available?: boolean}) {
   return (
     <div >

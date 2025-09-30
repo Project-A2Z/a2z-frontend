@@ -3,18 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import Link from 'next/link';
+import { Product, productService } from '@/services/api/products';
 
-
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  status: boolean | string;
-  image: string;
+interface RelatedProductsProps {
+  category?: string;
+  currentProductId?: string;
 }
 
-const RelatedProducts: React.FC = () => {
+const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProductId }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,13 +38,40 @@ const RelatedProducts: React.FC = () => {
     }
   };
 
-  // Load products from public/Test_data/products.json
+  // Safely pick a primary image and provide a runtime fallback
+  const PLACEHOLDER_SRC = '/placeholder-product.jpg';
+  const getPrimaryImage = (p: Product): string => {
+    const first = Array.isArray(p.imageList)
+      ? p.imageList.find((img) => typeof img === 'string' && img.trim() !== '')
+      : undefined;
+    return first || PLACEHOLDER_SRC;
+  };
+
+  // Fetch related products from API
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchRelatedProducts = async () => {
+      if (!category) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch('/Test_data/products.json');
-        const data: Product[] = await response.json();
-        setProducts((data || []).slice(0, 8));
+        setLoading(true);
+        const response = await productService.getProducts({
+          category,
+          limit: 12,
+          fields: '_id,name,category,price,imageList,stockType,stockQty'
+        });
+
+        // API returns array directly in response.data
+        const list = Array.isArray(response.data) ? response.data : [];
+
+        const filteredProducts = list
+          .filter((p) => p.category === category)
+          .filter((p) => (currentProductId ? p._id !== currentProductId : true));
+
+        setProducts(filteredProducts.slice(0, 8));
       } catch (error) {
         console.error('Error fetching related products:', error);
       } finally {
@@ -56,8 +79,8 @@ const RelatedProducts: React.FC = () => {
       }
     };
 
-    fetchProducts();
-  }, []);
+    fetchRelatedProducts();
+  }, [category, currentProductId]);
 
   useEffect(() => {
     start();
@@ -83,21 +106,23 @@ const RelatedProducts: React.FC = () => {
         onMouseLeave={start}
       >
         {products.map((product) => (
-          <div key={product.id} className="keen-slider__slide">
-            <Link href={`/product/${product.id}`} className="block">
+          <div key={product._id} className="keen-slider__slide">
+            <Link href={`/product/${product._id}`} className="block">
               <div className="bg-white rounded-[20px] shadow-sm border p-4 mx-1 hover:shadow-md transition-shadow cursor-pointer" role="link" aria-label={product.name}>
                 <div className="aspect-square bg-card rounded-lg mb-3 overflow-hidden">
                   <img
-                    src={product.image}
+                    src={getPrimaryImage(product)}
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_SRC; }}
+                    loading="lazy"
                   />
                 </div>
                 <h3 className="font-medium text-black87 text-sm mb-2 truncate" title={product.name}>
                   {product.name}
                 </h3>
                 <div className="text-primary font-bold">{product.price.toLocaleString()} ج.م</div>
-                <div className="text-xs text-black60 mt-1">{product.category}</div>
+                <div className="text-xs text-black60 mt-1">{product.stockQty} {product.stockType === 'unit' ? 'قطعة' : product.stockType}</div>
               </div>
             </Link>
           </div>

@@ -79,13 +79,11 @@ const isValidImageUrl = (url: string): boolean => {
   // Check for common image extensions or cloud services
   const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i;
   const cloudServices = /(cloudinary|amazonaws|imgix|unsplash|pexels)/i;
-  
   return imageExtensions.test(url) || cloudServices.test(url);
 };
 
 // Fast image processing without HTTP validation (for build time)
 const processProductImagesStatic = (product: any): Product => {
-
   const imageList = product.imageList || [];
   const fallbackImages = product.images || [];
   const fallbackImage = product.image || '';
@@ -111,6 +109,8 @@ const processProductImagesStatic = (product: any): Product => {
   
   return {
     ...product,
+    // Ensure there is a stable `id` for routing
+    id: product.id ?? product._id ?? '',
     name: product.nameAr || product.name || '',
     description: product.descriptionAr || product.description || '',
     category: product.category || '',

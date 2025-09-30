@@ -24,5 +24,5 @@ const ContactHelp: React.FC = () => {
   );
 };
 
-export default ContactHelp;
+export default React.memo(ContactHelp);
 

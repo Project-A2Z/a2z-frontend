@@ -6,6 +6,7 @@ import styles from './card.module.css'
 import { CustomImage } from './../Image/Images'
 import Availablity from './Availablity';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
+import { isAuthenticated } from '@/utils/auth';
 
 import Img from './../../../public/acessts/Logo-picsart.png'
 
@@ -127,7 +128,11 @@ function Card({
     const onHeartClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent navigation when clicking heart
         if (!id || isLoading) return;
-        
+        // Require login to use wishlist
+        if (!isAuthenticated()) {
+            router.push('/login');
+            return;
+        }
         toggle({
             id,
             name: productName || 'منتج',
@@ -138,8 +143,9 @@ function Card({
 
     const handleCardClick = useCallback(() => {
         if (isLoading) return;
-        
-        const slug = encodeURIComponent(productName || String(productId || ''));
+        // Prefer navigating by productId for server route /product/[id]
+        const target = productId ? String(productId) : (productName || '');
+        const slug = encodeURIComponent(target);
         router.push(`/product/${slug}`);
     }, [router, productName, productId, isLoading]);
 

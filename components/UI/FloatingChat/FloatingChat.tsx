@@ -1,14 +1,213 @@
+"use client";
 import React, { useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { MessageCircle } from 'lucide-react';
+import { inquiryService, checkBackendHealth } from '@/services/api/inquiry';
+
+/**
+ * Get auth token from localStorage (optional)
+ */
+const getAuthToken = (): string | null => {
+  return localStorage.getItem('authToken'); // Optional; sends if available
+};
 
 export default function FloatingChat() {
   const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phoneNumber: '',
+    email: '',
+    description: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{ success?: boolean; message: string } | null>(null);
   const whatsappHref = 'https://wa.me/2010957676137';
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Basic form validation
+      if (!formData.name || !formData.phoneNumber || !formData.description) {
+        throw new Error('الرجاء ملء جميع الحقول المطلوبة');
+      }
+
+      // Name validation (2-100 characters)
+      if (formData.name.length < 2 || formData.name.length > 100) {
+        throw new Error('الاسم يجب أن يكون بين 2 و100 حرف');
+      }
+
+      // Phone number validation (Egyptian number: starts with 01, 11 digits)
+      const phoneRegex = /^01[0-9]{9}$/;
+      if (!phoneRegex.test(formData.phoneNumber.trim())) {
+        throw new Error('رقم الهاتف غير صالح. يجب أن يبدأ بـ 01 ويحتوي على 11 رقمًا');
+      }
+
+      // Description validation (10-1000 characters)
+      if (formData.description.length < 10 || formData.description.length > 1000) {
+        throw new Error('الوصف يجب أن يكون بين 10 و1000 حرف');
+      }
+
+      // Email validation (if provided)
+      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        throw new Error('البريد الإلكتروني غير صالح');
+      }
+
+      // Prepare the request data
+      const inquiryData = {
+        name: formData.name.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        email: formData.email.trim(),
+        description: formData.description.trim()
+      };
+
+      console.log('Submitting inquiry:', inquiryData);
+
+      // Call the API to create inquiry
+      await inquiryService.createInquiry(inquiryData);
+
+      // Show success message
+      setSubmitStatus({
+        success: true,
+        message: 'تم إرسال استفسارك بنجاح. سنتواصل معك قريباً!'
+      });
+
+      // Reset form
+      setFormData({
+        name: '',
+        phoneNumber: '',
+        email: '',
+        description: ''
+      });
+      
+      // Auto-close after 3 seconds
+      setTimeout(() => {
+        setOpen(false);
+        setSubmitStatus(null);
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error in handleSubmit:', {
+        name: error.name,
+        message: error.message,
+        cause: error.cause,
+        stack: error.stack
+      });
+      
+      let errorMessage = error.message || 'حدث خطأ أثناء إرسال الاستفسار';
+      
+      // Handle validation errors
+      if (error.name === 'ValidationError' && error.cause?.length) {
+        errorMessage = 'خطأ في البيانات:\n' + error.cause.map((err: any) => `- ${err.message}`).join('\n');
+      }
+      // Handle 400 errors
+      else if (error.message.includes('البيانات المرسلة غير صالحة')) {
+        errorMessage = 'البيانات المرسلة غير صالحة. تحقق من الاسم، رقم الهاتف، والوصف.';
+      }
+
+      setSubmitStatus({
+        success: false,
+        message: errorMessage
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Function to test backend connection (uncomment if needed)
+  /*
+  const testBackendConnection = async () => {
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    
+    console.log('Testing backend connection...');
+    
+    try {
+      const healthCheck = await checkBackendHealth();
+      
+      if (healthCheck.status === 'success') {
+        let message = '✅ تم الاتصال بالخادم بنجاح!\n';
+        message += `- الحالة: ${healthCheck.statusText || 'غير معروفة'}\n`;
+        message += `- الكود: ${healthCheck.statusCode || 'N/A'}\n';
+        
+        if (healthCheck.warning) {
+          message += `\n⚠️ ملاحظة: ${healthCheck.warning}`;
+        }
+        
+        setSubmitStatus({
+          success: true,
+          message: message
+        });
+      } else {
+        let errorMessage = '❌ فشل الاتصال بالخادم\n';
+        errorMessage += `- الخطأ: ${healthCheck.message || 'غير معروف'}\n';
+        errorMessage += `- الكود: ${healthCheck.statusCode || 'N/A'}\n';
+        
+        if (healthCheck.code) {
+          errorMessage += `- رمز الخطأ: ${healthCheck.code}\n';
+        }
+        
+        if (healthCheck.data) {
+          try {
+            const errorDetails = typeof healthCheck.data === 'string' 
+              ? healthCheck.data 
+              : JSON.stringify(healthCheck.data, null, 2);
+            errorMessage += `\nالتفاصيل: ${errorDetails}`;
+          } catch (e) {
+            console.error('Error parsing error details:', e);
+          }
+        }
+        
+        setSubmitStatus({
+          success: false,
+          message: errorMessage
+        });
+      }
+    } catch (error: any) {
+      console.error('Connection test failed with unexpected error:', error);
+      
+      let errorMessage = '❌ فشل غير متوقع في اختبار الاتصال\n';
+      errorMessage += `- الخطأ: ${error.message || 'غير معروف'}\n';
+      
+      if (error.code) {
+        errorMessage += `- الكود: ${error.code}\n';
+      }
+      
+      if (error.response) {
+        errorMessage += `- حالة الخادم: ${error.response.status} ${error.response.statusText}\n';
+        if (error.response.data) {
+          try {
+            const errorDetails = typeof error.response.data === 'string' 
+              ? error.response.data 
+              : JSON.stringify(error.response.data, null, 2);
+            errorMessage += `\nاستجابة الخادم: ${errorDetails}`;
+          } catch (e) {
+            console.error('Error parsing error response:', e);
+          }
+        }
+      }
+      
+      setSubmitStatus({
+        success: false,
+        message: errorMessage
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  */
+
   return (
-    //fixed right-4 bottom-1/2 transform translate-y-1/2 z-50 flex flex-col items-end gap-4
-    <div className="fixed right-4 bottom-1/2  z-50 flex flex-col-reverse gap-4">
+    <div className="fixed right-4 bottom-1/2 z-50 flex flex-col-reverse gap-4">
       {/* WhatsApp button */}
       <a
         href={whatsappHref}
@@ -42,7 +241,7 @@ export default function FloatingChat() {
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50"
-            onClick={() => setOpen(false)}
+            onClick={() => !isSubmitting && setOpen(false)}
             aria-hidden="true"
           />
 
@@ -50,33 +249,47 @@ export default function FloatingChat() {
           <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
             <div className="bg-primary text-white p-4 text-center relative">
-              <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
+              <h3 className="text-lg font-semibold">اتصل بنا</h3>
               <button 
-                onClick={() => setOpen(false)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200"
+                onClick={() => !isSubmitting && setOpen(false)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 disabled:opacity-50"
+                disabled={isSubmitting}
                 aria-label="إغلاق"
+                type="button"
               >
                 ✕
               </button>
             </div>
 
             {/* Form */}
-            <form className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <input
                     type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="الاسم"
                     className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    minLength={2}
+                    maxLength={100}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <input
                     type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
                     placeholder="رقم الهاتف"
                     className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    pattern="01[0-9]{9}"
+                    title="يجب إدخال رقم هاتف صحيح (يبدأ بـ 01 ويحتوي على 11 رقم)"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -84,27 +297,53 @@ export default function FloatingChat() {
               <div>
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="البريد الإلكتروني"
                   className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
               <div>
                 <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
                   rows={4}
                   placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
                   className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
+                  minLength={10}
+                  maxLength={1000}
+                  disabled={isSubmitting}
                 />
               </div>
+
+              {/* Status Message */}
+              {submitStatus && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  submitStatus.success 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {submitStatus.message.split('\n').map((line, index) => (
+                    <p key={index} className={index > 0 ? 'mt-1' : ''}>{line}</p>
+                  ))}
+                </div>
+              )}
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
+                  disabled={isSubmitting}
+                  className={`w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors ${
+                    isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                 >
-                  إرسال
+                  {isSubmitting ? 'جاري الإرسال...' : 'إرسال'}
                 </button>
               </div>
             </form>

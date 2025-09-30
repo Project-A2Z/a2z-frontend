@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/UI/Buttons/Button';
 
 interface Item {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -66,4 +66,4 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
   );
 };
 
-export default OrderSummary;
+export default React.memo(OrderSummary);

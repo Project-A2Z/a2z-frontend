@@ -1,5 +1,7 @@
 "use client";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { isAuthenticated } from '@/utils/auth';
+import { wishlistService } from '@/services/api/wishlist';
 
 export type FavoriteItem = {
   id: number | string;
@@ -25,13 +27,39 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<FavoriteItem[]>([]);
 
   useEffect(() => {
-    try {
-      const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-      if (raw) {
-        const parsed = JSON.parse(raw) as FavoriteItem[];
-        if (Array.isArray(parsed)) setItems(parsed);
+    const load = async () => {
+      // If user is authenticated, load from backend, else fallback to localStorage
+      if (isAuthenticated()) {
+        try {
+          const res = await wishlistService.getAll();
+          const list = res?.data?.wishItems ?? [];
+          const mapped: FavoriteItem[] = list.map((w: any) => {
+            const p = w.productId || {};
+            const images = p.imageList || p.images || [];
+            const img = Array.isArray(images) ? (images[0] || '/assets/placeholder.png') : (images || '/assets/placeholder.png');
+            return {
+              id: String(p._id ?? w.productId ?? w._id),
+              name: p.name || p.title || 'منتج',
+              price: Number(p.price) || 0,
+              image: typeof img === 'string' ? img : (img?.url || '/assets/placeholder.png'),
+            };
+          });
+          setItems(mapped);
+          return;
+        } catch (e) {
+          // fallback to local storage on error
+          console.warn('Failed to load wishlist from backend, falling back to local', e);
+        }
       }
-    } catch {}
+      try {
+        const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as FavoriteItem[];
+          if (Array.isArray(parsed)) setItems(parsed);
+        }
+      } catch {}
+    };
+    load();
   }, []);
 
   useEffect(() => {
@@ -43,18 +71,42 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const add = useCallback((item: FavoriteItem) => {
-    setItems(prev => {
-      if (prev.some(p => p.id === item.id)) return prev;
-      return [item, ...prev];
-    });
+    // optimistic update
+    setItems(prev => (prev.some(p => p.id === item.id) ? prev : [item, ...prev]));
+    // sync with backend if authenticated
+    if (isAuthenticated()) {
+      void wishlistService.add(String(item.id)).catch((e) => {
+        console.error('Failed to add to wishlist', e);
+        // revert on failure
+        setItems(prev => prev.filter(p => p.id !== item.id));
+      });
+    }
   }, []);
 
   const remove = useCallback((id: number | string) => {
+    // optimistic update
     setItems(prev => prev.filter(p => p.id !== id));
+    if (isAuthenticated()) {
+      void wishlistService.remove(String(id)).catch((e) => {
+        console.error('Failed to remove from wishlist', e);
+        // best-effort: re-add is not possible without full product; rely on next refresh
+      });
+    }
   }, []);
 
   const toggle = useCallback((item: FavoriteItem) => {
-    setItems(prev => (prev.some(p => p.id === item.id) ? prev.filter(p => p.id !== item.id) : [item, ...prev]));
+    setItems(prev => {
+      const exists = prev.some(p => p.id === item.id);
+      // fire API side-effect without changing function type
+      if (isAuthenticated()) {
+        if (exists) {
+          void wishlistService.remove(String(item.id)).catch(err => console.error('Failed to remove wishlist item', err));
+        } else {
+          void wishlistService.add(String(item.id)).catch(err => console.error('Failed to add wishlist item', err));
+        }
+      }
+      return exists ? prev.filter(p => p.id !== item.id) : [item, ...prev];
+    });
   }, []);
 
   const isFavorite = useCallback((id: number | string | undefined) => {

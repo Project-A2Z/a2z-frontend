@@ -102,6 +102,6 @@ const RelatedProducts: React.FC = () => {
   );
 };
 
-export default RelatedProducts;
+export default React.memo(RelatedProducts);
 
 

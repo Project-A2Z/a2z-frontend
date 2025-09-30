@@ -1,14 +1,23 @@
 "use client";
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import FavoritesList, { FavoriteItem } from './Sections/FavoritesList';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
 import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
+import { isAuthenticated } from '@/utils/auth';
+import { useRouter } from 'next/navigation';
 
 // In a real app this would come from API or global store
 const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
   const { items: favItems, remove } = useFavorites();
   const list = useMemo(() => items ?? favItems, [items, favItems]);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background font-beiruti mt-[93px]">
@@ -25,7 +34,7 @@ const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
               imageAlt="لا يوجد منتجات في المفضلة"
               message="لا يوجد منتجات فالمفضلة"
               actionLabel="اذهب للتسوق"
-              actionHref="/products"
+              actionHref="/"
               imageClassName="w-64 h-auto mb-6"
             />
           </section>
@@ -43,4 +52,4 @@ const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
   );
 };
 
-export default FavoritesPage;
+export default React.memo(FavoritesPage);
