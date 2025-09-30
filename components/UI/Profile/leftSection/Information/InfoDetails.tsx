@@ -5,6 +5,9 @@ import { Button } from '../../../Buttons/Button';
 import Input from '../../../Inputs/Input';
 import styles from './info.module.css';
 
+import { UpdateProfileData , updateUserProfile} from '@/services/profile/profile';
+import { u } from 'motion/react-client';
+
 // Icons (you can replace these with your preferred icon library)
 const EditIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -38,8 +41,8 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
-
 }
+
 interface InfoDetailsProps {
   firstName: string;
   lastName: string;
@@ -94,18 +97,18 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
     }
 
     if (!formData.phone.trim()) {
-  newErrors.phone = 'Phone number is required';
-} else {
-  // Remove all non-digit characters except the + sign
-  const cleanPhone = formData.phone.replace(/[^\d+]/g, '');
-  
-  // Check if phone starts with +201 or 01 and has appropriate length
-  const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
-  
-  if (!isValidFormat) {
-    newErrors.phone = 'Please enter a valid phone number (must start with 01 or +201)';
-  }
-}
+      newErrors.phone = 'Phone number is required';
+    } else {
+      // Remove all non-digit characters except the + sign
+      const cleanPhone = formData.phone.replace(/[^\d+]/g, '');
+      
+      // Check if phone starts with +201 or 01 and has appropriate length
+      const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
+      
+      if (!isValidFormat) {
+        newErrors.phone = 'Please enter a valid phone number (must start with 01 or +201)';
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -121,8 +124,15 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
     setIsLoading(true);
     
     try {
+      let payload: UpdateProfileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,  
+        // email: formData.email,
+        phoneNumber: formData.phone,
+      };
+      
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await updateUserProfile(payload);
       
       // Handle successful submission
       console.log('Form submitted:', formData);
@@ -145,7 +155,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       <div className={styles.formCard}>
         <h1 className={styles.title}>تفاصيل الحساب</h1>
         
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form  className={styles.form}>
           <div className={styles.inputGroup}>
             <Input
               type="text"
@@ -155,6 +165,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
               icon={<UserIcon />}
               onIconClick={() => handleIconClick('firstName')}
               error={!!errors.firstName}
+              readOnly={!edit}
               className={styles.input}
             />
             {errors.firstName && (
@@ -171,6 +182,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
               icon={<UserIcon />}
               onIconClick={() => handleIconClick('lastName')}
               error={!!errors.lastName}
+              readOnly={!edit}
               className={styles.input}
             />
             {errors.lastName && (
@@ -187,6 +199,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
               icon={<MailIcon />}
               onIconClick={() => handleIconClick('email')}
               error={!!errors.email}
+              readOnly={!edit}
               className={styles.input}
             />
             {errors.email && (
@@ -203,6 +216,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
               icon={<PhoneIcon />}
               onIconClick={() => handleIconClick('phone')}
               error={!!errors.phone}
+              readOnly={!edit}
               className={styles.input}
             />
             {errors.phone && (
@@ -214,7 +228,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
             {edit ? (
                 <>
                     <Button
-                        type="submit"
+                        type="button"
                         variant="primary"
                         size="lg"
                         state={isLoading ? 'loading' : 'default'}
@@ -223,8 +237,10 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
                         fullWidth
                         className={styles.submitButton}
                         rounded ={true}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.preventDefault();
                             if (validateForm()) {
+                                handleSubmit(e);
                                 setEdit(false);
                             }
                         }}
@@ -235,7 +251,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
                ) : ( 
                 <>
                     <Button
-                        type="submit"
+                        type="button"
                         variant="primary"
                         size="lg"
                         state={isLoading ? 'loading' : 'default'}
@@ -244,14 +260,15 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
                         fullWidth
                         className={styles.submitButton}
                         rounded ={true}
-                        onClick={() => setEdit(edit => !edit)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setEdit(true);
+                        }}
                         >
                         تعديل البيانات
                     </Button>
                 </>
                  )}
-           
-            
           </div>
         </form>
       </div>

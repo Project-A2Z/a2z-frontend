@@ -38,7 +38,39 @@ export interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
-  image?: string;
+  image?: File;
+}
+
+export interface UserProfileResponse {
+  status: string;
+  message: string;
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    image: string | null;
+    phoneNumber: string;
+    department: string | null;
+    salary: number | null;
+    dateOfSubmission: string | null;
+    isVerified: boolean;
+    address: any[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    id: string;
+  };
+}
+
+export interface ApiError {
+  status: string;
+  message: string;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
 }
 
 export interface UpdatePasswordData {
@@ -212,87 +244,125 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
   }
 };
 
-// Update User Profile
-export const updateUserProfile = async (updateData: UpdateProfileData): Promise<ProfileResponse> => {
-  console.log('🚀 Updating user profile...');
-  console.log('📤 Update data:', updateData);
-
+export const updateUserProfile = async (
+  profileData: UpdateProfileData,
+  token: string = getAuthToken() || ''
+): Promise<UserProfileResponse> => {
   try {
-    const headers = getAuthHeaders();
-    
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.UPDATE_PROFILE}`, {
+    // Create FormData object
+    const formData = new FormData();
+
+    // Append only the fields that are provided
+    if (profileData.firstName !== undefined) {
+      formData.append('firstName', profileData.firstName);
+    }
+
+    if (profileData.lastName !== undefined) {
+      formData.append('lastName', profileData.lastName);
+    }
+
+    if (profileData.phoneNumber !== undefined) {
+      formData.append('phoneNumber', profileData.phoneNumber);
+    }
+
+    if (profileData.image) {
+      formData.append('image', profileData.image);
+    }
+
+    // Make the API request
+    const response = await fetch(`${Api}${API_ENDPOINTS.AUTH.UPDATE_PROFILE}`, {
       method: 'PATCH',
-      headers: headers,
-      body: JSON.stringify(updateData),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Note: Don't set Content-Type header when using FormData
+        // The browser will set it automatically with the correct boundary
+      },
+      body: formData,
     });
 
-    console.log('📥 Update response status:', response.status);
+    // Parse the response
+    const data = await response.json();
 
-    let data;
-    try {
-      data = await response.json();
-      console.log('📄 Update response data:', data);
-    } catch (parseError) {
-      console.error('❌ Failed to parse response:', parseError);
-      throw new ProfileError('استجابة الخادم غير صحيحة');
-    }
-
+    // Handle error responses
     if (!response.ok) {
-      console.log('❌ Failed to update profile with status:', response.status);
-      
-      let errorMessage = 'فشل في تحديث بيانات الملف الشخصي';
-      let errorDetails = {};
-      
-      switch (response.status) {
-        case 400:
-          errorMessage = data?.message || 'بيانات التحديث غير صحيحة';
-          errorDetails = data?.errors || {};
-          break;
-        case 401:
-          errorMessage = data?.message || 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.';
-          break;
-        case 422:
-          errorMessage = data?.message || 'فشل التحقق من البيانات';
-          errorDetails = data?.errors || {};
-          break;
-        default:
-          errorMessage = data?.message || `خطأ في التحديث (${response.status})`;
-      }
-
-      throw new ProfileError(errorMessage, response.status, false, errorDetails);
+      throw {
+        status: data.status || 'error',
+        message: data.message || 'Failed to update profile',
+        errors: data.errors || [],
+      } as ApiError;
     }
 
-    if (data.status !== 'success') {
-      throw new ProfileError(data.message || 'فشل في تحديث الملف الشخصي');
-    }
-
-    if (!data.data || !data.data.user) {
-      throw new ProfileError('استجابة الخادم غير صحيحة');
-    }
-
-    console.log('✅ Profile updated successfully!');
-    
-    // Update user data in localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user_data', JSON.stringify(data.data.user));
-      console.log('💾 Updated profile data saved to localStorage');
-    }
-    
-    return data;
-
-  } catch (error: any) {
-    console.error('❌ Profile update error:', error);
-    
-    if (error instanceof ProfileError) {
+    return data as UserProfileResponse;
+  } catch (error) {
+    // Re-throw API errors
+    if ((error as ApiError).status) {
       throw error;
     }
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new ProfileError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
-    }
-    
-    throw new ProfileError('حدث خطأ غير متوقع أثناء التحديث');
+
+    // Handle network or other errors
+    throw {
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Network error occurred',
+    } as ApiError;
   }
+};
+
+/**
+ * Update user profile with validation
+ * @param profileData - Object containing profile fields to update
+ * @param token - JWT authentication token
+ * @returns Promise with updated user data
+ */
+export const updateUserProfileWithValidation = async (
+  profileData: UpdateProfileData,
+  token: string
+): Promise<UserProfileResponse> => {
+  // Validate phone number format if provided
+  if (profileData.phoneNumber) {
+    const cleanPhone = profileData.phoneNumber.replace(/[^\d+]/g, '');
+    const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
+    
+    if (!isValidFormat) {
+      throw {
+        status: 'error',
+        message: 'رقم الهاتف غير صحيح',
+        errors: [{
+          field: 'phoneNumber',
+          message: 'يجب أن يبدأ رقم الهاتف بـ 01 أو +201 ويتكون من 11 رقماً'
+        }]
+      } as ApiError;
+    }
+  }
+
+  // Validate image file if provided
+  if (profileData.image) {
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validImageTypes.includes(profileData.image.type)) {
+      throw {
+        status: 'error',
+        message: 'نوع الملف غير مدعوم',
+        errors: [{
+          field: 'image',
+          message: 'يجب أن تكون الصورة من نوع JPEG, PNG, GIF, أو WebP'
+        }]
+      } as ApiError;
+    }
+
+    if (profileData.image.size > maxSize) {
+      throw {
+        status: 'error',
+        message: 'حجم الملف كبير جداً',
+        errors: [{
+          field: 'image',
+          message: 'يجب أن لا يتجاوز حجم الصورة 5 ميجابايت'
+        }]
+      } as ApiError;
+    }
+  }
+
+  return updateUserProfile(profileData, token);
 };
 
 // Update Password
@@ -512,7 +582,7 @@ export class ProfileService {
   /**
    * Update user profile
    */
-  static async updateProfile(updateData: UpdateProfileData): Promise<ProfileResponse> {
+  static async updateProfile(updateData: UpdateProfileData): Promise<UserProfileResponse> {
     return await updateUserProfile(updateData);
   }
 
