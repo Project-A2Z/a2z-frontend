@@ -6,7 +6,7 @@ import MetricCard from '../../../../components/UI/Profile/MeticsCard';
 interface TopMetricsProps {
   metrics: Array<{
     icon: React.ReactNode;
-    number: string | number;
+    number: string | number ;
     title: string;
     className?: string;
     onClick?: () => void;

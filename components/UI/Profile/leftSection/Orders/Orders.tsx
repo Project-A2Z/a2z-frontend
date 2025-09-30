@@ -86,7 +86,12 @@ const mockOrders: Order[] = [
   }
 ];
 
-const Orders: React.FC = () => {
+interface OrdersProps {
+   orders: Order[] | [];  
+}
+
+
+const Orders: React.FC<OrdersProps> = ({orders}) => {
   const router = useRouter();
   const [selectedFilters, setSelectedFilters] = React.useState<string[]>([]);
  const filterOptions: FilterOption[] = [
@@ -96,19 +101,19 @@ const Orders: React.FC = () => {
       id: '1', 
       label: 'قيد المراجعة', 
       value: 'processing', 
-      count: mockOrders.filter(order => order.status === 'processing').length 
+      count: orders.filter(order => order.status === 'processing').length 
     },
     { 
       id: '2', 
       label: 'تمت المراجعة', 
       value: 'reviewed', 
-      count: mockOrders.filter(order => order.status === 'reviewed').length 
+      count: orders.filter(order => order.status === 'reviewed').length 
     },
     { 
       id: '3', 
       label: 'تم التجهيز', 
       value: 'pending', 
-      count: mockOrders.filter(order => order.status === 'pending').length 
+      count: orders.filter(order => order.status === 'pending').length 
     },
     
     
@@ -117,29 +122,29 @@ const Orders: React.FC = () => {
       id: '4', 
       label: 'تم الشحن', 
       value: 'shipped', 
-      count: mockOrders.filter(order => order.status === 'shipped').length 
+      count: orders.filter(order => order.status === 'shipped').length 
     },
     { 
       id: '5', 
       label: 'تم التسليم', 
       value: 'delivered', 
-      count: mockOrders.filter(order => order.status === 'delivered').length 
+      count: orders.filter(order => order.status === 'delivered').length 
     },
     { 
       id: '6', 
       label: 'ملغي', 
       value: 'cancelled', 
-      count: mockOrders.filter(order => order.status === 'cancelled').length 
+      count: orders.filter(order => order.status === 'cancelled').length 
     }
   ];
 
   // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
     if (selectedFilters.length === 0) {
-      return mockOrders; // Show all orders when no filters are selected
+      return orders; // Show all orders when no filters are selected
     }
     
-    return mockOrders.filter(order => {
+    return orders.filter(order => {
       return selectedFilters.includes(order.status);
     });
   }, [selectedFilters]);

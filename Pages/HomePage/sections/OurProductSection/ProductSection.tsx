@@ -4,9 +4,9 @@ import OptimizedProductSection from '@/Pages/HomePage/sections/OurProductSection
 import { getStaticProducts, ProductsResponse } from '@/services/product/products';
 
 interface ProductsPageProps {
-  initialData: ProductsResponse;
+  initialData?: ProductsResponse;
   revalidate?: number;
-  buildTime: string;
+  buildTime?: string;
 }
 
 export default function ProductsPage({ initialData, buildTime }: ProductsPageProps) {

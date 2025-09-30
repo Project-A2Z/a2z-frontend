@@ -8,17 +8,19 @@ import Input from './../../../components/UI/Inputs/Input';
 import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
 import styles from './../auth.module.css';
-
+import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login'; 
 export default function LoginForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
+    general?: string;
   }>({});
 
   const handleInputChange = (
@@ -34,7 +36,8 @@ export default function LoginForm() {
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [name]: '',
+        general: '' // Clear general error too
       }));
     }
   };
@@ -67,25 +70,93 @@ export default function LoginForm() {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validateForm();
     
-    if (Object.keys(newErrors).length === 0) {
-      console.log('Login submitted:', formData);
-      // Handle successful login
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const response = await AuthService.login(formData);
+      
+      // Check if email is verified
+      if (!response.status || response.status !== 'success') {
+        alert('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+      } else {
+        // Redirect to dashboard or home page
+        router.push('/'); // Adjust the route as needed
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      if (error instanceof AuthError) {
+        setErrors({
+          general: error.message
+        });
+      } else {
+        setErrors({
+          general: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('Google login clicked');
-    // Handle Google login
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      // This would typically involve OAuth flow
+      // For now, just log the attempt
+      console.log('Google login clicked');
+      
+      // Example of how you might implement Google login:
+      // const googleToken = await getGoogleToken(); // Your Google OAuth implementation
+      // const response = await AuthService.socialLogin({
+      //   provider: 'google',
+      //   accessToken: googleToken
+      // });
+      
+      // Handle response...
+      
+    } catch (error) {
+      console.error('Google login error:', error);
+      setErrors({
+        general: 'حدث خطأ في تسجيل الدخول عبر Google'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleFacebookLogin = () => {
-    console.log('Facebook login clicked');
-    // Handle Facebook login
+  const handleFacebookLogin = async () => {
+    try {
+      setIsLoading(true);
+      // This would typically involve OAuth flow
+      console.log('Facebook login clicked');
+      
+      // Example of how you might implement Facebook login:
+      // const facebookToken = await getFacebookToken(); // Your Facebook OAuth implementation
+      // const response = await AuthService.socialLogin({
+      //   provider: 'facebook',
+      //   accessToken: facebookToken
+      // });
+      
+      // Handle response...
+      
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      setErrors({
+        general: 'حدث خطأ في تسجيل الدخول عبر Facebook'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,6 +174,13 @@ export default function LoginForm() {
 
           {/* Form */}
           <div className={styles.form}>
+            {/* General Error Message */}
+            {errors.general && (
+              <div className={styles.errorMessage}>
+                <p className={styles.errorText}>{errors.general}</p>
+              </div>
+            )}
+
             {/* Email */}
             <div className={styles.inputGroup}>
               <Input
@@ -112,6 +190,7 @@ export default function LoginForm() {
                 onChange={handleInputChange}
                 placeholder="البريد الإلكتروني"
                 error={!!errors.email}
+                disabled={isLoading}
                 className={styles.Input}
               />
               {errors.email && (
@@ -128,6 +207,7 @@ export default function LoginForm() {
                 onChange={handleInputChange}
                 placeholder="كلمة المرور"
                 error={!!errors.password}
+                disabled={isLoading}
                 icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 onIconClick={() => setShowPassword(!showPassword)}
                 iconPosition="left"
@@ -144,6 +224,7 @@ export default function LoginForm() {
                 type="button"
                 className={styles.forgotPasswordLink}
                 onClick={() => router.push('/active-code')}
+                disabled={isLoading}
               >
                 هل نسيت كلمة المرور؟
               </button>
@@ -160,9 +241,9 @@ export default function LoginForm() {
                   isFormValid() ? styles.submitButtonValid : styles.submitButtonInvalid
                 }`}
                 onClick={handleSubmit}
-                disabled={!isFormValid()}
+                disabled={!isFormValid() || isLoading}
               >
-                تسجيل الدخول
+                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
               </Button>
             </div>
 
@@ -175,6 +256,7 @@ export default function LoginForm() {
                     type="button"
                     className={styles.registerLink}
                     onClick={() => router.push('/register')}
+                    disabled={isLoading}
                   >
                     إنشاء حساب جديد
                   </button>
@@ -186,6 +268,7 @@ export default function LoginForm() {
                   type="button"
                   className={styles.socialButton}
                   onClick={handleGoogleLogin}
+                  disabled={isLoading}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -198,6 +281,7 @@ export default function LoginForm() {
                   type="button"
                   className={styles.socialButton}
                   onClick={handleFacebookLogin}
+                  disabled={isLoading}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -205,9 +289,6 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-
-            
-            
           </div>
         </div>
       </div>

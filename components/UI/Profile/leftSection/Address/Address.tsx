@@ -24,54 +24,12 @@ interface Address {
   city?: string;
 }
 
-const Address: React.FC = () => {
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: 1,
-      name: 'Menna Akram',
-      phone: '01234567890',
-      address: 'شارع الأول 123، الدقي، محافظة الجيزة',
-      isDefault: true,
-      firstName: 'Menna',
-      lastName: 'Akram',
-      phoneNumber: '01234567890',
-      governorate: 'الجيزة',
-      city: 'الدقي'
-    },
-    {
-      id: 2,
-      name: 'Menna Akram',
-      phone: '01234567890',
-      address: 'شارع الورد 456، المعادي، محافظة القاهرة',
-      firstName: 'Menna',
-      lastName: 'Akram',
-      phoneNumber: '01234567890',
-      governorate: 'القاهرة',
-      city: 'المعادي'
-    },
-    {
-      id: 3,
-      name: 'Menna Akram',
-      phone: '01234567890',
-      address: 'شارع الحرية 321، المطرية، محافظة الشرقية',
-      firstName: 'Menna',
-      lastName: 'Akram',
-      phoneNumber: '01234567890',
-      governorate: 'الشرقية',
-      city: 'المطرية'
-    },
-    {
-      id: 4,
-      name: 'Menna Akram',
-      phone: '01234567890',
-      address: 'شارع النيل 789، المنيل، محافظة الأقصر',
-      firstName: 'Menna',
-      lastName: 'Akram',
-      phoneNumber: '01234567890',
-      governorate: 'الأقصر',
-      city: 'المنيل'
-    }
-  ]);
+interface ADDProp {
+  Addresses : Array <Address> 
+}
+
+const Address: React.FC<ADDProp> = ({Addresses}) => {
+  const [addresses, setAddresses] = useState<Address[]>(Addresses || []);
   
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);

@@ -1,6 +1,6 @@
 // services/product/products-optimized.ts (Performance optimized version)
-
-const API_BASE_URL = 'https://a2z-backend.fly.dev/app/v1';
+import {Api , API_ENDPOINTS} from './../api/endpoints'
+// const API_BASE_URL = 'https://a2z-backend.fly.dev/app/v1';
 const DEFAULT_LANGUAGE = 'ar';
 
 // Product interface (unchanged from original)
@@ -141,7 +141,7 @@ export async function getStaticProducts(): Promise<ProductsResponse> {
     try {
       console.log(`🚀 Fetching static products (attempt ${attempt}/${maxRetries})...`);
       
-      const url = `${API_BASE_URL}/products`;
+      const url = `${Api}/products`;
       const config = getRequestConfig();
       
       // Set a reasonable timeout for build time
@@ -248,7 +248,7 @@ const validateImageUrl = async (url: string): Promise<boolean> => {
 // Client-side function with lazy image validation
 export const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
   try {
-    const url = `${API_BASE_URL}/products`;
+    const url = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?${new URLSearchParams(filters as any)}}`;
     const config = getRequestConfig();
     
     const response = await fetch(url, {
@@ -395,7 +395,7 @@ export const fetchFeaturedProducts = async (
 
 export const fetchCategories = async (lang: string = DEFAULT_LANGUAGE) => {
   try {
-    const url = `${API_BASE_URL}/categories`;
+    const url = `${Api}/categories`;
     const config = getRequestConfig();
     
     const response = await fetch(url, {
