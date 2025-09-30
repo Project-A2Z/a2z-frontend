@@ -15,7 +15,7 @@ import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 
 //interfaces and services
 import { logoutUser, AuthService } from './../../../../services/auth/login';
-export interface User {
+interface User {
   _id: string;
   id?: string;
   firstName: string;
@@ -35,8 +35,10 @@ export interface User {
   __v?: number;
   EmailVerificationToken?: string;
   EmailVerificationExpires?: string;
+  favoriteItems?: number;
+  reviewsCount?: number;
+  OrderCount?: number;
 }
-
 
 interface EditProfileSectionProps {
   box: string;
@@ -121,13 +123,22 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
   const renderComponent = () => {
     switch (box) {
       case 'تفاصيل الحساب':
-        return <InfoDetails />;
+        return <InfoDetails 
+        firstName={user?.firstName || ''}
+        lastName={user?.lastName || ''}
+        email={user?.email || ''}
+        phone={user?.phoneNumber || ''}
+        />;
       case 'تغيير كلمة المرور':
         return <PassChange />;
       case 'عناوينك':
-        return <Address />;
+        return <Address 
+        Addresses={user?.address || []}
+        />;
       case 'طلباتك':
-        return <Orders />;
+        return <Orders 
+        orders={user?.address ? user.address as any[] : []} // need to edit after calling orders api
+        />;
       case 'رسائلك':
         return <MessagesList />;
       case 'مدفوعاتك':
@@ -135,7 +146,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
       case 'تسجيل الخروج':
         return <Logout onCancel={setBox} onLogout={handleLogout} />; 
       default:
-        return <Welcome name='أحمد' />;
+        return <Welcome name={user?.firstName || ""} />;
     }
   };
 

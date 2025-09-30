@@ -38,14 +38,21 @@ interface FormData {
   lastName: string;
   email: string;
   phone: string;
+
+}
+interface InfoDetailsProps {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
 }
 
-const AccountForm: React.FC = () => {
+const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email , phone}) => {
   const [formData, setFormData] = useState<FormData>({
-    firstName: 'أحمد',
-    lastName: 'محمد',
-    email: 'mohamedaboelhawey@gmail.com',
-    phone: '0123456789'
+    firstName: firstName ||'',
+    lastName: lastName||'',
+    email: email ||'',
+    phone: phone ||'',
   });
 
   const [edit , setEdit] = useState(false);

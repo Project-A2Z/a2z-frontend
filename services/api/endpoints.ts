@@ -4,27 +4,27 @@ export const API_ENDPOINTS = {
     LOGIN: '/users/login',
     LOGIN_SOCIAL:'/users/signWithSocial',
     REGISTER: '/users/signup',
-    LOGOUT: '/auth/logout',
+    
     REFRESH_TOKEN: '/auth/refresh',
+
     FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
+    RESET_PASSWORD: '/users/ResetPassword',//PATCH
     VERIFY_EMAIL: '/users/OTPVerification',
-    ACTIVE_CODE: '/app/v1/users/OTPResend',
-    PROFILE: '/auth/profile',
-    UPDATE_PROFILE: '/auth/profile/update',
-    CHANGE_PASSWORD: '/auth/change-password',
+    ACTIVE_CODE: '/app/v1/users/OTPResend',//POST
+
+    PROFILE: '/users/user',//GET
+    UPDATE_PROFILE: '/users/user',//PATCH
+    UPDATE_PASSWORD: '/users/updatePassword',//PATCH
+    
   },
 
   // User management
   USERS: {
-    PROFILE: '/users/profile',
-    UPDATE: '/users/update',
-    AVATAR: '/users/avatar',
-    PREFERENCES: '/users/preferences',
-    ADDRESSES: '/users/addresses',
-    ADD_ADDRESS: '/users/addresses/add',
-    UPDATE_ADDRESS: '/users/addresses/:id',
-    DELETE_ADDRESS: '/users/addresses/:id',
+    PROFILE: '/users/user',//GET
+    UPDATE: '/users/user',//PATCH 'update user information in profile'
+    ADDRESSES: '/users/address',//POST 'add new address'
+    UPDATE_ADDRESS: '/users/address',//PATCH 'update address'
+    DELETE_ADDRESS: '/users/address',//DELETE 'delete address'
     ORDERS: '/users/orders',
     ORDER_DETAILS: '/users/orders/:id',
     FAVORITES: '/users/favorites',
