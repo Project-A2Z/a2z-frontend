@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './../../profile.module.css';
 
 //components
@@ -7,7 +7,6 @@ import InfoDetails from '../../../../components/UI/Profile/leftSection/Informati
 import PassChange from '../../../../components/UI/Profile/leftSection/PassChange/PassChange';
 import Address from '@/components/UI/Profile/leftSection/Address/Address';
 import Orders from '@/components/UI/Profile/leftSection/Orders/Orders';
-// import MessageComponent from '@/components/UI/Profile/leftSection/Messages/Messages';
 import MessagesList from '@/components/UI/Profile/leftSection/Messages/MessagesList';
 import Payments from '@/components/UI/Profile/leftSection/Payments/Payments';
 import Welcome from '@/components/UI/Profile/leftSection/Welcome/Welcome';
@@ -15,6 +14,8 @@ import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 
 //interfaces and services
 import { logoutUser, AuthService } from './../../../../services/auth/login';
+import orderService, { TransformedOrder } from './../../../../services/profile/orders';
+
 interface User {
   _id: string;
   id?: string;
@@ -48,10 +49,39 @@ interface EditProfileSectionProps {
   user?: User | null;
 }
 
-const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,user , setUser}) => {
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
-  // const [user, setUser] = useState<User | null>(null);
+const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, user, setUser }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [orders, setOrders] = useState<TransformedOrder[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
+  // Fetch orders when the "طلباتك" tab is selected
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (box === 'طلباتك') {
+        setIsLoadingOrders(true);
+        setOrdersError(null);
+        
+        try {
+          // Debug authentication
+          console.log('🔍 Starting orders fetch...');
+          orderService.debugAuth();
+          
+          const apiOrders = await orderService.getUserOrders();
+          const transformedOrders = orderService.transformOrders(apiOrders);
+          setOrders(transformedOrders);
+        } catch (error) {
+          console.error('Failed to fetch orders:', error);
+          setOrdersError(error instanceof Error ? error.message : 'فشل في تحميل الطلبات');
+          setOrders([]);
+        } finally {
+          setIsLoadingOrders(false);
+        }
+      }
+    };
+
+    fetchOrders();
+  }, [box]);
 
   const handleLogout = async () => {
     try {
@@ -63,7 +93,6 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
         refreshToken: localStorage.getItem('refresh_token')
       });
       
-      // Call the logout function from your auth service
       await logoutUser();
       
       console.log('📦 After logout - localStorage:', {
@@ -72,27 +101,21 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
         refreshToken: localStorage.getItem('refresh_token')
       });
       
-      // Clear user state in parent component if setUser is provided
       if (setUser) {
         setUser(null);
       }
       
       console.log('✅ Logout successful!');
-      
-      // Force reload to ensure all components reset
       window.location.href = '/login';
       
     } catch (error) {
       console.error('❌ Logout failed:', error);
       
-      // Manual cleanup if the logout function fails
       console.log('🧹 Manually clearing localStorage...');
       try {
         localStorage.removeItem('user_data');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
-        
-        // Also try the AuthService method
         AuthService.clearAuthData();
         
         if (setUser) {
@@ -105,12 +128,10 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
           refreshToken: localStorage.getItem('refresh_token')
         });
         
-        // Force page reload to login
         window.location.href = '/login';
         
       } catch (clearError) {
         console.error('❌ Failed to clear auth data:', clearError);
-        // Last resort - just redirect and let login page handle it
         window.location.href = '/login';
       }
       
@@ -124,21 +145,41 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox  ,u
     switch (box) {
       case 'تفاصيل الحساب':
         return <InfoDetails 
-        firstName={user?.firstName || ''}
-        lastName={user?.lastName || ''}
-        email={user?.email || ''}
-        phone={user?.phoneNumber || ''}
+          firstName={user?.firstName || ''}
+          lastName={user?.lastName || ''}
+          email={user?.email || ''}
+          phone={user?.phoneNumber || ''}
         />;
       case 'تغيير كلمة المرور':
         return <PassChange />;
       case 'عناوينك':
         return <Address 
-        Addresses={user?.address || []}
+          Addresses={user?.address || []}
         />;
       case 'طلباتك':
-        return <Orders 
-        orders={user?.address ? user.address as any[] : []} // need to edit after calling orders api
-        />;
+        if (isLoadingOrders) {
+          return (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <p>جاري تحميل الطلبات...</p>
+            </div>
+          );
+        }
+        
+        if (ordersError) {
+          return (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
+              <p>خطأ: {ordersError}</p>
+              <button 
+                onClick={() => setBox && setBox('طلباتك')}
+                style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          );
+        }
+        
+        return <Orders orders={orders} />;
       case 'رسائلك':
         return <MessagesList />;
       case 'مدفوعاتك':

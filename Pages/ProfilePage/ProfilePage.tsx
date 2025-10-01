@@ -133,14 +133,7 @@ const ProfilePage = () => {
     }
   };
 
-  /**
-   * Refresh profile data from API
-   */
-  const refreshProfile = async () => {
-    setIsRefreshing(true);
-    await fetchUserProfile();
-    setIsRefreshing(false);
-  };
+ 
 
   /**
    * Load user data on component mount

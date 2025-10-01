@@ -25,11 +25,12 @@ export const API_ENDPOINTS = {
     ADDRESSES: '/users/address',//POST 'add new address'
     UPDATE_ADDRESS: '/users/address',//PATCH 'update address'
     DELETE_ADDRESS: '/users/address',//DELETE 'delete address'
-    ORDERS: '/users/orders',
+    ORDERS: '/orders/user',//GET 'get user orders'
     ORDER_DETAILS: '/users/orders/:id',
     FAVORITES: '/users/favorites',
     ADD_FAVORITE: '/users/favorites/add',
     REMOVE_FAVORITE: '/users/favorites/:id',
+
   },
 
   // Products
