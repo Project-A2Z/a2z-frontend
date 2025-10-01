@@ -1,5 +1,6 @@
 // services/auth/login.ts
 import { API_ENDPOINTS, Api } from './../api/endpoints';
+import { saveAuthToken } from '@/utils/auth';
 
 // Types
 export interface LoginCredentials {
@@ -278,6 +279,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
     console.log('💾 Saving user data and token to localStorage...');
     UserStorage.saveUser(data.data.user);
     UserStorage.saveToken(data.data.token);
+    saveAuthToken(data.data.token); // Also save via utility function
     
     // If there's a refresh token in the response, save it
     if (data.data.refreshToken) {
