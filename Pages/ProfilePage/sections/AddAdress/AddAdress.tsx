@@ -6,6 +6,7 @@ import { Button } from './../../../../components/UI/Buttons/Button';
 import Input from './../../../../components/UI/Inputs/Input';
 import { ChevronDown } from 'lucide-react';
 import styles from './../../profile.module.css';
+import { AddressService, AddressError } from './../../../../services/profile/address';
 
 // Location data
 const locationData: { [key: string]: string[] } = {
@@ -126,25 +127,24 @@ interface FormErrors {
   address?: string;
   governorate?: string;
   city?: string;
+  general?: string;
 }
 
 export default function NewAddressForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Check if we're in edit mode
   const isEditMode = searchParams?.get('mode') === 'edit';
   const addressId = searchParams?.get('id');
   
-  // Initialize form data with URL parameters if in edit mode
   const [formData, setFormData] = useState<AddressFormData>({
     firstName: searchParams?.get('firstName') || '',
     lastName: searchParams?.get('lastName') || '',
     phoneNumber: searchParams?.get('phoneNumber') || '',
     address: searchParams?.get('address') || '',
-    governorate: searchParams?.get('governorate') || '',
+    governorate: searchParams?.get('governorate') || searchParams?.get('region') || '',
     city: searchParams?.get('city') || '',
-    isDefault: searchParams?.get('isDefault') === 'true'
+    isDefault: searchParams?.get('isDefault') === 'true' || false
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -154,11 +154,17 @@ export default function NewAddressForm() {
   const governorateOptions = Object.keys(locationData);
   const cityOptions = formData.governorate ? locationData[formData.governorate] || [] : [];
 
+  useEffect(() => {
+    if (!AddressService.isAuthenticated()) {
+      console.log('❌ User not authenticated, redirecting to login...');
+      router.push('/login');
+    }
+  }, [router]);
+
   const handleInputChange = (field: keyof AddressFormData, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
-      // Reset city when governorate changes
       ...(field === 'governorate' && typeof value === 'string' ? { city: '' } : {})
     }));
 
@@ -183,6 +189,8 @@ export default function NewAddressForm() {
 
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'رقم الهاتف مطلوب';
+    } else if (!/^[0-9]{11}$/.test(formData.phoneNumber.trim())) {
+      newErrors.phoneNumber = 'رقم الهاتف يجب أن يكون 11 رقم';
     }
 
     if (!formData.address.trim()) {
@@ -205,28 +213,83 @@ export default function NewAddressForm() {
     e.preventDefault();
     
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
+      return;
+    }
+
+    if (!AddressService.isAuthenticated()) {
+      setErrors({ general: 'يجب تسجيل الدخول للقيام بهذا الإجراء' });
+      setTimeout(() => router.push('/login'), 2000);
       return;
     }
 
     setIsSubmitting(true);
+    setErrors({});
     
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (isEditMode) {
-        console.log('Address updated successfully:', { id: addressId, ...formData });
+  try {
+      if (isEditMode && addressId) {
+        console.log('🔄 Updating address...', { addressId, ...formData });
+        
+        // Build payload with only necessary fields
+        const updatePayload = {
+          addressId: addressId,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          city: formData.city,
+          region: formData.governorate,
+          ...(formData.isDefault && { isDefault: true })
+        };
+        
+        console.log('📦 Final update payload:', JSON.stringify(updatePayload, null, 2));
+        
+        const response = await AddressService.updateAddress(updatePayload);
+        
+        console.log('✅ Address updated successfully:', response);
       } else {
-        console.log('Address added successfully:', formData);
+        console.log('➕ Adding new address...', formData);
+        
+        // Build payload with only necessary fields
+        const addPayload = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          city: formData.city,
+          region: formData.governorate,
+          ...(formData.isDefault && { isDefault: true })
+        };
+        
+        console.log('📦 Final add payload:', JSON.stringify(addPayload, null, 2));
+        console.log('✓ Checkbox checked:', formData.isDefault);
+        console.log('✓ isDefault in payload:', 'isDefault' in addPayload);
+        
+        const response = await AddressService.addAddress(addPayload);
+        
+        console.log('✅ Address added successfully:', response);
       }
+      }catch (error) {
+      console.error(`❌ Failed to ${isEditMode ? 'update' : 'add'} address:`, error);
       
-      setIsSuccess(true);
-      
-      setTimeout(() => {
-        router.push('/profile');
-      }, 2000);
-      
-    } catch (error) {
-      console.error(`Failed to ${isEditMode ? 'update' : 'save'} address:`, error);
+      if (error instanceof AddressError) {
+        if (error.statusCode === 401) {
+          setErrors({ general: 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.' });
+          setTimeout(() => router.push('/login'), 2000);
+        } else if (error.errors) {
+          const apiErrors: FormErrors = {};
+          Object.entries(error.errors).forEach(([key, value]) => {
+            apiErrors[key as keyof FormErrors] = value;
+          });
+          setErrors(apiErrors);
+        } else {
+          setErrors({ general: error.message });
+        }
+      } else {
+        setErrors({ 
+          general: `حدث خطأ أثناء ${isEditMode ? 'تحديث' : 'إضافة'} العنوان. يرجى المحاولة مرة أخرى.` 
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -236,7 +299,6 @@ export default function NewAddressForm() {
     router.push('/profile');
   };
 
-  // Page title based on mode
   const pageTitle = isEditMode ? 'تعديل العنوان' : 'أضف عنوان جديد';
   const submitButtonText = isEditMode ? 'حفظ التعديل' : 'حفظ';
   const successText = isEditMode ? 'تم التعديل!' : 'تم الحفظ!';
@@ -250,6 +312,34 @@ export default function NewAddressForm() {
         )}
       </div>
 
+      {errors.general && (
+        <div style={{
+          padding: '12px 16px',
+          marginBottom: '20px',
+          backgroundColor: '#fee',
+          border: '1px solid #fcc',
+          borderRadius: '8px',
+          color: '#c33',
+          textAlign: 'center'
+        }}>
+          {errors.general}
+        </div>
+      )}
+
+      {isSuccess && (
+        <div style={{
+          padding: '12px 16px',
+          marginBottom: '20px',
+          backgroundColor: '#e8f5e9',
+          border: '1px solid #a5d6a7',
+          borderRadius: '8px',
+          color: '#2e7d32',
+          textAlign: 'center'
+        }}>
+          {successText} جاري التحويل...
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.fieldGroup}>
           <Input
@@ -259,6 +349,7 @@ export default function NewAddressForm() {
             onChange={(e) => handleInputChange('firstName', e.target.value)}
             error={!!errors.firstName}
             className={styles.input}
+            disabled={isSubmitting}
           />
           {errors.firstName && (
             <p className={styles.errorText}>{errors.firstName}</p>
@@ -273,6 +364,7 @@ export default function NewAddressForm() {
             onChange={(e) => handleInputChange('lastName', e.target.value)}
             error={!!errors.lastName}
             className={styles.input}
+            disabled={isSubmitting}
           />
           {errors.lastName && (
             <p className={styles.errorText}>{errors.lastName}</p>
@@ -282,11 +374,13 @@ export default function NewAddressForm() {
         <div className={styles.fieldGroup}>
           <Input
             type="tel"
-            placeholder="رقم الهاتف"
+            placeholder="رقم الهاتف (11 رقم)"
             value={formData.phoneNumber}
             onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
             error={!!errors.phoneNumber}
             className={styles.input}
+            disabled={isSubmitting}
+            maxLength={11}
           />
           {errors.phoneNumber && (
             <p className={styles.errorText}>{errors.phoneNumber}</p>
@@ -301,6 +395,7 @@ export default function NewAddressForm() {
             onChange={(e) => handleInputChange('address', e.target.value)}
             error={!!errors.address}
             className={styles.input}
+            disabled={isSubmitting}
           />
           {errors.address && (
             <p className={styles.errorText}>{errors.address}</p>
@@ -315,6 +410,7 @@ export default function NewAddressForm() {
             onChange={(value) => handleInputChange('governorate', value)}
             placeholder="اختر المحافظة"
             error={!!errors.governorate}
+            disabled={isSubmitting}
           />
           {errors.governorate && (
             <p className={styles.errorText}>{errors.governorate}</p>
@@ -328,7 +424,7 @@ export default function NewAddressForm() {
             options={cityOptions}
             onChange={(value) => handleInputChange('city', value)}
             placeholder="اختر المدينة"
-            disabled={!formData.governorate}
+            disabled={!formData.governorate || isSubmitting}
             error={!!errors.city}
           />
           {errors.city && (
@@ -343,11 +439,22 @@ export default function NewAddressForm() {
               checked={formData.isDefault}
               onChange={(e) => handleInputChange('isDefault', e.target.checked)}
               className={styles.checkbox}
+              disabled={isSubmitting}
             />
             <span className={styles.checkboxText}>
               {isEditMode ? 'تعيين كعنوان افتراضي' : 'أضف كعنوان افتراضي'}
             </span>
           </label>
+          {formData.isDefault && (
+            <p style={{
+              fontSize: '12px',
+              color: '#2e7d32',
+              marginTop: '4px',
+              marginRight: '24px'
+            }}>
+              سيتم إلغاء العنوان الافتراضي الحالي تلقائياً
+            </p>
+          )}
         </div>
 
         <div className={styles.buttonGroup}>

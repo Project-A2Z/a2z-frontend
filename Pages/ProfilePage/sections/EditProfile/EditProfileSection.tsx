@@ -81,6 +81,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
     };
 
     fetchOrders();
+    console.log ('user in EditProfileSection', user);
   }, [box]);
 
   const handleLogout = async () => {

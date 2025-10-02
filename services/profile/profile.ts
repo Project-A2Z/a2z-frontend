@@ -11,6 +11,8 @@ export interface Address {
   city: string;
   region: string;
   isDefault: boolean;
+  createdAt?: string;
+  id?: string;
 }
 
 export interface UserProfile {
@@ -21,7 +23,8 @@ export interface UserProfile {
   phoneNumber: string;
   image?: string | null;
   isEmailVerified: boolean;
-  addresses?: Address[];
+  address?: Address[]; // Backend uses 'address' not 'addresses'
+  addresses?: Address[]; // Keep for compatibility
   role?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -56,7 +59,7 @@ export interface UserProfileResponse {
     salary: number | null;
     dateOfSubmission: string | null;
     isVerified: boolean;
-    address: any[];
+    address: Address[];
     createdAt: string;
     updatedAt: string;
     __v: number;
@@ -164,7 +167,7 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
           data = { message: textData };
         }
       }
-      console.log('📄 Parsed profile data:', data);
+      console.log('📄 Raw API response:', data);
     } catch (parseError) {
       console.error('❌ Failed to parse response:', parseError);
       throw new ProfileError('استجابة الخادم غير صحيحة');
@@ -212,6 +215,20 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
       throw new ProfileError('استجابة الخادم غير صحيحة');
     }
 
+    // 🔧 FIX: Normalize address field
+    // Ensure both 'address' and 'addresses' are available
+    if (userData.address && !userData.addresses) {
+      userData.addresses = userData.address;
+    } else if (userData.addresses && !userData.address) {
+      userData.address = userData.addresses;
+    }
+
+    // 🔍 DEBUG: Log address information
+    console.log('🏠 Address fields after normalization:');
+    console.log('  - address:', userData.address?.length || 0, 'items');
+    console.log('  - addresses:', userData.addresses?.length || 0, 'items');
+    console.log('  - address data:', userData.address);
+
     console.log('✅ Profile fetched successfully!');
     console.log('👤 User data:', userData);
     
@@ -244,15 +261,72 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
   }
 };
 
+// 🆕 NEW: Debug function to check backend address endpoint directly
+export const debugAddresses = async (): Promise<void> => {
+  console.group('🔍 DEBUGGING ADDRESSES');
+  
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      console.error('❌ No auth token found');
+      return;
+    }
+
+    // 1. Check profile endpoint
+    console.log('\n1️⃣ Checking profile endpoint...');
+    const profileRes = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.PROFILE}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const profileData = await profileRes.json();
+    console.log('Profile response:', JSON.stringify(profileData, null, 2));
+    
+    const userData = profileData.data?.user || profileData.user;
+    console.log('Address count from profile:', userData?.address?.length || 0);
+    console.log('Address data:', userData?.address);
+
+    // 2. Check if there's a separate addresses endpoint
+    console.log('\n2️⃣ Checking addresses endpoint...');
+    try {
+      const addressRes = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.ADDRESSES}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (addressRes.ok) {
+        const addressData = await addressRes.json();
+        console.log('Addresses endpoint response:', JSON.stringify(addressData, null, 2));
+      } else {
+        console.log('Addresses endpoint status:', addressRes.status);
+      }
+    } catch (err) {
+      console.log('Addresses endpoint error:', err);
+    }
+
+    // 3. Check localStorage
+    console.log('\n3️⃣ Checking localStorage...');
+    const localUserData = localStorage.getItem('user_data');
+    if (localUserData) {
+      const localUser = JSON.parse(localUserData);
+      console.log('localStorage address count:', localUser?.address?.length || 0);
+      console.log('localStorage address data:', localUser?.address);
+    }
+
+  } catch (error) {
+    console.error('Debug error:', error);
+  }
+  
+  console.groupEnd();
+};
+
 export const updateUserProfile = async (
   profileData: UpdateProfileData,
   token: string = getAuthToken() || ''
 ): Promise<UserProfileResponse> => {
   try {
-    // Create FormData object
     const formData = new FormData();
 
-    // Append only the fields that are provided
     if (profileData.firstName !== undefined) {
       formData.append('firstName', profileData.firstName);
     }
@@ -269,21 +343,16 @@ export const updateUserProfile = async (
       formData.append('image', profileData.image);
     }
 
-    // Make the API request
     const response = await fetch(`${Api}${API_ENDPOINTS.AUTH.UPDATE_PROFILE}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
-        // Note: Don't set Content-Type header when using FormData
-        // The browser will set it automatically with the correct boundary
       },
       body: formData,
     });
 
-    // Parse the response
     const data = await response.json();
 
-    // Handle error responses
     if (!response.ok) {
       throw {
         status: data.status || 'error',
@@ -292,14 +361,21 @@ export const updateUserProfile = async (
       } as ApiError;
     }
 
+    // 🔧 FIX: Normalize address in response
+    if (data.user) {
+      if (data.user.address && !data.user.addresses) {
+        data.user.addresses = data.user.address;
+      }
+      // Update localStorage
+      localStorage.setItem('user_data', JSON.stringify(data.user));
+    }
+
     return data as UserProfileResponse;
   } catch (error) {
-    // Re-throw API errors
     if ((error as ApiError).status) {
       throw error;
     }
 
-    // Handle network or other errors
     throw {
       status: 'error',
       message: error instanceof Error ? error.message : 'Network error occurred',
@@ -307,17 +383,10 @@ export const updateUserProfile = async (
   }
 };
 
-/**
- * Update user profile with validation
- * @param profileData - Object containing profile fields to update
- * @param token - JWT authentication token
- * @returns Promise with updated user data
- */
 export const updateUserProfileWithValidation = async (
   profileData: UpdateProfileData,
   token: string
 ): Promise<UserProfileResponse> => {
-  // Validate phone number format if provided
   if (profileData.phoneNumber) {
     const cleanPhone = profileData.phoneNumber.replace(/[^\d+]/g, '');
     const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
@@ -334,10 +403,9 @@ export const updateUserProfileWithValidation = async (
     }
   }
 
-  // Validate image file if provided
   if (profileData.image) {
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validImageTypes.includes(profileData.image.type)) {
       throw {
@@ -365,7 +433,6 @@ export const updateUserProfileWithValidation = async (
   return updateUserProfile(profileData, token);
 };
 
-// Update Password
 export const updatePassword = async (passwordData: UpdatePasswordData): Promise<{ status: string; message: string }> => {
   console.log('🚀 Updating password...');
 
@@ -427,7 +494,6 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
   }
 };
 
-// Add Address
 export const addAddress = async (addressData: AddAddressData): Promise<ProfileResponse> => {
   console.log('🚀 Adding new address...');
   console.log('📤 Address data:', addressData);
@@ -470,9 +536,13 @@ export const addAddress = async (addressData: AddAddressData): Promise<ProfileRe
 
     console.log('✅ Address added successfully!');
     
-    // Update user data in localStorage
+    // Update user data in localStorage with address normalization
     if (data.data && data.data.user && typeof window !== 'undefined') {
-      localStorage.setItem('user_data', JSON.stringify(data.data.user));
+      const userData = data.data.user;
+      if (userData.address && !userData.addresses) {
+        userData.addresses = userData.address;
+      }
+      localStorage.setItem('user_data', JSON.stringify(userData));
     }
     
     return data;
@@ -488,7 +558,6 @@ export const addAddress = async (addressData: AddAddressData): Promise<ProfileRe
   }
 };
 
-// Update Address
 export const updateAddress = async (addressData: UpdateAddressData): Promise<ProfileResponse> => {
   console.log('🚀 Updating address...');
   
@@ -514,9 +583,12 @@ export const updateAddress = async (addressData: UpdateAddressData): Promise<Pro
 
     console.log('✅ Address updated successfully!');
     
-    // Update localStorage
     if (data.data && data.data.user && typeof window !== 'undefined') {
-      localStorage.setItem('user_data', JSON.stringify(data.data.user));
+      const userData = data.data.user;
+      if (userData.address && !userData.addresses) {
+        userData.addresses = userData.address;
+      }
+      localStorage.setItem('user_data', JSON.stringify(userData));
     }
     
     return data;
@@ -529,7 +601,6 @@ export const updateAddress = async (addressData: UpdateAddressData): Promise<Pro
   }
 };
 
-// Delete Address
 export const deleteAddress = async (addressId: string): Promise<ProfileResponse> => {
   console.log('🚀 Deleting address...');
   
@@ -555,9 +626,12 @@ export const deleteAddress = async (addressId: string): Promise<ProfileResponse>
 
     console.log('✅ Address deleted successfully!');
     
-    // Update localStorage
     if (data.data && data.data.user && typeof window !== 'undefined') {
-      localStorage.setItem('user_data', JSON.stringify(data.data.user));
+      const userData = data.data.user;
+      if (userData.address && !userData.addresses) {
+        userData.addresses = userData.address;
+      }
+      localStorage.setItem('user_data', JSON.stringify(userData));
     }
     
     return data;
@@ -572,57 +646,40 @@ export const deleteAddress = async (addressId: string): Promise<ProfileResponse>
 
 // Profile Service Class
 export class ProfileService {
-  /**
-   * Get user profile
-   */
   static async getProfile(): Promise<ProfileResponse> {
     return await getUserProfile();
   }
 
-  /**
-   * Update user profile
-   */
   static async updateProfile(updateData: UpdateProfileData): Promise<UserProfileResponse> {
     return await updateUserProfile(updateData);
   }
 
-  /**
-   * Update password
-   */
   static async updatePassword(passwordData: UpdatePasswordData): Promise<{ status: string; message: string }> {
     return await updatePassword(passwordData);
   }
 
-  /**
-   * Add new address
-   */
   static async addAddress(addressData: AddAddressData): Promise<ProfileResponse> {
     return await addAddress(addressData);
   }
 
-  /**
-   * Update existing address
-   */
   static async updateAddress(addressData: UpdateAddressData): Promise<ProfileResponse> {
     return await updateAddress(addressData);
   }
 
-  /**
-   * Delete address
-   */
   static async deleteAddress(addressId: string): Promise<ProfileResponse> {
     return await deleteAddress(addressId);
   }
 
-  /**
-   * Check if user is authenticated
-   */
   static isAuthenticated(): boolean {
     return getAuthToken() !== null;
   }
+
+  // 🆕 NEW: Debug method
+  static async debugAddresses(): Promise<void> {
+    return await debugAddresses();
+  }
 }
 
-// Export utility functions
 export {
   getUserProfile as getProfile,
   updateUserProfile as updateProfile,
@@ -632,5 +689,4 @@ export {
   deleteAddress as removeAddress,
 };
 
-// Default export
 export default ProfileService;

@@ -376,15 +376,19 @@
   margin-bottom: 2rem;
 }
 
+
 .fieldGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
   position: relative;
-  z-index: 20;
+  z-index: 1;
 }
 
+.fieldGroup:focus-within {
+  z-index: 100;
+}
 .checkboxContainer {
   display: flex;
   align-items: center;
@@ -554,7 +558,7 @@
           border: 2px solid var(--primary, #4c9343);
           border-radius: 16px;
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-          z-index: 50;
+          z-index: 1000;
           max-height: 240px;
           overflow-y: auto;
           direction: rtl;
