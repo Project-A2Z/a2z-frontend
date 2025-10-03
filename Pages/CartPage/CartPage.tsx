@@ -43,6 +43,7 @@ const CartPage = () => {
             image: imageUrl,
             unit,
             availability,
+            category: p.category,
           };
         });
         setCartItems(mapped);
@@ -112,7 +113,12 @@ const CartPage = () => {
           )}
         </div>
 
-        <RelatedProducts />
+        {(() => {
+          const primaryCategory = cartItems.find(ci => ci.category)?.category;
+          return (
+            <RelatedProducts category={primaryCategory} minPriceGte={250} />
+          );
+        })()}
       </div>
     </div>
   );

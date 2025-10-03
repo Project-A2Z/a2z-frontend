@@ -8,9 +8,10 @@ import { Product, productService } from '@/services/api/products';
 interface RelatedProductsProps {
   category?: string;
   currentProductId?: string;
+  minPriceGte?: number;
 }
 
-const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProductId }) => {
+const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProductId, minPriceGte }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,26 +51,28 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
   // Fetch related products from API
   useEffect(() => {
     const fetchRelatedProducts = async () => {
-      if (!category) {
-        setProducts([]);
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        const response = await productService.getProducts({
-          category,
+        const filters: any = {
           limit: 12,
           fields: '_id,name,category,price,imageList,stockType,stockQty'
-        });
+        };
+        if (category) filters.category = category;
+        if (typeof minPriceGte === 'number') {
+          filters['price[gte]'] = minPriceGte;
+          // Alternatively using nested object works with Axios params serialization too:
+          // filters.price = { gte: minPriceGte };
+        }
 
-        // API returns array directly in response.data
-        const list = Array.isArray(response.data) ? response.data : [];
+        const response = await productService.getProducts(filters);
+
+        // productService returns { status, data }
+        const raw = (response as any)?.data ?? response;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
 
         const filteredProducts = list
-          .filter((p) => p.category === category)
-          .filter((p) => (currentProductId ? p._id !== currentProductId : true));
+          .filter((p: any) => (category ? p.category === category : true))
+          .filter((p: any) => (currentProductId ? p._id !== currentProductId : true));
 
         setProducts(filteredProducts.slice(0, 8));
       } catch (error) {

@@ -6,6 +6,7 @@ export type CartItem = {
   image: string;
   unit: string;
   availability: string;
+  category?: string;
 };
 
 
