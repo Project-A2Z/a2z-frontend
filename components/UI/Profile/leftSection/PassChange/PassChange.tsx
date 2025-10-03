@@ -20,20 +20,6 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-const LockIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <circle cx="12" cy="16" r="1" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="20,6 9,17 4,12" />
-  </svg>
-);
-
 const ErrorIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="10" />
@@ -63,6 +49,10 @@ interface ModalProps {
   onClose: () => void;
 }
 
+interface PassChangeProps {
+  onChangePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
+}
+
 const Modal: React.FC<ModalProps> = ({ isOpen, type, title, message, onClose }) => {
   if (!isOpen) return null;
 
@@ -87,7 +77,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, type, title, message, onClose }) 
   );
 };
 
-const PassChange: React.FC = () => {
+const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
   const [formData, setFormData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
@@ -192,14 +182,13 @@ const PassChange: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Handle successful submission
-      console.log('Password changed successfully:', {
+      // Call the password change API
+      await onChangePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });
+      
+      console.log('Password changed successfully');
       
       // Reset form
       setFormData({
@@ -214,14 +203,21 @@ const PassChange: React.FC = () => {
         'تم بنجاح!',
         'تم تغيير كلمة المرور بنجاح. يمكنك الآن استخدام كلمة المرور الجديدة لتسجيل الدخول.'
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error changing password:', error);
+      
+      // Extract error message
+      let errorMessage = 'فشل في تغيير كلمة المرور. يرجى التأكد من صحة كلمة المرور الحالية والمحاولة مرة أخرى.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
       
       // Show error modal
       showModal(
         'error',
         'فشل في التحديث',
-        'فشل في تغيير كلمة المرور. يرجى التأكد من صحة كلمة المرور الحالية والمحاولة مرة أخرى.'
+        errorMessage
       );
     } finally {
       setIsLoading(false);
@@ -297,6 +293,7 @@ const PassChange: React.FC = () => {
                 fullWidth
                 className={styles.submitButton}
                 rounded={true}
+                onClick={handleSubmit}
               >
                 متابعة
               </Button>

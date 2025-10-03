@@ -268,6 +268,8 @@ export default function NewAddressForm() {
         const response = await AddressService.addAddress(addPayload);
         
         console.log('✅ Address added successfully:', response);
+        setIsSuccess(true);
+        setTimeout(() => router.push('/profile'), 2000);
       }
       }catch (error) {
       console.error(`❌ Failed to ${isEditMode ? 'update' : 'add'} address:`, error);
@@ -275,7 +277,7 @@ export default function NewAddressForm() {
       if (error instanceof AddressError) {
         if (error.statusCode === 401) {
           setErrors({ general: 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.' });
-          setTimeout(() => router.push('/login'), 2000);
+          setTimeout(() => router.push('/login'), 1000);
         } else if (error.errors) {
           const apiErrors: FormErrors = {};
           Object.entries(error.errors).forEach(([key, value]) => {
@@ -292,6 +294,9 @@ export default function NewAddressForm() {
       }
     } finally {
       setIsSubmitting(false);
+      setIsSuccess(false);
+      setTimeout(() => router.push('/profile'), 1000);
+
     }
   };
 

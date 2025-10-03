@@ -433,16 +433,30 @@ export const updateUserProfileWithValidation = async (
   return updateUserProfile(profileData, token);
 };
 
+// Update the updatePassword function in profile.ts
+
 export const updatePassword = async (passwordData: UpdatePasswordData): Promise<{ status: string; message: string }> => {
   console.log('🚀 Updating password...');
 
   try {
     const headers = getAuthHeaders();
     
+    // 🔧 FIX: Map frontend fields to API expected fields
+    const apiPayload = {
+      OldPassword: passwordData.currentPassword,  // Map currentPassword -> OldPassword
+      NewPassword: passwordData.newPassword        // Map newPassword -> NewPassword
+      // Note: confirmPassword is not sent to API (frontend validation only)
+    };
+    
+    console.log('📤 Sending password update with payload:', { 
+      OldPassword: '***', 
+      NewPassword: '***' 
+    });
+    
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.UPDATE_PASSWORD}`, {
       method: 'PATCH',
       headers: headers,
-      body: JSON.stringify(passwordData),
+      body: JSON.stringify(apiPayload), // Send mapped payload
     });
 
     console.log('📥 Password update response status:', response.status);
@@ -493,7 +507,6 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
     throw new ProfileError('حدث خطأ غير متوقع أثناء تحديث كلمة المرور');
   }
 };
-
 export const addAddress = async (addressData: AddAddressData): Promise<ProfileResponse> => {
   console.log('🚀 Adding new address...');
   console.log('📤 Address data:', addressData);

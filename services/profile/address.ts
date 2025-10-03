@@ -108,6 +108,7 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
     if (response.status === 200) {
       console.log('✅ Address added successfully!');
       alert(data.message || 'تم إضافة العنوان بنجاح');
+      
       return data;
     }
 
@@ -308,6 +309,7 @@ export class AddressService {
    * Update an existing address
    */
   static async updateAddress(updateData: UpdateAddressData): Promise<UpdateAddressResponse> {
+    
     return await updateAddress(updateData);
   }
 

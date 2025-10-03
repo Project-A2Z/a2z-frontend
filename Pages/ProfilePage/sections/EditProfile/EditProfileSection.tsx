@@ -15,6 +15,7 @@ import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 //interfaces and services
 import { logoutUser, AuthService } from './../../../../services/auth/login';
 import orderService, { TransformedOrder } from './../../../../services/profile/orders';
+import { updatePassword } from '../../../../services/profile/profile';
 
 interface User {
   _id: string;
@@ -140,6 +141,25 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
       setIsLoggingOut(false);
     }
   };
+
+  // Handle password change
+  const handlePasswordChange = async (passwordData: { currentPassword: string; newPassword: string }) => {
+    try {
+      console.log('🔐 Changing password...');
+      
+      // Call the updatePassword service with all required fields
+      await updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.newPassword // confirmPassword same as newPassword
+      });
+      
+      console.log('✅ Password changed successfully');
+    } catch (error) {
+      console.error('❌ Password change failed:', error);
+      throw error; // Re-throw to let PassChange component handle the error
+    }
+  };
  
   // Function to render component based on box value
   const renderComponent = () => {
@@ -152,7 +172,9 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
           phone={user?.phoneNumber || ''}
         />;
       case 'تغيير كلمة المرور':
-        return <PassChange />;
+        return <PassChange 
+          onChangePassword={handlePasswordChange}
+        />;
       case 'عناوينك':
         return <Address 
           Addresses={user?.address || []}
