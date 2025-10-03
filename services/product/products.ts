@@ -139,9 +139,9 @@ export async function getStaticProducts(): Promise<ProductsResponse> {
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`🚀 Fetching static products (attempt ${attempt}/${maxRetries})...`);
+      console.log(`🚀 Fetching static products (attempt ${attempt}${maxRetries})...`);
       
-      const url = `${Api}/products`;
+      const url = `${Api}products`;
       const config = getRequestConfig();
       
       // Set a reasonable timeout for build time
