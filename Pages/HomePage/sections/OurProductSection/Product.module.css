@@ -556,3 +556,104 @@
     width: 100%;
   }
 }
+/* Pagination Container */
+.paginationContainer {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 7rem;
+  margin: 2rem 0;
+  padding: 1rem;
+  position: relative;
+  width: 100%;
+}
+
+/* Page Numbers Container */
+.pageNumbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  direction: rtl;
+  position: absolute;
+  left: 50%;
+  top: -200%;
+  /* padding-right: 100%; */
+}
+
+/* Page Number Button */
+.pageNumber {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pageNumber:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+/* Active Page */
+.pageNumber.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+  font-weight: 600;
+}
+
+/* Arrow Buttons */
+.arrowButton {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Disabled State */
+.pageNumber:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #fafafa;
+}
+
+/* Pagination Info */
+.paginationInfo {
+  text-align: right;
+  width: fit-content;
+  margin-top: 0.5rem;
+}
+
+.productsCount {
+  font-size: 14px;
+  color: #666666;
+  font-weight: 400;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .pageNumbers {
+    gap: 0.15rem;
+  }
+  
+  .pageNumber {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .arrowButton {
+    font-size: 16px;
+  }
+  
+  .productsCount {
+    font-size: 12px;
+  }
+}
