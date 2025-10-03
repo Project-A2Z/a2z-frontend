@@ -1,27 +1,21 @@
 import React from 'react';
 
 interface CodeInputSectionProps {
-  code: string[];
-  onCodeChange: (index: number, value: string) => void;
-  onKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
+    code: string[];
+    onCodeChange: (index: number, value: string) => void; // Function to handle when a digit changes
+    onKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void; // Function to handle keyboard events
 }
 
-  const CodeInputSection: React.FC<CodeInputSectionProps> = ({ 
+const CodeInputSection: React.FC<CodeInputSectionProps> = ({ 
     code, 
     onCodeChange, 
     onKeyDown 
-  }) => {
+}) => {
     return (
-<<<<<<< HEAD
-
-        <div className="flex justify-center items-center gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" dir="ltr">
+        <div className="flex justify-center items-center flex-wrap gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" dir="ltr">
             <label htmlFor="code-0" className="sr-only">
-                Verification Code - Digit 1
-
+                Verification Code - First Digit
             </label>
-=======
-        <div className="flex justify-center items-center gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" dir="ltr">
->>>>>>> c42ec0c (update10)
             {code.map((digit, index) => (
                 <input
                     key={index}
@@ -36,25 +30,16 @@ interface CodeInputSectionProps {
                                 text-center font-semibold border-2 border-gray-200 rounded-lg xs:rounded-xl 
                                 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 
                                 transition-all duration-200 
-<<<<<<< HEAD
-
                                 [font-family:Beiruti] font-[600] leading-[100%] tracking-[0%] 
                                 "
                     placeholder=""
                     aria-label={`Verification Code - Digit ${index + 1}`}
                     inputMode="numeric"
                     dir="ltr"
-
-=======
-                                [font-family:Beiruti] font-[600] leading-[100%] tracking-[0%]"
-                    placeholder=""
-                    aria-label={`Verification Code - Digit ${index + 1}`}
-                    inputMode="numeric"
->>>>>>> c42ec0c (update10)
                 />
             ))}
         </div>
     );
-  };
+};
 
-  export default React.memo(CodeInputSection);
+export default React.memo(CodeInputSection);
