@@ -4,9 +4,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from './../../../../components/UI/Buttons/Button';
 import Input from './../../../../components/UI/Inputs/Input';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, MapPin, Edit3 } from 'lucide-react';
 import styles from './../../profile.module.css';
 import { AddressService, AddressError } from './../../../../services/profile/address';
+import MapLocationPicker from './../../../../components/UI/Profile/leftSection/Address/Location_map';
 
 // Location data
 const locationData: { [key: string]: string[] } = {
@@ -18,6 +19,14 @@ const locationData: { [key: string]: string[] } = {
   'دمنهور': ['دمنهور', 'كفر الدوار', 'أبو المطامير', 'الرحمانية', 'إدكو', 'رشيد'],
   'الأقصر': ['الأقصر', 'إسنا', 'أرمنت', 'القرنة', 'الطود']
 };
+
+interface Location {
+  lat: number;
+  lng: number;
+  address?: string;
+  city?: string;
+  region?: string;
+}
 
 interface CustomDropdownProps {
   label: string;
@@ -137,6 +146,10 @@ export default function NewAddressForm() {
   const isEditMode = searchParams?.get('mode') === 'edit';
   const addressId = searchParams?.get('id');
   
+  const [inputMethod, setInputMethod] = useState<'manual' | 'map'>('manual');
+  const [showMap, setShowMap] = useState(false);
+  const [mapLocation, setMapLocation] = useState<Location | null>(null);
+  
   const [formData, setFormData] = useState<AddressFormData>({
     firstName: searchParams?.get('firstName') || '',
     lastName: searchParams?.get('lastName') || '',
@@ -156,7 +169,7 @@ export default function NewAddressForm() {
 
   useEffect(() => {
     if (!AddressService.isAuthenticated()) {
-      console.log('❌ User not authenticated, redirecting to login...');
+      console.log('User not authenticated, redirecting to login...');
       router.push('/login');
     }
   }, [router]);
@@ -173,6 +186,37 @@ export default function NewAddressForm() {
         ...prev,
         [field]: undefined,
       }));
+    }
+  };
+
+  const handleLocationSelect = (location: Location) => {
+    console.log('Map location selected:', location);
+    setMapLocation(location);
+    
+    // Auto-fill form fields from map selection
+    setFormData(prev => ({
+      ...prev,
+      address: location.address || prev.address,
+      city: location.city || prev.city,
+      governorate: location.region || prev.governorate
+    }));
+
+    // Clear related errors
+    setErrors(prev => ({
+      ...prev,
+      address: undefined,
+      city: undefined,
+      governorate: undefined
+    }));
+  };
+
+  const toggleInputMethod = () => {
+    if (inputMethod === 'manual') {
+      setInputMethod('map');
+      setShowMap(true);
+    } else {
+      setInputMethod('manual');
+      setShowMap(false);
     }
   };
 
@@ -213,7 +257,7 @@ export default function NewAddressForm() {
     e.preventDefault();
     
     if (!validateForm()) {
-      console.log('❌ Form validation failed');
+      console.log('Form validation failed');
       return;
     }
 
@@ -226,53 +270,46 @@ export default function NewAddressForm() {
     setIsSubmitting(true);
     setErrors({});
     
-  try {
+    try {
+      // Build payload without coordinates field
+      const basePayload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        city: formData.city,
+        region: formData.governorate,
+        ...(formData.isDefault && { isDefault: true })
+      };
+
       if (isEditMode && addressId) {
-        console.log('🔄 Updating address...', { addressId, ...formData });
+        console.log('Updating address...', { addressId, ...basePayload });
         
-        // Build payload with only necessary fields
         const updatePayload = {
           addressId: addressId,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
-          city: formData.city,
-          region: formData.governorate,
-          ...(formData.isDefault && { isDefault: true })
+          ...basePayload
         };
         
-        console.log('📦 Final update payload:', JSON.stringify(updatePayload, null, 2));
+        console.log('Final update payload:', JSON.stringify(updatePayload, null, 2));
         
         const response = await AddressService.updateAddress(updatePayload);
         
-        console.log('✅ Address updated successfully:', response);
-      } else {
-        console.log('➕ Adding new address...', formData);
-        
-        // Build payload with only necessary fields
-        const addPayload = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
-          city: formData.city,
-          region: formData.governorate,
-          ...(formData.isDefault && { isDefault: true })
-        };
-        
-        console.log('📦 Final add payload:', JSON.stringify(addPayload, null, 2));
-        console.log('✓ Checkbox checked:', formData.isDefault);
-        console.log('✓ isDefault in payload:', 'isDefault' in addPayload);
-        
-        const response = await AddressService.addAddress(addPayload);
-        
-        console.log('✅ Address added successfully:', response);
+        console.log('Address updated successfully:', response);
         setIsSuccess(true);
-        setTimeout(() => router.push('/profile'), 2000);
+        setTimeout(() => router.push('/profile'), 1500);
+      } else {
+        console.log('Adding new address...', basePayload);
+        
+        console.log('Final add payload:', JSON.stringify(basePayload, null, 2));
+        
+        const response = await AddressService.addAddress(basePayload);
+        
+        console.log('Address added successfully:', response);
+        setIsSuccess(true);
+        setTimeout(() => router.push('/profile'), 1500);
       }
-      }catch (error) {
-      console.error(`❌ Failed to ${isEditMode ? 'update' : 'add'} address:`, error);
+    } catch (error) {
+      console.error(`Failed to ${isEditMode ? 'update' : 'add'} address:`, error);
       
       if (error instanceof AddressError) {
         if (error.statusCode === 401) {
@@ -294,9 +331,6 @@ export default function NewAddressForm() {
       }
     } finally {
       setIsSubmitting(false);
-      setIsSuccess(false);
-      setTimeout(() => router.push('/profile'), 1000);
-
     }
   };
 
@@ -392,10 +426,65 @@ export default function NewAddressForm() {
           )}
         </div>
 
+        {/* Toggle between manual and map input */}
+        <div style={{ 
+          marginBottom: '20px',
+          padding: '16px',
+          backgroundColor: '#f8f9fa',
+          
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px'
+          }}>
+            
+            <Button
+              type="button"
+              variant={inputMethod === 'map' ? 'primary' : 'outline'}
+              size="sm"
+              onClick={toggleInputMethod}
+              disabled={isSubmitting}
+              style={{ minWidth: '140px' }}
+              rounded={true}
+              leftIcon={inputMethod === 'manual' ? 
+                          <MapPin size={16} style={{ marginLeft: '6px' }} /> 
+                          : 
+                          <Edit3 size={16} style={{ marginLeft: '6px' }} />
+                        }
+            >
+              {inputMethod === 'manual' ? (
+                <>
+                 
+                  استخدام الخريطة
+                </>
+              ) : (
+                <>
+                  إدخال يدوي
+                </>
+              )}
+            </Button>
+          </div>
+          
+        </div>
+
+        {/* Map Section - LINE 259 AREA */}
+        {inputMethod === 'map' && showMap && (
+          <div style={{ marginBottom: '24px' }}>
+            <MapLocationPicker
+              onLocationSelect={handleLocationSelect}
+              initialLocation={mapLocation || undefined}
+              height="400px"
+            />
+          </div>
+        )}
+
+        {/* Address Fields */}
         <div className={styles.fieldGroup}>
           <Input
             type="text"
-            placeholder="العنوان"
+            placeholder="العنوان التفصيلي"
             value={formData.address}
             onChange={(e) => handleInputChange('address', e.target.value)}
             error={!!errors.address}
@@ -404,6 +493,15 @@ export default function NewAddressForm() {
           />
           {errors.address && (
             <p className={styles.errorText}>{errors.address}</p>
+          )}
+          {inputMethod === 'map' && formData.address && mapLocation && (
+            <p style={{
+              fontSize: '12px',
+              color: '#4CAF50',
+              marginTop: '4px'
+            }}>
+              تم التعبئة من الخريطة (يمكنك التعديل)
+            </p>
           )}
         </div>
 
@@ -436,6 +534,23 @@ export default function NewAddressForm() {
             <p className={styles.errorText}>{errors.city}</p>
           )}
         </div>
+
+        {/* {mapLocation && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#e3f2fd',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontSize: '13px',
+            color: '#1565c0'
+          }}>
+            تم تحديد الموقع من الخريطة: {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}
+            <br />
+            <span style={{ fontSize: '11px', color: '#555' }}>
+              (لن يتم إرسال الإحداثيات - فقط العنوان النصي)
+            </span>
+          </div>
+        )} */}
 
         <div className={styles.checkboxContainer}>
           <label className={styles.checkboxLabel}>
