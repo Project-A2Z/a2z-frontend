@@ -31,8 +31,8 @@ const CartPage = () => {
           const p = it.productId || {};
           const images = p.imageList || p.images || p.image || [];
           const imageUrl = Array.isArray(images)
-            ? (images[0]?.url || images[0] || '/assets/placeholder.png')
-            : (images?.url || images || '/assets/placeholder.png');
+            ? (images[0]?.url || images[0] || '/acessts/NoImage.jpg')
+            : (images?.url || images || '/acessts/NoImage.jpg');
           const unit = p.stockType || p.unit || 'قطعة';
           const availability = (p.stockQty ?? p.quantity ?? 0) > 0 ? 'متوفر' : 'غير متوفر';
           return {

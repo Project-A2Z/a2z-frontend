@@ -9,6 +9,9 @@ import AddComponent from "@/components/UI/Chekout/Address"
 import Cash from "@/components/UI/Chekout/Cash"
 import OrderSummary from './../../components/UI/Chekout/OrderSummary'
 
+// Import Address Service
+import { AddressService, Address as ApiAddress } from '@/services/profile/address'
+
 interface Item {
   id: number;
   name: string;
@@ -35,8 +38,12 @@ interface Address {
 const Checkout = ({}) => {
     const searchParams = useSearchParams();
     const [disabled, setDisabled] = useState(true)
-    const [editDelivery, setEditDelivery] = useState(true) // Start with edit mode true
-    const [editPayment, setEditPayment] = useState(true) // Add payment edit state
+    const [editDelivery, setEditDelivery] = useState(true)
+    const [editPayment, setEditPayment] = useState(true)
+    
+    // Loading and error states
+    const [isLoadingAddresses, setIsLoadingAddresses] = useState(true)
+    const [addressError, setAddressError] = useState<string | null>(null)
     
     // Function to format date in Arabic
     const formatDateInArabic = (date: Date) => {
@@ -74,55 +81,100 @@ const Checkout = ({}) => {
         order: Array<Item>;
     } | null>(null);
 
-    const [addresses, setAddresses] = useState<Address[]>([
-        {
-            id: 1,
-            name: 'Menna Akram',
-            phone: '01234567890',
-            address: 'شارع الأول 123، الدقي، محافظة الجيزة',
-            isDefault: true,
-            firstName: 'Menna',
-            lastName: 'Akram',
-            governorate: 'الجيزة',
-            city: 'الدقي'
-        },
-        {
-            id: 2,
-            name: 'Menna Akram',
-            phone: '01234567890',
-            address: 'شارع الورد 456، المعادي، محافظة القاهرة',
-            firstName: 'Menna',
-            lastName: 'Akram',
-            governorate: 'القاهرة',
-            city: 'المعادي'
-        },
-        {
-            id: 3,
-            name: 'Menna Akram',
-            phone: '01234567890',
-            address: 'شارع الحرية 321، المطرية، محافظة الشرقية',
-            firstName: 'Menna',
-            lastName: 'Akram',
-            governorate: 'الشرقية',
-            city: 'المطرية'
-        },
-        {
-            id: 4,
-            name: 'Menna Akram',
-            phone: '01234567890',
-            address: 'شارع النيل 789، المنيل، محافظة الأقصر',
-            firstName: 'Menna',
-            lastName: 'Akram',
-            governorate: 'الأقصر',
-            city: 'المنيل'
-        }
-    ]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
   
-    // State to store the default address ID
-    const [def, setDef] = useState<Address>(addresses[0]);
+    // State to store the default address
+    const [def, setDef] = useState<Address | null>(null);
 
+    // Function to convert API address to component Address format
+    const convertApiAddressToLocal = (apiAddress: ApiAddress): Address => {
+        return {
+            id: parseInt(apiAddress._id) || 0,
+            name: `${apiAddress.firstName} ${apiAddress.lastName}`,
+            phone: apiAddress.phoneNumber,
+            address: `${apiAddress.address}, ${apiAddress.city}, ${apiAddress.region}`,
+            isDefault: apiAddress.isDefault || false,
+            firstName: apiAddress.firstName,
+            lastName: apiAddress.lastName,
+            governorate: apiAddress.region,
+            city: apiAddress.city
+        };
+    };
+
+    // Load addresses from cache or API
+    const loadAddresses = async (forceRefresh = false) => {
+        setIsLoadingAddresses(true);
+        setAddressError(null);
+
+        try {
+            // Check if user is authenticated
+            if (!AddressService.isAuthenticated()) {
+                console.log('⚠️ User not authenticated, using empty addresses');
+                setAddresses([]);
+                setDef(null);
+                setIsLoadingAddresses(false);
+                return;
+            }
+
+            // Try to get from cache first (if not forcing refresh)
+            if (!forceRefresh) {
+                const cachedAddresses = AddressService.getCachedAddresses();
+                if (cachedAddresses && cachedAddresses.length > 0) {
+                    console.log('✅ Using cached addresses:', cachedAddresses.length);
+                    const convertedAddresses = cachedAddresses.map(convertApiAddressToLocal);
+                    setAddresses(convertedAddresses);
+                    
+                    // Set default address
+                    const defaultAddr = convertedAddresses.find(addr => addr.isDefault);
+                    setDef(defaultAddr || convertedAddresses[0]);
+                    
+                    setIsLoadingAddresses(false);
+                    return;
+                }
+            }
+
+            // If no cache or force refresh, fetch from API
+            console.log('🌐 Fetching addresses from API');
+            const apiAddresses = await AddressService.getAddresses(forceRefresh);
+            
+            if (apiAddresses && apiAddresses.length > 0) {
+                console.log('✅ Loaded addresses from API:', apiAddresses.length);
+                const convertedAddresses = apiAddresses.map(convertApiAddressToLocal);
+                setAddresses(convertedAddresses);
+                
+                // Set default address
+                const defaultAddr = convertedAddresses.find(addr => addr.isDefault);
+                setDef(defaultAddr || convertedAddresses[0]);
+            } else {
+                // No addresses found
+                console.log('📭 No addresses found');
+                setAddresses([]);
+                setDef(null);
+            }
+
+        } catch (error: any) {
+            console.error('❌ Error loading addresses:', error);
+            setAddressError(error.message || 'فشل تحميل العناوين');
+            
+            // Try to use cached addresses as fallback
+            const cachedAddresses = AddressService.getCachedAddresses();
+            if (cachedAddresses && cachedAddresses.length > 0) {
+                console.log('⚠️ Using cached addresses as fallback');
+                const convertedAddresses = cachedAddresses.map(convertApiAddressToLocal);
+                setAddresses(convertedAddresses);
+                const defaultAddr = convertedAddresses.find(addr => addr.isDefault);
+                setDef(defaultAddr || convertedAddresses[0]);
+            } else {
+                setAddresses([]);
+                setDef(null);
+            }
+        } finally {
+            setIsLoadingAddresses(false);
+        }
+    };
+
+    // Load checkout data from URL
     useEffect(() => {
-        // Get the data from URL parameters
         const dataParam = searchParams?.get('data');
         
         if (dataParam) {
@@ -135,21 +187,22 @@ const Checkout = ({}) => {
         }
     }, [searchParams]);
 
-    // Set default address when addresses are loaded
+    // Load addresses on component mount
     useEffect(() => {
-        const defaultAddress = addresses.find(address => address.isDefault);
-        if (defaultAddress) {
-            setDef(defaultAddress);
-        }
-    }, [addresses]);
+        loadAddresses();
+    }, []);
 
     // Update disabled state based on edit modes
     useEffect(() => {
-        // Enable order summary only when both delivery and payment are not in edit mode
         setDisabled(editDelivery || editPayment);
     }, [editDelivery, editPayment]);
 
-    // Show loading or error state if no data
+    // Function to refresh addresses (can be called from child components)
+    const handleRefreshAddresses = async () => {
+        await loadAddresses(true);
+    };
+
+    // Show loading state for checkout data
     if (!checkoutData) {
         return (
             <div className={styles.Container}>
@@ -162,30 +215,67 @@ const Checkout = ({}) => {
 
     return (
         <div className={styles.Container}>
-            <div className={styles.left}>
-                <OrderSummary 
-                    numberItems={itemCount}
-                    Total={total}
-                    disabled={disabled}
-                />
-                
-            </div>
+            
             <div className={styles.right}>
+                {/* Show warning if there's an error but we have cached data */}
+                {addressError && addresses.length > 0 && (
+                    <div style={{
+                        backgroundColor: '#fff3cd',
+                        border: '1px solid #ffc107',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        marginBottom: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <span style={{ color: '#856404', fontSize: '14px' }}>
+                            ⚠️ {addressError} (عرض البيانات المخزنة)
+                        </span>
+                        <button 
+                            onClick={handleRefreshAddresses}
+                            style={{
+                                padding: '6px 16px',
+                                backgroundColor: '#ffc107',
+                                color: '#000',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            تحديث
+                        </button>
+                    </div>
+                )}
+                
                 <AddComponent 
                     Addresses={addresses}
-                    defaultAdd={def}
+                    defaultAdd={def }
                     setDef={setDef}
+                    isLoading={isLoadingAddresses}
+                    onRefresh={handleRefreshAddresses}
                 />
+                
                 <Delivery 
                     deliveryInfo={delivery}
                     orders={order}
                     editProp={editDelivery}
                     setEditProp={setEditDelivery}
                 />
+                
                 <Cash 
                     Total={total}
                     editProp={editPayment}
                     setEditProp={setEditPayment}
+                />
+            </div>
+            
+            <div className={styles.left}>
+                <OrderSummary 
+                    numberItems={itemCount}
+                    Total={total}
+                    disabled={disabled}
                 />
             </div>
         </div>

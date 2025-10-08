@@ -116,7 +116,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp }) => {
             {way === 'cash' && (
                 <Form
                     way={way}
-                    Total={Total}
+                    Total={Total  + 1000}
                     setOpDate={setOpDate}
                     setOpId={setOpId}
                     setOpImg={setOpImg}
@@ -141,7 +141,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp }) => {
             {way === 'online' && (
                 <Form
                     way={way}
-                    Total={Total}
+                    Total={Total + 1000}
                     setOpDate={setOpDate}
                     setOpId={setOpId}
                     setOpImg={setOpImg}

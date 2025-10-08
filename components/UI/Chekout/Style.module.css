@@ -1,7 +1,8 @@
+/* Order Summary Styles */
 .SummaryContainer {
   background-color: var(--background);
   border-radius: 16px;
-  padding: 24px;
+  /* padding: 24px; */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--black8);
   display: flex;
@@ -9,8 +10,10 @@
   font-family: var(--font-primary);
   direction: rtl;
   text-align: flex-start;
-  max-width: 320px;
-  margin: 10% auto;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  width: 80%;
 }
 
 .title {
@@ -19,6 +22,7 @@
   color: var(--black60);
   text-align: start;
   display: block;
+  margin-bottom: 20px;
 }
 
 .SummaryContainer span {
@@ -92,6 +96,8 @@
   transition: all 0.3s ease !important;
   border: none !important;
   box-shadow: 0 2px 8px rgba(76, 147, 67, 0.2) !important;
+  cursor: pointer;
+  width: 100%;
 }
 
 /* Enabled button styles */
@@ -120,7 +126,6 @@
   transform: none !important;
   box-shadow: none !important;
 }
-
 .Container {
   width: 80%;
   font-family: var(--font-primary);

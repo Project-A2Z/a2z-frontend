@@ -535,23 +535,7 @@ export default function NewAddressForm() {
           )}
         </div>
 
-        {/* {mapLocation && (
-          <div style={{
-            padding: '12px',
-            backgroundColor: '#e3f2fd',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '13px',
-            color: '#1565c0'
-          }}>
-            تم تحديد الموقع من الخريطة: {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}
-            <br />
-            <span style={{ fontSize: '11px', color: '#555' }}>
-              (لن يتم إرسال الإحداثيات - فقط العنوان النصي)
-            </span>
-          </div>
-        )} */}
-
+      
         <div className={styles.checkboxContainer}>
           <label className={styles.checkboxLabel}>
             <input

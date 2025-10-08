@@ -36,12 +36,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           const mapped: FavoriteItem[] = list.map((w: any) => {
             const p = w.productId || {};
             const images = p.imageList || p.images || [];
-            const img = Array.isArray(images) ? (images[0] || '/assets/placeholder.png') : (images || '/assets/placeholder.png');
+            const img = Array.isArray(images) ? (images[0] || '/acessts/NoImage.jpg') : (images || '/acessts/NoImage.jpg');
             return {
               id: String(p._id ?? w.productId ?? w._id),
               name: p.name || p.title || 'منتج',
               price: Number(p.price) || 0,
-              image: typeof img === 'string' ? img : (img?.url || '/assets/placeholder.png'),
+              image: typeof img === 'string' ? img : (img?.url || '/acessts/NoImage.jpg'),
             };
           });
           setItems(mapped);
