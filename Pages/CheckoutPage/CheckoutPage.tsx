@@ -6,7 +6,7 @@ import styles from './Checkout.module.css'
 //components 
 import Delivery from "@/components/UI/Chekout/Delivery"
 import AddComponent from "@/components/UI/Chekout/Address"
-import Cash from "@/components/UI/Chekout/Cash"
+import Cash, { PaymentData } from "@/components/UI/Chekout/Cash"
 import OrderSummary from './../../components/UI/Chekout/OrderSummary'
 
 // Import Address Service
@@ -28,7 +28,6 @@ interface Address {
   phone: string;
   address: string;
   isDefault?: boolean;
-  
   firstName?: string;
   lastName?: string;
   governorate?: string;
@@ -40,6 +39,9 @@ const Checkout = ({}) => {
     const [disabled, setDisabled] = useState(true)
     const [editDelivery, setEditDelivery] = useState(true)
     const [editPayment, setEditPayment] = useState(true)
+    
+    // Payment data state
+    const [paymentData, setPaymentData] = useState<PaymentData | undefined>();
     
     // Loading and error states
     const [isLoadingAddresses, setIsLoadingAddresses] = useState(true)
@@ -82,8 +84,6 @@ const Checkout = ({}) => {
     } | null>(null);
 
     const [addresses, setAddresses] = useState<Address[]>([]);
-  
-    // State to store the default address
     const [def, setDef] = useState<Address | null>(null);
 
     // Function to convert API address to component Address format
@@ -107,7 +107,6 @@ const Checkout = ({}) => {
         setAddressError(null);
 
         try {
-            // Check if user is authenticated
             if (!AddressService.isAuthenticated()) {
                 console.log('⚠️ User not authenticated, using empty addresses');
                 setAddresses([]);
@@ -116,7 +115,6 @@ const Checkout = ({}) => {
                 return;
             }
 
-            // Try to get from cache first (if not forcing refresh)
             if (!forceRefresh) {
                 const cachedAddresses = AddressService.getCachedAddresses();
                 if (cachedAddresses && cachedAddresses.length > 0) {
@@ -124,7 +122,6 @@ const Checkout = ({}) => {
                     const convertedAddresses = cachedAddresses.map(convertApiAddressToLocal);
                     setAddresses(convertedAddresses);
                     
-                    // Set default address
                     const defaultAddr = convertedAddresses.find(addr => addr.isDefault);
                     setDef(defaultAddr || convertedAddresses[0]);
                     
@@ -133,7 +130,6 @@ const Checkout = ({}) => {
                 }
             }
 
-            // If no cache or force refresh, fetch from API
             console.log('🌐 Fetching addresses from API');
             const apiAddresses = await AddressService.getAddresses(forceRefresh);
             
@@ -142,11 +138,9 @@ const Checkout = ({}) => {
                 const convertedAddresses = apiAddresses.map(convertApiAddressToLocal);
                 setAddresses(convertedAddresses);
                 
-                // Set default address
                 const defaultAddr = convertedAddresses.find(addr => addr.isDefault);
                 setDef(defaultAddr || convertedAddresses[0]);
             } else {
-                // No addresses found
                 console.log('📭 No addresses found');
                 setAddresses([]);
                 setDef(null);
@@ -156,7 +150,6 @@ const Checkout = ({}) => {
             console.error('❌ Error loading addresses:', error);
             setAddressError(error.message || 'فشل تحميل العناوين');
             
-            // Try to use cached addresses as fallback
             const cachedAddresses = AddressService.getCachedAddresses();
             if (cachedAddresses && cachedAddresses.length > 0) {
                 console.log('⚠️ Using cached addresses as fallback');
@@ -197,9 +190,15 @@ const Checkout = ({}) => {
         setDisabled(editDelivery || editPayment);
     }, [editDelivery, editPayment]);
 
-    // Function to refresh addresses (can be called from child components)
+    // Function to refresh addresses
     const handleRefreshAddresses = async () => {
         await loadAddresses(true);
+    };
+
+    // Handle payment data change
+    const handlePaymentDataChange = (data: PaymentData) => {
+        setPaymentData(data);
+        console.log('💳 Payment data updated:', data);
     };
 
     // Show loading state for checkout data
@@ -217,7 +216,6 @@ const Checkout = ({}) => {
         <div className={styles.Container}>
             
             <div className={styles.right}>
-                {/* Show warning if there's an error but we have cached data */}
                 {addressError && addresses.length > 0 && (
                     <div style={{
                         backgroundColor: '#fff3cd',
@@ -251,7 +249,7 @@ const Checkout = ({}) => {
                 
                 <AddComponent 
                     Addresses={addresses}
-                    defaultAdd={def }
+                    defaultAdd={def}
                     setDef={setDef}
                     isLoading={isLoadingAddresses}
                     onRefresh={handleRefreshAddresses}
@@ -268,6 +266,7 @@ const Checkout = ({}) => {
                     Total={total}
                     editProp={editPayment}
                     setEditProp={setEditPayment}
+                    onPaymentDataChange={handlePaymentDataChange}
                 />
             </div>
             
@@ -276,6 +275,8 @@ const Checkout = ({}) => {
                     numberItems={itemCount}
                     Total={total}
                     disabled={disabled}
+                    addressData={def}
+                    paymentData={paymentData}
                 />
             </div>
         </div>

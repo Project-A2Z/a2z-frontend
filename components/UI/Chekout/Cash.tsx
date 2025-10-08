@@ -6,98 +6,88 @@ import Form from './CashForm'
 import { Button } from "../Buttons"
 import Edit from './../../../public/icons/Pen.svg'
 
-interface CashData {
-    way: string;
-    opId: string;
-    opDate: string;
-    opPrice: string;
-    opImg: string;
+export interface PaymentData {
+    paymentWay: 'cash' | 'online' | '';
+    paymentWith?: 'instaPay' | 'vodafone';
+    NumOperation?: string;
+    paymentStatus: 'paid' | 'deposit';
+    image?: File;
 }
 
 interface Cash {
-    Total: number,
-    editProp: boolean,
-    setEditProp: (value: boolean) => void
+    Total: number;
+    editProp: boolean;
+    setEditProp: (value: boolean) => void;
+    onPaymentDataChange?: (data: PaymentData) => void;
 }
 
-const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp }) => {
-    const [way, setWay] = useState('')
+const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChange }) => {
+    const [way, setWay] = useState<'cash' | 'online' | ''>('')
+    const [paymentWith, setPaymentWith] = useState<'instaPay' | 'vodafone' | undefined>()
     const [opId, setOpId] = useState('')
-    const [opDate, setOpDate] = useState('')
-    const [opPrice, setOpPrice] = useState('')
-    const [opImg, setOpImg] = useState('')
+    const [opImg, setOpImg] = useState<File | undefined>()
     const [edit, setEdit] = useState(false)
-    
-    // Data object to store all form data
-    const [cashData, setCashData] = useState<CashData>({
-        way: '',
-        opId: '',
-        opDate: '',
-        opPrice: '',
-        opImg: ''
-    });
 
-    // Function to check if any field is null/empty
-    const checkForNulls = (data: CashData): boolean => {
-        return Object.values(data).some(value => 
-            value === null || 
-            value === undefined || 
-            value === '' || 
-            (typeof value === 'string' && value.trim() === '')
-        );
-    };
-
-    // Update cashData whenever individual states change
+    // Update parent component with payment data
     useEffect(() => {
-        const newData: CashData = {
-            way,
-            opId,
-            opDate,
-            opPrice,
-            opImg
+        // Payment way is required - must be 'cash' or 'online'
+        if (!way || (way !== 'cash' && way !== 'online')) {
+            setEdit(true);
+            setEditProp(true);
+            return;
+        }
+
+        const paymentData: PaymentData = {
+            paymentWay: way,
+            paymentWith:paymentWith || undefined,
+            NumOperation: opId || undefined,
+            paymentStatus: way === 'cash' ? 'deposit' : 'paid',
+            image: opImg
         };
         
-        setCashData(newData);
+        // Check if data is complete
+        // Required: way, opId, opImg
+        // For online: also need paymentWith
+        const isComplete = 
+            (way === 'cash' || way === 'online') &&
+            opId &&
+            opImg &&
+            (way === 'cash' || (way === 'online' && paymentWith));
         
-        // Check for nulls and update edit states
-        const hasNulls = checkForNulls(newData);
-        
-        if (!hasNulls && way !== '') {
+        if (isComplete) {
             setEdit(false);
             setEditProp(false);
+            onPaymentDataChange?.(paymentData);
         } else {
             setEdit(true);
             setEditProp(true);
         }
-    }, [way, opId, opDate, opPrice, opImg, setEditProp]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [way, paymentWith, opId, opImg]);
 
-    const handleEditClick = () => {
-        setEdit(true);
-        setEditProp(true);
-    }
-
-    const handleClick = (paymentMethod: string) => {
+    const handleClick = (paymentMethod: 'cash' | 'online') => {
         setWay(paymentMethod)
     }
 
-    // Function to save/submit the data (you can customize this)
-    const saveData = () => {
-        console.log('Saved Cash Data:', cashData);
-        // Here you can send the data to your backend or local storage
-        // Example: localStorage.setItem('cashData', JSON.stringify(cashData));
-        // Or: await submitToAPI(cashData);
-    };
-
-    // Auto-save when data is complete
-    useEffect(() => {
-        if (!checkForNulls(cashData) && cashData.way !== '') {
-            saveData();
-        }
-    }, [cashData]);
-
     return (
         <div className={styles.Container}>
-            <span className={styles.title}>طريقة الدفع</span>
+            <span className={styles.title}>
+                طريقة الدفع <span style={{color: 'red', marginRight: '5px'}}>*</span>
+            </span>
+            
+            {!way && (
+                <div style={{
+                    backgroundColor: '#fff3cd',
+                    border: '1px solid #ffc107',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    fontSize: '14px',
+                    color: '#856404'
+                }}>
+                    ⚠️ يرجى اختيار طريقة الدفع لمتابعة الطلب
+                </div>
+            )}
             
             <div className={styles.In} onClick={() => handleClick('cash')}>
                 <input
@@ -114,13 +104,14 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp }) => {
             </div>
             
             {way === 'cash' && (
-                <Form
+               <Form
                     way={way}
-                    Total={Total  + 1000}
-                    setOpDate={setOpDate}
-                    setOpId={setOpId}
-                    setOpImg={setOpImg}
-                    setOpPrice={setOpPrice}
+                    Total={Total + 1000}
+                    onDataChange={(data) => {
+                        setOpId(data.opId);
+                        setOpImg(data.opImg);
+                        setPaymentWith(data.paymentWith as 'instaPay' | 'vodafone');
+                    }}
                 />
             )}
             
@@ -142,31 +133,13 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp }) => {
                 <Form
                     way={way}
                     Total={Total + 1000}
-                    setOpDate={setOpDate}
-                    setOpId={setOpId}
-                    setOpImg={setOpImg}
-                    setOpPrice={setOpPrice}
+                    onDataChange={(data) => {
+                        setOpId(data.opId);
+                        setOpImg(data.opImg);
+                        setPaymentWith(data.paymentWith as 'instaPay' | 'vodafone');
+                    }}
                 />
             )}
-            
-            {/* <Button
-                variant="custom"
-                rightIcon={<Edit />}
-                size='sm'
-                onClick={handleEditClick}
-                className={styles.editbtn}
-                disabled={edit} // Disable button when in edit mode
-            >
-                تعديل
-            </Button> */}
-            
-            {/* Debug info - remove in production */}
-            {/* <div style={{marginTop: '10px', fontSize: '12px', color: '#666'}}>
-                <p>Edit: {edit.toString()}</p>
-                <p>EditProp: {editProp.toString()}</p>
-                <p>Has Nulls: {checkForNulls(cashData).toString()}</p>
-                <p>Data Complete: {(!checkForNulls(cashData) && way !== '').toString()}</p>
-            </div> */}
         </div>
     )
 }
