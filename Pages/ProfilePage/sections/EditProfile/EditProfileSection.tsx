@@ -14,7 +14,7 @@ import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 
 //interfaces and services
 import { logoutUser, AuthService } from './../../../../services/auth/login';
-import orderService, { TransformedOrder } from './../../../../services/profile/orders';
+import orderService, { OrderItem } from './../../../../services/profile/orders';
 import { updatePassword } from '../../../../services/profile/profile';
 
 interface User {
@@ -52,7 +52,7 @@ interface EditProfileSectionProps {
 
 const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, user, setUser }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [orders, setOrders] = useState<TransformedOrder[]>([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
@@ -69,8 +69,8 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
           orderService.debugAuth();
           
           const apiOrders = await orderService.getUserOrders();
-          const transformedOrders = orderService.transformOrders(apiOrders);
-          setOrders(transformedOrders);
+          // No need to transform - use OrderItem directly
+          setOrders(apiOrders);
         } catch (error) {
           console.error('Failed to fetch orders:', error);
           setOrdersError(error instanceof Error ? error.message : 'فشل في تحميل الطلبات');
@@ -82,8 +82,8 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
     };
 
     fetchOrders();
-    console.log ('user in EditProfileSection', user);
-  }, [box]);
+    console.log('user in EditProfileSection', user);
+  }, [box, user]);
 
   const handleLogout = async () => {
     try {

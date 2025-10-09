@@ -1,76 +1,195 @@
 'use client';
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import styles from './order.module.css'
 
 //components
-import OrderStepper  from "./../../../components/UI/Profile/leftSection/Orders/OrderStepper";
-import type { OrderStatus } from "./../../../components/UI/Profile/leftSection/Orders/OrderStepper";
+import OrderStepper from "./../../../components/UI/Profile/leftSection/Orders/OrderStepper";
+import type { OrderStatus } from "../../../components/UI/Profile/leftSection/Orders/OrderStepper";
 import InfoCard from "../../../components/UI/Profile/leftSection/Orders/InfoCard";
 import ItemCard from "../../../components/UI/Profile/leftSection/Orders/ItemCard";
 import img from './../../../public/acessts/Frame.png'
-import Header from "@/components/Layout/Nav/Header";
-import Footer from "@/Pages/HomePage/sections/FooterSection/Footer";
 
-const order = {
-    id: '1',
-    orderNumber: 'ORD-001',
-    status: 'processing' as OrderStatus,
-    date: '2025-08-30',
-    total: 150.00,
-    items: [
-      { id: 'item1', name: 'منتج 1', image: img, price: 50.00 },
-      { id: 'item2', name: 'منتج 2', image: img, price: 50.00 },
-      { id: 'item3', name: 'منتج 3', image: img, price: 25.00 },
-      { id: 'item4', name: 'منتج 4', image: img, price: 25.00 },
-      { id: 'item5', name: 'منتج 5', image: img, price: 25.00 },
-      { id: 'item6', name: 'منتج 6', image: img, price: 25.00 },
-    ]
-  }
+// Import order service
+import orderService, { OrderItem } from '../../../services/profile/orders';
+
+// Status mapping from API to component
+const mapOrderStatus = (apiStatus: OrderItem['status']): OrderStatus => {
+  const statusMap: Record<OrderItem['status'], OrderStatus> = {
+    'pending': 'pending',
+    'Under review': 'pending',
+    'loaded': 'pending',
+    'reviewed': 'pending',
+    'shipped': 'shipped',
+    'delivered': 'delivered',
+    cancelled: "pending"
+  };
+  
+  return statusMap[apiStatus] || 'pending';
+};
 
 const OrderDetails: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const orderNumber = params?.orderNumber;
+  const orderId = params?.orderNumber as string;
+
+  // State management
+  const [order, setOrder] = useState<OrderItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      if (!orderId) {
+        setError('معرف الطلب غير موجود');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Try to get from cache first by fetching all orders
+        const allOrders = await orderService.getUserOrders();
+        const foundOrder = allOrders.find(o => o._id === orderId || o.orderId === orderId);
+
+        if (foundOrder) {
+          console.log('✅ Order found in cache:', foundOrder);
+          setOrder(foundOrder);
+        } else {
+          // If not found in list, try to fetch specific order details
+          console.log('⚠️ Order not found in list, fetching details...');
+          const orderDetails = await orderService.getOrderDetails(orderId);
+          setOrder(orderDetails);
+        }
+      } catch (err) {
+        console.error('❌ Error fetching order:', err);
+        setError(err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل تفاصيل الطلب');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderDetails();
+  }, [orderId]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content_wrapper}>
+          <div className={styles.loading}>
+            <div className={styles.spinner}></div>
+            <p>جاري تحميل تفاصيل الطلب...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content_wrapper}>
+          <div className={styles.error}>
+            <p className={styles.error_message}>⚠️ {error}</p>
+            <button 
+              onClick={() => router.back()}
+              className={styles.back_button}
+            >
+              العودة للطلبات
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No order found
+  if (!order) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content_wrapper}>
+          <div className={styles.error}>
+            <p className={styles.error_message}>الطلب غير موجود</p>
+            <button 
+              onClick={() => router.back()}
+              className={styles.back_button}
+            >
+              العودة للطلبات
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-EG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Get full address
+  const fullAddress = `${order.address.address}, ${order.address.city}, ${order.address.region}`;
+  const fullName = `${order.address.firstName} ${order.address.lastName}`;
+
+  // Note: Since the API doesn't return product details, we'll show a placeholder
+  // You may need to fetch cart items separately if available
+  const orderItems = [
+    {
+      id: order.cartId,
+      name: 'منتج من الطلب',
+      image: img,
+      price: order.paymentDetails?.totalPrice || 0
+    }
+  ];
 
   return (
     <div className={styles.container}>
-      {/* <Header/> */}
       <div className={styles.content_wrapper}>
-        <span className={styles.title}> تفاصيل الطلب {orderNumber} </span>
+        <span className={styles.title}> تفاصيل الطلب {order.orderId} </span>
+        
         <div className={styles.stepper}>
-          <OrderStepper currentStatus={order.status} />
+          <OrderStepper currentStatus={mapOrderStatus(order.status)} />
         </div>
+        
         <div className={styles.info_order}>
           <div className={styles.information_section}>
-              <InfoCard 
-                  orderNumber={order.orderNumber}
-                  orderPrice={`${order.total}ج`}
-                  orderDate={order.date}
-                  address={"123 شارع فيصل، القاهرة، مصر"}
-                  phone={"0150134567"}
-                  name={"أحمد محمد"}
-              />
+            <InfoCard 
+              orderNumber={order.orderId}
+              orderPrice={`${order.deliveryPrice + (order.paymentDetails?.totalPrice ?? 0)} ج`}
+              orderDate={formatDate(order.createdAt)}
+              address={fullAddress}
+              phone={order.address.phoneNumber}
+              name={fullName}
+            />
           </div>
+          
           <div className={styles.Items_container}>
-              <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
-              <div className={styles.items_list}>
-                  {order.items.map(item => (
-                      <ItemCard 
-                          key={item.id}         
-                          image={typeof item.image === 'string' ? item.image : item.image.src}
-                          name={item.name}
-                          price={`${item.price}ج`}
-                      />
-                  ))}
-
-              </div>
+            <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
+            <div className={styles.items_list}>
+              {orderItems.map(item => (
+                <ItemCard 
+                  key={String(item.id)}         
+                  image={typeof item.image === 'string' ? item.image : item.image.src}
+                  name={item.name}
+                  price={`${item.price} ج`}
+                />
+              ))}
+            </div>
+            
+           
+            
           </div>
-
         </div>
       </div>
-      {/* <Footer/> */}
-      
     </div>
   );
 };
