@@ -44,7 +44,6 @@ const RelatedProducts: React.FC = () => {
       try {
         const response = await fetch('/Test_data/products.json');
         const data = await response.json();
-        // Get first 8 products for the slider
         setProducts(data.slice(0, 8));
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -103,5 +102,3 @@ const RelatedProducts: React.FC = () => {
 };
 
 export default React.memo(RelatedProducts);
-
-

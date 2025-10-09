@@ -7,7 +7,7 @@ type Props = {
 
 const CartHeader: React.FC<Props> = ({ itemCount }) => {
   return (
-    <div className="bg-black8 shadow-sm border-b">
+    <div className="bg-white shadow-sm border-b">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-black87 flex items-center gap-2">
@@ -22,5 +22,3 @@ const CartHeader: React.FC<Props> = ({ itemCount }) => {
 };
 
 export default React.memo(CartHeader);
-
-

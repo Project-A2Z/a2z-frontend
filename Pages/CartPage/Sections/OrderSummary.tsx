@@ -24,8 +24,10 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
   
   if (!hasItems) return null;
 
+  // Calculate total quantity of all items
+  const totalItemQuantity = order.reduce((sum, item) => sum + item.quantity, 0);
+
   const handleCheckout = () => {
-    // Create an object with all the props
     const checkoutData = {
       itemCount,
       total,
@@ -33,23 +35,22 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
       order
     };
     
-    // Encode all props as JSON in the URL
     const encodedData = encodeURIComponent(JSON.stringify(checkoutData));
     router.push(`/checkout?data=${encodedData}`);
   };
 
   return (
-    <div className="bg-black8 rounded-2xl shadow-sm border p-6 sticky top-6">
+    <div className="bg-white rounded-2xl shadow-sm border p-6 sticky top-6">
       <h2 className="text-xl font-bold text-black87 mb-6 text-center">إجمالي سلة التسوق</h2>
 
       <div className="space-y-4 mb-6">
         <div className="flex justify-between text-black87">
           <span className="text-black60">عدد المنتجات</span>
-          <span className="font-medium">{itemCount}</span>
+          <span className="font-medium">{totalItemQuantity}</span>
         </div>
         <div className="flex justify-between items-baseline">
           <span className="text-black60">الإجمالي</span>
-          <span className="font-bold text-primary text-xl">{total.toLocaleString()} ج</span>
+          <span className="font-bold text-primary text-xl">{(total-5000).toLocaleString()} ج</span>
         </div>
       </div>
 
