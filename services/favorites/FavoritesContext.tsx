@@ -75,11 +75,21 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     setItems(prev => (prev.some(p => p.id === item.id) ? prev : [item, ...prev]));
     // sync with backend if authenticated
     if (isAuthenticated()) {
-      void wishlistService.add(String(item.id)).catch((e) => {
-        console.error('Failed to add to wishlist', e);
-        // revert on failure
-        setItems(prev => prev.filter(p => p.id !== item.id));
-      });
+      void wishlistService
+        .add(String(item.id))
+        .then((res: any) => {
+          // If backend says conflict (already exists), keep optimistic state and do nothing
+          if (res?.status === 'conflict') {
+            return;
+          }
+        })
+        .catch((e: any) => {
+          // If 409 bubbled as an error, also ignore and keep optimistic state
+          if (e?.response?.status === 409) return;
+          console.error('Failed to add to wishlist', e);
+          // revert on real failure
+          setItems(prev => prev.filter(p => p.id !== item.id));
+        });
     }
   }, []);
 

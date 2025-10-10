@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { Button } from '@/components/UI/Buttons';
 
 export type FavoriteItem = {
   id: number | string;
@@ -68,14 +67,17 @@ const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
 
               {/* Remove Button */}
               {onRemove && (
-                <button
-                  onClick={() => onRemove(item.id)}
-                  className="mt-2 w-full flex items-center justify-center gap-1 sm:gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 border-0 bg-transparent text-xs sm:text-sm py-1 sm:py-2 px-2 sm:px-3 transition-colors duration-200 min-h-[28px] sm:min-h-[32px] rounded-md sm:rounded-lg cursor-pointer"
-                  type="button"
-                >
-                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                  <span className="shrink-0 text-nowrap">حذف المنتج من المفضلة</span>
-                </button>
+                <div className="mt-2 w-full">
+                  <button
+                    onClick={() => onRemove(item.id)}
+                    className="w-full flex items-center justify-center gap-1.5 sm:gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 bg-transparent text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 transition-all duration-200 min-h-[28px] sm:min-h-[32px] rounded-md sm:rounded-lg cursor-pointer font-medium"
+                    type="button"
+                    aria-label={`حذف ${item.name} من المفضلة`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span className="shrink-0 text-nowrap">حذف</span>
+                  </button>
+                </div>
               )}
             </div>
           </article>

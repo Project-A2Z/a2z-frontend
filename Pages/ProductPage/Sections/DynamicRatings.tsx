@@ -1,28 +1,63 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { reviewService, type Review } from '@/services/api/reviews';
 
 type RatingsDistribution = { stars: number; count: number }[];
 
 type Props = {
-  average: number; // 0..5
-  total: number;
-  distribution: RatingsDistribution;
+  productId: string; // Product ID for fetching reviews
   onStarClick?: (stars: number) => void; // Callback when a star rating is clicked
   onDistributionClick?: (stars: number) => void; // Callback when distribution bar is clicked
   interactive?: boolean; // Whether the component should be interactive
 };
 
 const Ratings: React.FC<Props> = ({
-  average,
-  total,
-  distribution = [],
+  productId,
   onStarClick,
   onDistributionClick,
   interactive = true
 }) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [hoveredStars, setHoveredStars] = useState<number | null>(null);
   const [selectedStars, setSelectedStars] = useState<number | null>(null);
 
+  // Fetch reviews when component mounts or productId changes
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await reviewService.getProductReviews(productId, {
+          limit: 100, // Get enough reviews for distribution
+          sort: 'date',
+          order: 'desc'
+        });
+
+        if (response.status === 'success') {
+          setReviews(response.data.reviews);
+        } else {
+          setError('Failed to load reviews');
+        }
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+        setError('Failed to load reviews');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchReviews();
+    }
+  }, [productId]);
+
+  // Calculate distribution from reviews
+  const distribution: RatingsDistribution = reviewService.calculateRatingsDistribution(reviews);
+  const average = reviewService.calculateAverageRating(reviews);
+  const total = reviewService.getTotalReviewCount(reviews);
   const maxCount = Math.max(1, ...distribution.map(d => d.count));
 
   const handleStarClick = (starValue: number) => {
@@ -63,6 +98,32 @@ const Ratings: React.FC<Props> = ({
       return 'text-yellow-600'; // Standard gold text
     }
   };
+
+  if (loading) {
+    return (
+      <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
+        <div className="text-right text-black60">جاري تحميل التقييمات...</div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
+        <div className="text-right text-red-600">خطأ في تحميل التقييمات: {error}</div>
+      </section>
+    );
+  }
+
+  if (total === 0) {
+    return (
+      <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
+        <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
+        <div className="text-right text-black60">لا توجد تقييمات بعد</div>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
       {/* Title */}
@@ -170,77 +231,3 @@ const Ratings: React.FC<Props> = ({
 };
 
 export default React.memo(Ratings);
-
-// "use client";
-// import React from 'react';
-// import { Star } from 'lucide-react';
-
-// type RatingsDistribution = { stars: number; count: number }[];
-// type Props = {
-//   average: number;
-//   total: number;
-//   distribution: RatingsDistribution;
-// };
-
-// const Ratings: React.FC<Props> = ({ average, total, distribution }) => {
-//   if (!total) return null;
-
-//   // Ensure distribution covers all 1-5 stars, defaulting to 0 if missing
-//   const fullDistribution = Array.from({ length: 5 }, (_, i) => {
-//     const star = i + 1;
-//     const entry = distribution.find(d => d.stars === star) || { stars: star, count: 0 };
-//     return entry;
-//   });
-
-//   // Calculate max count for dynamic bar scaling
-//   const maxCount = Math.max(...fullDistribution.map(d => d.count), 1); // Avoid division by zero
-
-//   // Render stars dynamically
-//   const renderStars = (rating: number) => {
-//     const safeRating = Math.max(0, Math.min(5, isNaN(rating) ? 0 : rating));
-//     const fullStars = Math.floor(safeRating);
-//     const hasHalfStar = safeRating % 1 >= 0.5;
-//     return (
-//       <div className="flex items-center gap-1 text-amber-500">
-//         {Array.from({ length: 5 }).map((_, i) => {
-//           let starClass = 'text-black16';
-//           if (i < fullStars) {
-//             starClass = 'fill-amber-500 text-amber-500';
-//           } else if (i === fullStars && hasHalfStar) {
-//             starClass = 'fill-amber-500 text-amber-500 opacity-50';
-//           }
-//           return <Star key={i} className={`w-4 h-4 ${starClass}`} />;
-//         })}
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-//       <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-4">التقييمات</h2>
-//       <div className="flex items-center justify-between mb-4">
-//         <div>
-//           <span className="text-xl font-bold text-black87">{average.toFixed(1)}</span>
-//           <span className="text-sm text-black60"> / 5</span>
-//         </div>
-//         <div>{renderStars(average)}</div>
-//       </div>
-//       <div className="space-y-2">
-//         {fullDistribution.map(({ stars, count }) => (
-//           <div key={stars} className="flex items-center gap-2">
-//             <span className="text-sm text-black87">{stars} نجوم</span>
-//             <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-//               <div
-//                 className="bg-amber-500 h-2.5 rounded-full"
-//                 style={{ width: `${(count / maxCount) * 100}%` }}
-//               ></div>
-//             </div>
-//             <span className="text-sm text-black60">{count}</span>
-//           </div>
-//         ))}
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default React.memo(Ratings);

@@ -1,6 +1,18 @@
 // Fixed products.ts (service)
 import apiClient from './client'; // Assuming client.ts exists and is configured with baseURL
 
+export interface Review {
+  _id: string;
+  userId: string;
+  productId: string;
+  description: string;
+  rateNum: number;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 export interface Product {
   _id: string;
   category: string;
@@ -15,6 +27,7 @@ export interface Product {
   averageRate?: number;
   createdAt?: string;
   updatedAt?: string;
+  productReview?: Review[]; // Added: Reviews are embedded in the product response
   // Add any other fields like brand, specifications if they exist in backend
 }
 
@@ -48,14 +61,14 @@ export const productService = {
     return response.data;
   },
 
-  // Get a single product by ID - Fixed path to match API
-  async getProductById(id: string): Promise<ApiResponse<{ product: Product; reviews?: any[] }>> {
+  // Get a single product by ID - Updated typing to ApiResponse<Product> since reviews are in product.productReview
+  async getProductById(id: string): Promise<ApiResponse<Product>> {
     try {
       if (!id) {
         throw new Error('Product ID is required');
       }
       // Path fixed to /app/v1/products/:id
-      const response = await apiClient.get<ApiResponse<{ product: Product; reviews?: any[] }>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
+      const response = await apiClient.get<ApiResponse<Product>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Error fetching product with ID ${id}:`, error);
@@ -97,24 +110,7 @@ export const productService = {
     return response.data;
   },
 
-  // Get product reviews - Assuming this endpoint exists; if not, use the reviews from getProductById
-  async getProductReviews(productId: string): Promise<ApiResponse<{ reviews: any[] }>> {
-    try {
-      if (!productId) {
-        throw new Error('Product ID is required to fetch reviews');
-      }
-      // If this endpoint doesn't exist, comment out and use reviews from getProductById
-      // Assuming path based on previous code; adjust if backend has /app/v1/products/:id/reviews
-      const response = await apiClient.get<ApiResponse<{ reviews: any[] }>>(
-        `https://a2z-backend.fly.dev/app/v1/products/${productId}/reviews` // Fixed to match base URL pattern
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error fetching reviews for product ${productId}:`, error);
-      // Return empty reviews array instead of failing completely
-      return { status: 'error', data: { reviews: [] } };
-    }
-  },
+  // Removed getProductReviews - Endpoint does not exist (returns 404); use product.productReview from getProductById instead
 };
 
 export default productService;

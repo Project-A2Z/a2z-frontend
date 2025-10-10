@@ -4,7 +4,7 @@ import { Star } from 'lucide-react';
 
 type Review = {
   id: string | number;
-  author: string;
+  author?: string; // Made optional
   rating: number; // 0..5
   date: string;
   content: string;
@@ -22,14 +22,14 @@ const Reviews: React.FC<Props> = ({ reviews }) => {
       <div className="divide-y">
         {reviews.map((r) => (
           <article key={r.id} className="py-4">
-            {/* Top row: author on right, stars on left */}
+            {/* Top row: author on right (fallback to placeholder), stars on left */}
             <div className="flex items-start justify-between gap-3 mb-2">
               {/* Right: author */}
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
-                  {r.author?.[0]?.toUpperCase()}
+                  {r.author?.[0]?.toUpperCase() || '?'}
                 </div>
-                <div className="text-sm font-medium text-black87">{r.author}</div>
+                <div className="text-sm font-medium text-black87">{r.author || 'مستخدم مجهول'}</div>
               </div>
 
               {/* Left: stars */}
@@ -54,4 +54,4 @@ const Reviews: React.FC<Props> = ({ reviews }) => {
   );
 };
 
-export default Reviews;
+export default React.memo(Reviews);

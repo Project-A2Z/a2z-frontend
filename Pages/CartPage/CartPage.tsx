@@ -20,7 +20,6 @@ const CartPage = () => {
     const fetchCartItems = async () => {
       try {
         if (!isAuthenticated()) {
-          router.push('/login');
           return;
         }
         const res = await cartService.getCart();
@@ -28,7 +27,6 @@ const CartPage = () => {
         
         const mapped: CartItem[] = items.map((it: any) => {
           const p = it.productId || {};
-<<<<<<< HEAD
           
           let imageUrl = '/assets/placeholder.png';
           const imageSources = p.imageList || p.images || p.image || [];
@@ -36,29 +34,20 @@ const CartPage = () => {
           if (Array.isArray(imageSources) && imageSources.length > 0) {
             const firstImage = imageSources[0];
             if (typeof firstImage === 'string') {
-              imageUrl = firstImage;
             } else if (firstImage?.url) {
               imageUrl = firstImage.url;
             }
           } else if (typeof imageSources === 'string') {
             imageUrl = imageSources;
-          } else if (imageSources?.url) {
-            imageUrl = imageSources.url;
           }
-          
+
           if (imageUrl === '/assets/placeholder.png') {
             imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/assets/placeholder.png';
           }
-          
-=======
-          const images = p.imageList || p.images || p.image || [];
-          const imageUrl = Array.isArray(images)
-            ? (images[0]?.url || images[0] || '/acessts/NoImage.jpg')
-            : (images?.url || images || '/acessts/NoImage.jpg');
->>>>>>> 40796757eb8fc5942c35adfbfc0ff5db65f82952
+
           const unit = p.stockType || p.unit || 'قطعة';
           const availability = (p.stockQty ?? p.quantity ?? 0) > 0 ? 'متوفر' : 'غير متوفر';
-          
+
           return {
             id: String(it._id),
             name: p.name || p.title || 'منتج',
@@ -70,12 +59,10 @@ const CartPage = () => {
             category: p.category,
           };
         });
-        
         setCartItems(mapped);
       } catch (error: any) {
         console.error('Error fetching cart items:', error);
         if (error?.response?.status === 401) {
-          router.push('/login');
           return;
         }
       } finally {

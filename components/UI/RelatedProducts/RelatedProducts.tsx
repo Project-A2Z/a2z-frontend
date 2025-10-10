@@ -3,15 +3,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import Link from 'next/link';
-import { Product, productService } from '@/services/api/products';
+import { Product, productService, ProductFilters } from '@/services/api/products';
 
+// Define props to accept currentProductId and minPriceGte
 interface RelatedProductsProps {
-  category?: string;
   currentProductId?: string;
   minPriceGte?: number;
 }
 
-const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProductId, minPriceGte }) => {
+const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, minPriceGte }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,13 +39,31 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
     }
   };
 
-  // Safely pick a primary image and provide a runtime fallback
+  // Base URL for images (adjust based on your backend)
+  const BASE_IMAGE_URL = 'https://a2z-backend.fly.dev';
+
+  // Safely pick a primary image with fallback
   const PLACEHOLDER_SRC = '/acessts/NoImage.jpg';
   const getPrimaryImage = (p: Product): string => {
-    const first = Array.isArray(p.imageList)
-      ? p.imageList.find((img) => typeof img === 'string' && img.trim() !== '')
-      : undefined;
-    return first || PLACEHOLDER_SRC;
+    console.log('Product data:', p); // Debug: check what product data we're getting
+
+    // Check if imageList exists and has valid images
+    if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
+      const firstValidImage = p.imageList.find((img) => typeof img === 'string' && img.trim() !== '');
+
+      if (firstValidImage) {
+        // Handle relative URLs by prepending the base URL
+        const imageUrl = firstValidImage.startsWith('http')
+          ? firstValidImage
+          : `${BASE_IMAGE_URL}${firstValidImage.startsWith('/') ? '' : '/'}${firstValidImage}`;
+
+        console.log('Final image URL:', imageUrl);
+        return imageUrl;
+      }
+    }
+
+    console.warn(`No valid images found for product ${p?._id || 'unknown'}, imageList:`, p?.imageList);
+    return PLACEHOLDER_SRC;
   };
 
   // Fetch related products from API
@@ -53,37 +71,48 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
     const fetchRelatedProducts = async () => {
       try {
         setLoading(true);
-        const filters: any = {
+
+        // Build filters using the ProductFilters interface
+        const filters: ProductFilters = {
           limit: 12,
-          fields: '_id,name,category,price,imageList,stockType,stockQty'
+          // Remove fields filter to ensure we get all product data including images
+          // fields: '_id,name,category,price,imageList,stockType,stockQty',
         };
-        if (category) filters.category = category;
-        if (typeof minPriceGte === 'number') {
-          filters['price[gte]'] = minPriceGte;
-          // Alternatively using nested object works with Axios params serialization too:
-          // filters.price = { gte: minPriceGte };
+
+        // Add price filter if minPriceGte is provided
+        if (typeof minPriceGte === 'number' && !isNaN(minPriceGte)) {
+          filters.price = { gte: minPriceGte };
         }
 
+        console.log('Fetching products with filters:', filters);
+
+        // Use the centralized product fetching with state management
         const response = await productService.getProducts(filters);
 
-        // productService returns { status, data }
-        const raw = (response as any)?.data ?? response;
-        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
+        // Extract products array from response
+        const productsList = Array.isArray(response.data) ? response.data : [];
+        if (productsList.length === 0) {
+          console.warn('No products returned from API');
+        }
 
-        const filteredProducts = list
-          .filter((p: any) => (category ? p.category === category : true))
-          .filter((p: any) => (currentProductId ? p._id !== currentProductId : true));
+        // Filter out current product if currentProductId is provided
+        const filteredProducts = currentProductId
+          ? productsList.filter((p: Product) => p._id !== currentProductId)
+          : productsList;
 
         setProducts(filteredProducts.slice(0, 8));
       } catch (error) {
         console.error('Error fetching related products:', error);
+
+        // Fallback to empty array on error
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRelatedProducts();
-  }, [category, currentProductId]);
+  }, [currentProductId, minPriceGte]);
 
   useEffect(() => {
     start();
@@ -97,6 +126,10 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
         <div className="text-black60">جاري التحميل...</div>
       </div>
     );
+  }
+
+  if (products.length === 0) {
+    return null;
   }
 
   return (
@@ -117,7 +150,10 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
                     src={getPrimaryImage(product)}
                     alt={product.name}
                     className="w-full h-full object-cover"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_SRC; }}
+                    onError={(e) => {
+                      console.warn(`Failed to load image for product ${product._id}: ${getPrimaryImage(product)}`);
+                      (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_SRC;
+                    }}
                     loading="lazy"
                   />
                 </div>
