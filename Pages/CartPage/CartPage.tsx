@@ -28,6 +28,7 @@ const CartPage = () => {
         
         const mapped: CartItem[] = items.map((it: any) => {
           const p = it.productId || {};
+<<<<<<< HEAD
           
           let imageUrl = '/assets/placeholder.png';
           const imageSources = p.imageList || p.images || p.image || [];
@@ -49,6 +50,12 @@ const CartPage = () => {
             imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/assets/placeholder.png';
           }
           
+=======
+          const images = p.imageList || p.images || p.image || [];
+          const imageUrl = Array.isArray(images)
+            ? (images[0]?.url || images[0] || '/acessts/NoImage.jpg')
+            : (images?.url || images || '/acessts/NoImage.jpg');
+>>>>>>> 40796757eb8fc5942c35adfbfc0ff5db65f82952
           const unit = p.stockType || p.unit || 'قطعة';
           const availability = (p.stockQty ?? p.quantity ?? 0) > 0 ? 'متوفر' : 'غير متوفر';
           

@@ -1,303 +1,75 @@
-/* Checkout.module.css - Fixed Independent Positioning */
-
 .Container {
-  display: flex;
-  min-height: 100vh;
-  background-color: var(--background);
-  font-family: var(--font-primary);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 24px;
+  padding: 40px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
   direction: rtl;
-  padding: 1.25rem;
-  gap: 1.5rem;
-  margin: 2% auto;
-  max-width: 1200px;
-}
-
-/* Desktop Layout */
-.left {
-  flex: 0 0 350px;
-  position: sticky;
-  top: 20px;
-  height: fit-content;
-  order: 2;
-  /* Removed margin-left: -10%; */
+  min-height: 100vh;
+  background-color: #fafafa;
 }
 
 .right {
-  flex: 1;
+  grid-column: span 4;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  order: 1;
-  /* max-width: calc(100% - 374px); */
-  width: 50%;
-   margin-right: -5%;
+  margin-right: -10%;
 }
 
-/* Form components styling */
-.right > * {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
+.left {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-left: -10%;
+  padding-right: 5%;
+  padding-top: 6%;
 }
-/* Large Desktop */
-@media (min-width: 1400px) {
+
+
+/* Responsive design for tablets */
+@media (max-width: 1024px) {
   .Container {
-    padding: 2rem;
-    gap: 1rem;
-    margin: 1% auto;
-  }
-  
-  .left {
-    flex: 0 0 320px;
-  }
-
-  .right {
-    max-width: calc(100% - 340px);
-    gap: 18px;
-  }
-  
-  .right > * {
-    padding: 32px;
-  }
-}
-
-/* iPad Pro and Large Tablets */
-@media (min-width: 1024px) and (max-width: 1399px) {
-  .Container {
-    padding: 1.5rem;
-    gap: 1rem;
-    margin: 1.5% auto;
-    max-width: 1200px;
-  }
-
-  .left {
-    flex: 0 0 330px;
-  }
-
-  .right {
-    max-width: calc(100% - 350px);
-    gap: 18px;
-  }
-
-  .right > * {
-    padding: 24px;
-  }
-}
-
-/* Standard Tablets */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .Container {
-    padding: 1rem;
-    gap: 1rem;
-    margin: 1% auto;
-    max-width: 1000px;
-  }
-
-  .left {
-    flex: 0 0 320px;
-    position: sticky;
-    top: 16px;
-  }
-
-  .right {
-    max-width: calc(100% - 340px);
+    grid-template-columns: 1fr;
     gap: 16px;
+    padding: 24px 16px;
   }
 
-  .right > * {
-    padding: 20px;
-    border-radius: 12px;
-  }
-}
-
-/* Mobile and Small Tablets - Single Column Layout */
-@media (max-width: 767px) {
-  .Container {
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    margin: 0;
-    min-height: auto;
-    max-width: none;
-  }
-
-  /* Mobile: Form sections come first */
   .right {
-    order: 1;
-    width: 100%;
-    max-width: none;
-    gap: 16px;
-    flex: none;
-  }
-
-  /* Mobile: Summary comes last (bottom) */
-  .left {
+    grid-column: span 1;
     order: 2;
-    flex: none;
-    position: static;
-    width: 100%;
-    margin-top: 0;
   }
 
-  /* Adjust form component styling for mobile */
-  .right > * {
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  .left {
+    grid-column: span 1;
+    order: 1;
+  }
+
+  .SummaryContainer {
+    position: static;
+    max-width: 100%;
   }
 }
 
-/* Small Mobile Devices */
-@media (max-width: 480px) {
+/* Responsive design for mobile */
+@media (max-width: 768px) {
   .Container {
-    padding: 0.75rem;
-    gap: 0.75rem;
-    margin: 0;
-  }
-
-  .right {
+    padding: 16px;
     gap: 12px;
   }
 
-  .right > * {
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-  }
-}
-
-/* iPhone specific adjustments */
-@media (max-width: 414px) and (min-height: 800px) {
-  .Container {
-    padding: 0.5rem;
-    gap: 0.5rem;
+  .SummaryContainer {
+    padding: 20px;
   }
 
-  .right {
-    gap: 8px;
+  .title {
+    font-size: 1.1rem;
   }
 
-  .right > * {
-    padding: 14px;
+  .button {
+    padding: 14px 20px !important;
+    font-size: 15px !important;
   }
-}
-
-/* Landscape mode for tablets */
-@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
-  .Container {
-    padding: 0.75rem;
-    gap: 1rem;
-  }
-
-  .left {
-    flex: 0 0 280px;
-  }
-
-  .right {
-    max-width: calc(100% - 300px);
-  }
-}
-
-/* Loading state styling */
-.Container > div:only-child {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-  font-size: 18px;
-  color: var(--black60);
-  background: var(--background);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--black8);
-  width: 100%;
-}
-
-@media (max-width: 768px) {
-  .Container > div:only-child {
-    border-radius: 8px;
-    font-size: 16px;
-    min-height: 200px;
-    margin: 1rem 0;
-  }
-}
-
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-  .right > * {
-    transition: none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .right > * {
-    border: 2px solid var(--black16);
-  }
-  
-  .right > *:hover {
-    border-color: var(--primary);
-  }
-}
-
-/* Print styles */
-@media print {
-  .Container {
-    flex-direction: column;
-    padding: 0;
-    gap: 1rem;
-    box-shadow: none;
-  }
-  
-  .left,
-  .right {
-    order: unset;
-    width: 100%;
-    max-width: none;
-    position: static;
-  }
-  
-  .right > * {
-    box-shadow: none;
-    border: 1px solid #ccc;
-  }
-}
-
-/* Focus management for better accessibility */
-.right > *:focus-within {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* Ensure proper spacing between sections */
-.right > *:not(:last-child) {
-  margin-bottom: 0; /* Reset any margin, use gap instead */
-}
-
-/* RTL specific adjustments */
-[dir="rtl"] .Container {
-  direction: rtl;
-}
-
-[dir="rtl"] .left {
-  order: 2; /* Summary on the left in RTL */
-}
-
-[dir="rtl"] .right {
-  order: 1; /* Forms on the right in RTL */
-}
-
-/* LTR fallback */
-[dir="ltr"] .Container {
-  direction: ltr;
-}
-
-[dir="ltr"] .left {
-  order: 1; /* Summary on the right in LTR */
-}
-
-[dir="ltr"] .right {
-  order: 2; /* Forms on the left in LTR */
 }

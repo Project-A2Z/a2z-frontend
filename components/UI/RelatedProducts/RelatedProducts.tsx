@@ -40,7 +40,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ category, currentProd
   };
 
   // Safely pick a primary image and provide a runtime fallback
-  const PLACEHOLDER_SRC = '/placeholder-product.jpg';
+  const PLACEHOLDER_SRC = '/acessts/NoImage.jpg';
   const getPrimaryImage = (p: Product): string => {
     const first = Array.isArray(p.imageList)
       ? p.imageList.find((img) => typeof img === 'string' && img.trim() !== '')

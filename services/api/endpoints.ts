@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
     DELETE_ADDRESS: '/users/address',//DELETE 'delete address'
     ORDERS: '/orders/user',//GET 'get user orders'
     ORDER_DETAILS: '/users/orders/:id',
+    ORDER_CREATE: '/orders',//POST 'create new order'
     FAVORITES: '/users/favorites',
     ADD_FAVORITE: '/users/favorites/add',
     REMOVE_FAVORITE: '/users/favorites/:id',

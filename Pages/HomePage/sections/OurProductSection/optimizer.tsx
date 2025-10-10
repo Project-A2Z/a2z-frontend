@@ -4,13 +4,12 @@ import ProductSlider from "@/components/UI/Product/ProductSlider";
 import Filter from "@/components/UI/Product/Filter";
 import { Button } from "@/components/UI/Buttons/Button"; 
 import { 
-  fetchProducts, 
-  searchProducts,
+  fetchAllProducts,
+  paginateProducts,
   getByFirstLetter,
   Product,
-  ProductFilters,
   ProductsResponse 
-} from '@/services/product/products'; // Updated import path
+} from '@/services/product/products';
 import style from './Product.module.css';
 import FilterIcon from '@/public/icons/Filter.svg'; 
 
@@ -18,16 +17,28 @@ interface OptimizedProductSectionProps {
   initialData?: ProductsResponse;
 }
 
-// Cache for products to avoid repeated API calls
-const productCache = new Map<string, { data: ProductsResponse; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const PRODUCTS_PER_PAGE = 20;
 
-// Give your component a proper name for export
 function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) {
+  // All products (fetched once)
   const [allProducts, setAllProducts] = useState<Product[]>(initialData?.data || []);
+  
+  // Filtered products (after applying filters)
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialData?.data || []);
+  
+  // Paginated products (current page display)
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
+  
+  // Filter states
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<string>('كل');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  // Loading and error states
   const [isLoading, setIsLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
   
@@ -36,15 +47,8 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   const [tempSelectedCategories, setTempSelectedCategories] = useState<string[]>([]);
   const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('كل');
 
-  // Pagination and search states
-  const [currentPage, setCurrentPage] = useState(initialData?.pagination?.page || 1);
-  const [totalPages, setTotalPages] = useState(initialData?.pagination?.totalPages || 1);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Refs for cleanup and debouncing
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -53,97 +57,29 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
     };
   }, []);
 
-  // Generate cache key
-  const getCacheKey = useCallback((filters: ProductFilters) => {
-    return JSON.stringify({
-      ...filters,
-      search: searchQuery
-    });
-  }, [searchQuery]);
-
-  // Check if cached data is still valid
-  const getCachedData = useCallback((key: string): ProductsResponse | null => {
-    const cached = productCache.get(key);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.data;
-    }
-    productCache.delete(key);
-    return null;
-  }, []);
-
-  // Cache data
-  const setCachedData = useCallback((key: string, data: ProductsResponse) => {
-    productCache.set(key, { data, timestamp: Date.now() });
-  }, []);
-
-  // Optimized data loading with caching and error handling
-  const loadFreshData = useCallback(async (filters: ProductFilters = {}) => {
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-    
+  // ============================================
+  // FETCH ALL PRODUCTS ONCE
+  // ============================================
+  const loadAllProducts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      const cacheKey = getCacheKey(filters);
-      const cachedData = getCachedData(cacheKey);
+      console.log('🔄 Loading all products...');
+      const response = await fetchAllProducts();
       
-      if (cachedData) {
-        console.log('Using cached data');
-        setAllProducts(cachedData.data || []);
-        if (cachedData.pagination) {
-          setTotalPages(cachedData.pagination.totalPages);
-          setCurrentPage(cachedData.pagination.page);
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Add timeout and signal for request cancellation
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
-      });
-
-      const apiPromise = searchQuery.trim() 
-        ? searchProducts(searchQuery, { ...filters })
-        : fetchProducts({ ...filters});
-      
-      const response = await Promise.race([apiPromise, timeoutPromise]) as ProductsResponse;
-      
-      // Check if component is still mounted
       if (!mountedRef.current) return;
       
-      setCachedData(cacheKey, response);
-      setAllProducts(response.data || []);
-      
-      if (response.pagination) {
-        setTotalPages(response.pagination.totalPages);
-        setCurrentPage(response.pagination.page);
-      }
+      console.log(`✅ Loaded ${response.data.length} products`);
+      setAllProducts(response.data);
       
     } catch (err: any) {
       if (!mountedRef.current) return;
       
-      if (err.name === 'AbortError') {
-        console.log('Request was cancelled');
-        return;
-      }
-      
-      const errorMessage = err.message === 'Request timeout' 
-        ? 'انتهت مهلة التحميل - يرجى المحاولة مرة أخرى' 
-        : err instanceof Error ? err.message : 'فشل في تحميل المنتجات';
-      
+      const errorMessage = err instanceof Error ? err.message : 'فشل في تحميل المنتجات';
       setError(errorMessage);
       console.error('Error loading products:', err);
     } finally {
@@ -151,31 +87,18 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         setIsLoading(false);
       }
     }
-  }, [searchQuery, getCacheKey, getCachedData, setCachedData]);
+  }, []);
 
-  // Initial load with retry mechanism
+  // Initial load
   useEffect(() => {
     if (!initialData) {
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      const loadWithRetry = async () => {
-        try {
-          await loadFreshData({ page: 1, limit: 20 });
-        } catch (error) {
-          if (retryCount < maxRetries) {
-            retryCount++;
-            console.log(`Retrying... Attempt ${retryCount}`);
-            setTimeout(loadWithRetry, 1000 * retryCount); // Exponential backoff
-          }
-        }
-      };
-      
-      loadWithRetry();
+      loadAllProducts();
     }
-  }, [initialData, loadFreshData]);
+  }, [initialData, loadAllProducts]);
 
-  // Memoized categories
+  // ============================================
+  // AVAILABLE CATEGORIES
+  // ============================================
   const availableCategories = useMemo(() => {
     const categories = new Set<string>();
     allProducts.forEach(product => {
@@ -186,13 +109,15 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     return Array.from(categories);
   }, [allProducts]);
 
-  // Optimized client-side filtering with early returns
-  const clientSideFiltered = useMemo(() => {
+  // ============================================
+  // CLIENT-SIDE FILTERING
+  // ============================================
+  const applyFilters = useMemo(() => {
     if (!allProducts.length) return [];
     
     let filtered = allProducts;
 
-    // Apply category filter first (usually most selective)
+    // Apply category filter
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(product => 
         selectedCategories.some(category => 
@@ -206,7 +131,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       filtered = getByFirstLetter(selectedLetter, filtered);
     }
 
-    // Apply search filter last (most expensive)
+    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(product => {
@@ -222,104 +147,59 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     return filtered;
   }, [allProducts, selectedCategories, selectedLetter, searchQuery]);
 
-  // Update filtered products
+  // Update filtered products whenever filters change
   useEffect(() => {
-    setFilteredProducts(clientSideFiltered);
-  }, [clientSideFiltered]);
+    setFilteredProducts(applyFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [applyFilters]);
 
-  // Optimized category filter handler
+  // ============================================
+  // CLIENT-SIDE PAGINATION
+  // ============================================
+  useEffect(() => {
+    const paginated = paginateProducts(filteredProducts, currentPage, PRODUCTS_PER_PAGE);
+    setDisplayedProducts(paginated.data);
+    setTotalPages(paginated.pagination?.totalPages || 1);
+  }, [filteredProducts, currentPage]);
+
+  // ============================================
+  // FILTER HANDLERS
+  // ============================================
   const handleCategoryFilter = useCallback((categories: string[] | null | undefined) => {
-    const safeCategories = categories || [];
-    setSelectedCategories(safeCategories);
-    setCurrentPage(1);
-    
-    // Use client-side filtering for better performance unless dataset is huge
-    if (allProducts.length > 500) {
-      loadFreshData({ 
-        category: safeCategories.length > 0 ? safeCategories : undefined,
-        page: 1,
-        limit: 20 
-      });
-    }
-  }, [allProducts.length, loadFreshData]);
+    setSelectedCategories(categories || []);
+  }, []);
 
-  // Letter filter (always client-side)
   const handleLetterFilter = useCallback((letter: string | null | undefined) => {
     setSelectedLetter(letter || 'كل');
   }, []);
 
-  // Debounced search handler
+  // Debounced search
   const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    
-    // Clear previous timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
-    // For small datasets, search immediately client-side
-    if (allProducts.length < 200 && !query.trim()) {
-      setSelectedCategories([]);
-      setCurrentPage(1);
-      return;
-    }
-    
-    // Debounce server-side search
     searchTimeoutRef.current = setTimeout(() => {
-      setSelectedCategories([]);
-      setCurrentPage(1);
-      
-      if (query.trim().length >= 2) { // Only search if query is meaningful
-        loadFreshData({ page: 1, limit: 20 });
-      } else if (!query.trim()) {
-        // Clear search - reload all products
-        loadFreshData({ page: 1, limit: 20 });
-      }
-    }, 500);
-  }, [allProducts.length, loadFreshData]);
+      setSearchQuery(query);
+    }, 300);
+  }, []);
 
-  // Pagination with preloading
+  // ============================================
+  // PAGINATION HANDLERS
+  // ============================================
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
-      loadFreshData({
-        category: selectedCategories.length > 0 ? selectedCategories : undefined,
-        page,
-        limit: 20
-      });
-      
-      // Smooth scroll to top
+      setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Preload next page for better UX
-      if (page < totalPages) {
-        setTimeout(() => {
-          const nextPageKey = getCacheKey({
-            category: selectedCategories.length > 0 ? selectedCategories : undefined,
-            page: page + 1,
-            limit: 20
-          });
-          if (!getCachedData(nextPageKey)) {
-            // Preload next page silently
-            loadFreshData({
-              category: selectedCategories.length > 0 ? selectedCategories : undefined,
-              page: page + 1,
-              limit: 20
-            });
-          }
-        }, 1000);
-      }
     }
-  }, [currentPage, totalPages, selectedCategories, loadFreshData, getCacheKey, getCachedData]);
+  }, [currentPage, totalPages]);
 
-  // Modal handlers (unchanged but optimized)
-  const handleTempCategoryFilter = useCallback((categories: string[] | null | undefined) => {
-    setTempSelectedCategories(categories || []);
-  }, []);
+  const goToFirstPage = useCallback(() => handlePageChange(1), [handlePageChange]);
+  const goToLastPage = useCallback(() => handlePageChange(totalPages), [handlePageChange, totalPages]);
 
-  const handleTempLetterFilter = useCallback((letter: string | null | undefined) => {
-    setTempSelectedLetter(letter || 'كل');
-  }, []);
-
+  // ============================================
+  // MODAL HANDLERS
+  // ============================================
   const openFilterModal = useCallback(() => {
     setTempSelectedCategories([...selectedCategories]);
     setTempSelectedLetter(selectedLetter);
@@ -338,42 +218,34 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     closeFilterModal();
   }, [tempSelectedCategories, tempSelectedLetter, closeFilterModal]);
 
-  // Clear all filters
+  const handleTempCategoryFilter = useCallback((categories: string[] | null | undefined) => {
+    setTempSelectedCategories(categories || []);
+  }, []);
+
+  const handleTempLetterFilter = useCallback((letter: string | null | undefined) => {
+    setTempSelectedLetter(letter || 'كل');
+  }, []);
+
+  // ============================================
+  // CLEAR FILTERS
+  // ============================================
   const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
     setSelectedLetter('كل');
     setSearchQuery('');
     setCurrentPage(1);
     
-    // Clear search timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
-    if (initialData) {
-      setAllProducts(initialData.data || []);
-      setTotalPages(initialData.pagination?.totalPages || 1);
-    } else {
-      loadFreshData({ page: 1, limit: 20 });
-    }
-  }, [initialData, loadFreshData]);
+  }, []);
 
-  // Refresh data
+  // ============================================
+  // REFRESH DATA
+  // ============================================
   const refreshData = useCallback(() => {
-    // Clear cache for current filters
-    const cacheKey = getCacheKey({
-      category: selectedCategories.length > 0 ? selectedCategories : undefined,
-      page: currentPage,
-      limit: 20
-    });
-    productCache.delete(cacheKey);
-    
-    loadFreshData({ 
-      category: selectedCategories.length > 0 ? selectedCategories : undefined,
-      page: currentPage, 
-      limit: 20 
-    });
-  }, [currentPage, selectedCategories, loadFreshData, getCacheKey]);
+    loadAllProducts();
+  }, [loadAllProducts]);
 
   // Active filters count
   const activeFiltersCount = useMemo(() => 
@@ -381,22 +253,23 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     [selectedCategories.length, selectedLetter, searchQuery]
   );
 
-  // Enhanced loading component
+  // ============================================
+  // LOADING STATE
+  // ============================================
   if (isLoading && allProducts.length === 0) {
     return (
       <div className={style.containerSection}>
         <div className={style.loadingContainer}>
           <div className={style.loader}></div>
           <p>جاري تحميل المنتجات...</p>
-          <div className={style.loadingProgress}>
-            <div className={style.progressBar}></div>
-          </div>
         </div>
       </div>
     );
   }
 
-  // Error component
+  // ============================================
+  // ERROR STATE
+  // ============================================
   if (error && allProducts.length === 0) {
     return (
       <div className={style.containerSection}>
@@ -410,23 +283,15 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             >
               إعادة المحاولة
             </Button>
-            <Button 
-              variant="outline" 
-              size="md" 
-              onClick={() => {
-                // Clear cache and try fresh
-                productCache.clear();
-                refreshData();
-              }}
-            >
-              مسح الذاكرة المؤقتة
-            </Button>
           </div>
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // MAIN RENDER
+  // ============================================
   return (
     <div className={style.containerSection}>
       {/* Mobile Filter Button */}
@@ -461,10 +326,11 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         </Button>
       </div>
 
+      {/* Products Display */}
       <div className={style.container}>
         <ProductSlider 
-          products={filteredProducts} 
-          isLoading={isLoading && allProducts.length === 0}
+          products={displayedProducts} 
+          isLoading={isLoading}
           error={error}
         />
         <Filter 
@@ -475,30 +341,59 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         />
       </div>
 
-      {/* Pagination */}
+      {/* Pagination Controls */}
+      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className={style.paginationContainer}>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage === 1 || isLoading}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            السابق
-          </Button>
-          
-          <span className={style.paginationInfo}>
-            صفحة {currentPage} من {totalPages}
-          </span>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage === totalPages || isLoading}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            التالي
-          </Button>
+          {/* Page Numbers */}
+          <div className={style.pageNumbers}>
+             {/* Products Count Info */}
+            <div className={style.paginationInfo}>
+              <span className={style.productsCount}>
+                عرض {filteredProducts.length} من إجمالي المنتجات
+              </span>
+            </div>
+
+            {/* Previous Page Arrow */}
+            <button
+              className={`${style.pageNumber} ${style.arrowButton}`}
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              aria-label="السابق"
+            >
+              ‹
+            </button>
+
+            {/* Page Number Buttons */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = Math.max(1, currentPage - 2) + i;
+              if (pageNum > totalPages) return null;
+              
+              return (
+                <button
+                  key={pageNum}
+                  className={`${style.pageNumber} ${currentPage === pageNum ? style.active : ''}`}
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            {/* Next Page Arrow */}
+            <button
+              className={`${style.pageNumber} ${style.arrowButton}`}
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              aria-label="التالي"
+            >
+              ›
+            </button>
+
+           
+          </div>
+
+         
         </div>
       )}
 
@@ -545,5 +440,4 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   );
 }
 
-// Named export
 export default OptimizedProductSection;
