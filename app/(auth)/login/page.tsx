@@ -1,16 +1,23 @@
+// app/(auth)/login/page.tsx - SIMPLIFIED VERSION (NextAuth only)
+
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn, useSession } from 'next-auth/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from './../../../components/UI/Buttons/Button'; 
 import Input from './../../../components/UI/Inputs/Input'; 
 import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
 import styles from './../auth.module.css';
-import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login'; 
+import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login';
+
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
     password: ''
@@ -23,21 +30,79 @@ export default function LoginForm() {
     general?: string;
   }>({});
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Handle social login callback with session
+  useEffect(() => {
+    const handleSocialAuth = async () => {
+      // Small delay to ensure localStorage is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Check localStorage first (most reliable for client-side)
+      const storedToken = localStorage.getItem('auth_token');
+      const storedUser = localStorage.getItem('user_data');
+      
+      if (storedToken && storedUser) {
+        console.log('✅ Found auth data in localStorage, redirecting...');
+        router.push('/');
+        return;
+      }
+      
+      // Then check session from NextAuth
+      if (session?.backendToken) {
+        console.log('✅ Backend token found in session');
+        
+        // Save to localStorage for consistency
+        if (session.backendToken) {
+          localStorage.setItem('auth_token', session.backendToken);
+        }
+        
+        if (session.user?.backendUser) {
+          localStorage.setItem('user_data', JSON.stringify(session.user.backendUser));
+        }
+        
+        router.push('/');
+        return;
+      }
+
+      // Handle error case: session exists but no backend token
+      if (session && status === 'authenticated' && !session.backendToken && !storedToken) {
+        console.error('❌ Session exists but no backend token');
+        setErrors({
+          general: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
+        });
+        setIsLoading(false);
+      }
+    };
+
+    if (status !== 'loading') {
+      handleSocialAuth();
+    }
+  }, [session, status, router]);
+
+  // Check for OAuth callback errors
+  useEffect(() => {
+    const error = searchParams?.get('error');
+    if (error) {
+      console.error('OAuth error:', error);
+      setErrors({
+        general: 'فشل تسجيل الدخول عبر الحساب الاجتماعي'
+      });
+      setIsLoading(false);
+    }
+  }, [searchParams]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
 
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
         [name]: '',
-        general: '' // Clear general error too
+        general: ''
       }));
     }
   };
@@ -61,7 +126,6 @@ export default function LoginForm() {
     return newErrors;
   };
 
-  // Check if all fields are valid
   const isFormValid = () => {
     return (
       formData.email.trim() &&
@@ -84,12 +148,10 @@ export default function LoginForm() {
     try {
       const response = await AuthService.login(formData);
       
-      // Check if email is verified
       if (!response.status || response.status !== 'success') {
         alert('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
       } else {
-        // Redirect to dashboard or home page
-        router.push('/'); // Adjust the route as needed
+        router.push('/');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -111,25 +173,28 @@ export default function LoginForm() {
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      // This would typically involve OAuth flow
-      // For now, just log the attempt
-      console.log('Google login clicked');
+      setErrors({});
       
-      // Example of how you might implement Google login:
-      // const googleToken = await getGoogleToken(); // Your Google OAuth implementation
-      // const response = await AuthService.socialLogin({
-      //   provider: 'google',
-      //   accessToken: googleToken
-      // });
+      console.log('🔵 Starting Google Sign-In...');
       
-      // Handle response...
+      const result = await signIn('google', { 
+        redirect: true,
+        callbackUrl: '/'  
+      });
+      
+      if (result?.error) {
+        console.error('Google sign-in error:', result.error);
+        setErrors({
+          general: 'فشل تسجيل الدخول عبر Google'
+        });
+        setIsLoading(false);
+      }
       
     } catch (error) {
       console.error('Google login error:', error);
       setErrors({
         general: 'حدث خطأ في تسجيل الدخول عبر Google'
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -137,51 +202,67 @@ export default function LoginForm() {
   const handleFacebookLogin = async () => {
     try {
       setIsLoading(true);
-      // This would typically involve OAuth flow
-      console.log('Facebook login clicked');
+      setErrors({});
       
-      // Example of how you might implement Facebook login:
-      // const facebookToken = await getFacebookToken(); // Your Facebook OAuth implementation
-      // const response = await AuthService.socialLogin({
-      //   provider: 'facebook',
-      //   accessToken: facebookToken
-      // });
+      console.log('🔵 Starting Facebook Sign-In...');
       
-      // Handle response...
+      const result = await signIn('facebook', { 
+        redirect: true,
+        callbackUrl: '/'  
+      });
+      
+      if (result?.error) {
+        console.error('Facebook sign-in error:', result.error);
+        setErrors({
+          general: 'فشل تسجيل الدخول عبر Facebook'
+        });
+        setIsLoading(false);
+      }
       
     } catch (error) {
       console.error('Facebook login error:', error);
       setErrors({
         general: 'حدث خطأ في تسجيل الدخول عبر Facebook'
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
+  // Show loading state while checking session
+  if (status === 'loading') {
+    return (
+      <>
+        <Background />
+        <div className={styles.container}>
+          <div className={styles.formWrapper}>
+            <div className={styles.header}>
+              <Logo className={styles.logo} />
+              <h2 className={styles.title}>جاري التحميل...</h2>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      {/* Background component - will be behind everything */}
       <Background />
       
       <div className={styles.container}>
         <div className={styles.formWrapper}>
-          {/* Logo and Title */}
           <div className={styles.header}>
             <Logo className={styles.logo} />
             <h2 className={styles.title}>تسجيل الدخول</h2>
           </div>
 
-          {/* Form */}
           <div className={styles.form}>
-            {/* General Error Message */}
             {errors.general && (
               <div className={styles.errorMessage}>
                 <p className={styles.errorText}>{errors.general}</p>
               </div>
             )}
 
-            {/* Email */}
             <div className={styles.inputGroup}>
               <Input
                 type="email"
@@ -198,7 +279,6 @@ export default function LoginForm() {
               )}
             </div>
 
-            {/* Password */}
             <div className={styles.inputGroup}>
               <Input
                 type={showPassword ? "text" : "password"}
@@ -218,7 +298,6 @@ export default function LoginForm() {
               )}
             </div>
 
-            {/* Forgot Password Link */}
             <div className={styles.forgotPasswordSection}>
               <button 
                 type="button"
@@ -230,7 +309,6 @@ export default function LoginForm() {
               </button>
             </div>
 
-            {/* Submit Button */}
             <div className={styles.submitButtonWrapper}>
               <Button
                 variant="custom"
@@ -247,7 +325,6 @@ export default function LoginForm() {
               </Button>
             </div>
 
-            {/* Social Login */}
             <div className={styles.socialLoginSection}>
               <div className={styles.registerSection}>
                 <p className={styles.registerText}>
@@ -264,11 +341,14 @@ export default function LoginForm() {
               </div>
 
               <div className={styles.socialButtons}>
+                {/* Google Login */}
                 <button 
                   type="button"
                   className={styles.socialButton}
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
+                  title="تسجيل الدخول باستخدام Google"
+                  aria-label="تسجيل الدخول باستخدام Google"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -277,11 +357,15 @@ export default function LoginForm() {
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
                 </button>
+
+                {/* Facebook Login */}
                 <button 
                   type="button"
                   className={styles.socialButton}
                   onClick={handleFacebookLogin}
                   disabled={isLoading}
+                  title="تسجيل الدخول باستخدام Facebook"
+                  aria-label="تسجيل الدخول باستخدام Facebook"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>

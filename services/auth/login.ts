@@ -48,7 +48,7 @@ export interface LoginError {
 
 export interface SocialLoginData {
   provider: 'google' | 'facebook';
-  accessToken: string;
+  idToken: string;
   // Add other fields as needed based on your API
 }
 
@@ -309,11 +309,19 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
   }
 };
 
-// Social login function
+// services/auth/login.ts - Updated socialLogin function
+
 export const socialLogin = async (socialData: SocialLoginData): Promise<LoginResponse> => {
   console.log('🚀 Starting social login...');
   console.log('🔧 Provider:', socialData.provider);
-  
+  console.log('🔧 API Base URL:', API_BASE_URL);
+  console.log('🔧 Social login endpoint:', API_ENDPOINTS.AUTH.LOGIN_SOCIAL);
+  console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN_SOCIAL}`);
+  console.log('📤 Social login data:', {
+    provider: socialData.provider,
+    idToken: socialData.idToken 
+  });
+
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN_SOCIAL}`, {
       method: 'POST',
@@ -324,72 +332,142 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
       body: JSON.stringify(socialData),
     });
 
+    console.log('📥 Raw response:', response);
+    console.log('📊 Response status:', response.status);
+    console.log('📊 Response ok:', response.ok);
+    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+
+    // Try to parse response data
     let data;
+    const contentType = response.headers.get('content-type');
+    console.log('📋 Content-Type:', contentType);
+
     try {
-      data = await response.json();
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const textData = await response.text();
+        console.log('📄 Non-JSON response:', textData);
+        // Try to parse as JSON anyway (sometimes servers send JSON without proper header)
+        try {
+          data = JSON.parse(textData);
+        } catch {
+          data = { message: textData };
+        }
+      }
+      console.log('📄 Parsed response data:', data);
     } catch (parseError) {
       console.error('❌ Failed to parse social login response:', parseError);
       throw new AuthError('Server returned invalid response format');
     }
 
-    console.log('📄 Social login response data:', data);
-
     if (!response.ok) {
       console.log('❌ Social login failed with status:', response.status);
       
+      // Enhanced error handling for different status codes
       let errorMessage = 'فشل تسجيل الدخول عبر الشبكات الاجتماعية';
+      let errorDetails = {};
       
       switch (response.status) {
         case 400:
-          errorMessage = data?.message || 'بيانات تسجيل الدخول الاجتماعي غير صحيحة';
+          console.log('🔍 400 Bad Request - analyzing response...');
+          if (data) {
+            errorMessage = data.message || data.error || 'بيانات تسجيل الدخول الاجتماعي غير صحيحة';
+            errorDetails = data.errors || data.validationErrors || data.data || {};
+            
+            // Common 400 error scenarios
+            if (typeof data === 'string') {
+              errorMessage = data;
+            } else if (data.message) {
+              errorMessage = data.message;
+            } else if (data.error) {
+              errorMessage = data.error;
+            }
+          } else {
+            errorMessage = 'طلب غير صحيح - يرجى التحقق من البيانات';
+          }
           break;
+          
         case 401:
           errorMessage = data?.message || 'فشل التحقق من هوية الحساب الاجتماعي';
           break;
+          
+        case 403:
+          errorMessage = data?.message || 'الحساب محظور أو غير مفعل';
+          break;
+          
+        case 422:
+          errorMessage = data?.message || 'فشل التحقق - يرجى التحقق من البيانات';
+          errorDetails = data?.errors || {};
+          break;
+          
+        case 500:
+          errorMessage = 'خطأ في الخادم - يرجى المحاولة لاحقاً';
+          break;
+          
         default:
           errorMessage = data?.message || `خطأ في تسجيل الدخول الاجتماعي (${response.status})`;
       }
 
-      throw new AuthError(errorMessage, response.status);
+      console.log('🔍 Final error message:', errorMessage);
+      console.log('🔍 Error details:', errorDetails);
+
+      // Create comprehensive error object
+      throw new AuthError(errorMessage, response.status, false, errorDetails);
     }
 
-    // Success case - same validation and storage as regular login
+    // ✅ SUCCESS CASE - EXACTLY LIKE loginUser
+    console.log('✅ Social login successful!');
+    console.log('🎉 Response data:', data);
+
+    // Validate response structure - EXACTLY LIKE loginUser
     if (data.status !== 'success') {
+      console.log('❌ Social login failed - status is not success:', data.status);
       throw new AuthError(data.message || 'فشل تسجيل الدخول الاجتماعي');
     }
 
     if (!data.data || !data.data.user || !data.data.token) {
+      console.log('❌ Invalid response structure:', data);
       throw new AuthError('استجابة الخادم غير صحيحة');
     }
 
-    // Save user data and token
-    console.log('💾 Saving social login user data and token...');
+    // 🔥 DO EVERYTHING THAT loginUser DOES AFTER GETTING DATA
+    // Save user data and token to localStorage after successful social login
+    console.log('💾 Saving user data and token to localStorage...');
     UserStorage.saveUser(data.data.user);
     UserStorage.saveToken(data.data.token);
+    saveAuthToken(data.data.token); // Also save via utility function - MATCHING loginUser
     
+    // If there's a refresh token in the response, save it
     if (data.data.refreshToken) {
+      console.log('🔄 Saving refresh token...');
       UserStorage.saveRefreshToken(data.data.refreshToken);
     }
 
-    console.log('✅ Social login successful!');
+    console.log('✅ User data and token saved successfully!');
+    
+    // Return the data - EXACTLY LIKE loginUser
     return data;
 
   } catch (error: any) {
     console.error('❌ Social login error:', error);
     
-    if (error instanceof AuthError) {
-      throw error;
-    }
-    
+    // Handle network errors - EXACTLY LIKE loginUser
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AuthError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
     }
     
-    throw new AuthError('حدث خطأ في تسجيل الدخول الاجتماعي');
+    // Re-throw AuthError as-is - EXACTLY LIKE loginUser
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    
+    // Handle any other unexpected errors - EXACTLY LIKE loginUser
+    throw new AuthError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
   }
 };
 
-// Logout function
+
 // Logout function - removes user data from localStorage
 export const logoutUser = async (): Promise<void> => {
   console.log('🚪 Starting logout process...');

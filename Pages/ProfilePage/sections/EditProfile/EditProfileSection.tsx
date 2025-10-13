@@ -16,6 +16,7 @@ import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 import { logoutUser, AuthService } from './../../../../services/auth/login';
 import orderService, { OrderItem } from './../../../../services/profile/orders';
 import { updatePassword } from '../../../../services/profile/profile';
+import { signOut } from 'next-auth/react';
 
 interface User {
   _id: string;
@@ -86,62 +87,81 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
   }, [box, user]);
 
   const handleLogout = async () => {
+  try {
+    setIsLoggingOut(true);
+    console.log('🚪 Starting logout process...');
+    console.log('📦 Before logout - localStorage:', {
+      user: localStorage.getItem('user_data'),
+      token: localStorage.getItem('auth_token'),
+      refreshToken: localStorage.getItem('refresh_token')
+    });
+    
+    // Step 1: Clear your backend authentication
+    await logoutUser();
+    
+    console.log('📦 After logoutUser - localStorage:', {
+      user: localStorage.getItem('user_data'),
+      token: localStorage.getItem('auth_token'),
+      refreshToken: localStorage.getItem('refresh_token')
+    });
+    
+    // Step 2: Sign out from NextAuth (Google/Facebook session)
+    console.log('🚪 Signing out from NextAuth...');
+    await signOut({ 
+      redirect: false // Don't redirect automatically, we'll do it manually
+    });
+    console.log('✅ NextAuth signout complete');
+    
+    // Step 3: Clear user state
+    if (setUser) {
+      setUser(null);
+    }
+    
+    console.log('✅ Logout successful!');
+    
+    // Step 4: Redirect to login
+    window.location.href = '/login';
+    
+  } catch (error) {
+    console.error('❌ Logout failed:', error);
+    
+    // If logout fails, force clear everything
+    console.log('🧹 Force clearing all auth data...');
     try {
-      setIsLoggingOut(true);
-      console.log('🚪 Starting logout process...');
-      console.log('📦 Before logout - localStorage:', {
-        user: localStorage.getItem('user_data'),
-        token: localStorage.getItem('auth_token'),
-        refreshToken: localStorage.getItem('refresh_token')
-      });
+      localStorage.removeItem('user_data');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+      AuthService.clearAuthData();
       
-      await logoutUser();
-      
-      console.log('📦 After logout - localStorage:', {
-        user: localStorage.getItem('user_data'),
-        token: localStorage.getItem('auth_token'),
-        refreshToken: localStorage.getItem('refresh_token')
-      });
+      // Also try to sign out from NextAuth
+      try {
+        await signOut({ redirect: false });
+      } catch (signOutError) {
+        console.error('❌ NextAuth signout failed:', signOutError);
+      }
       
       if (setUser) {
         setUser(null);
       }
       
-      console.log('✅ Logout successful!');
+      console.log('📦 After force cleanup - localStorage:', {
+        user: localStorage.getItem('user_data'),
+        token: localStorage.getItem('auth_token'),
+        refreshToken: localStorage.getItem('refresh_token')
+      });
+      
       window.location.href = '/login';
       
-    } catch (error) {
-      console.error('❌ Logout failed:', error);
-      
-      console.log('🧹 Manually clearing localStorage...');
-      try {
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('refresh_token');
-        AuthService.clearAuthData();
-        
-        if (setUser) {
-          setUser(null);
-        }
-        
-        console.log('📦 After manual cleanup - localStorage:', {
-          user: localStorage.getItem('user_data'),
-          token: localStorage.getItem('auth_token'),
-          refreshToken: localStorage.getItem('refresh_token')
-        });
-        
-        window.location.href = '/login';
-        
-      } catch (clearError) {
-        console.error('❌ Failed to clear auth data:', clearError);
-        window.location.href = '/login';
-      }
-      
-    } finally {
-      setIsLoggingOut(false);
+    } catch (clearError) {
+      console.error('❌ Failed to clear auth data:', clearError);
+      // Last resort - still redirect
+      window.location.href = '/login';
     }
-  };
-
+    
+  } finally {
+    setIsLoggingOut(false);
+  }
+};
   // Handle password change
   const handlePasswordChange = async (passwordData: { currentPassword: string; newPassword: string }) => {
     try {
