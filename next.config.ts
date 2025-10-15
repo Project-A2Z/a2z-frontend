@@ -16,13 +16,22 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
   
-  // Your existing webpack configuration
-  webpack(config) {
+  // Your existing webpack configuration - Updated for console removal in production
+  webpack(config, { dev, isServer }) {
     // SVG configuration
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"]
     });
+
+    // Remove console.log in production (client-side only)
+    if (!dev && !isServer) {
+      config.optimization.minimizer.forEach((plugin) => {
+        if (plugin.constructor.name === 'TerserPlugin') {
+          plugin.options.terserOptions.compress.drop_console = true;
+        }
+      });
+    }
     
     // You can add more webpack configurations here if needed
     return config;
@@ -31,6 +40,9 @@ const nextConfig: NextConfig = {
   // Other Next.js configurations...
   experimental: {
     // Add any experimental features you're using
+    logging: {
+      level: 'warn', // Limit logs to warnings in development
+    },
   },
   
   // If you're using TypeScript
@@ -42,6 +54,9 @@ const nextConfig: NextConfig = {
   env: {
     // Add any custom environment variables
   },
+
+  // Global revalidation for ISR (Incremental Static Regeneration)
+  revalidate: 3600, // Revalidate every hour for better caching
 };
 
 export default nextConfig;

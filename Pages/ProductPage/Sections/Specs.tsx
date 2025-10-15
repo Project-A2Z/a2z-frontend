@@ -26,4 +26,4 @@ const Specs: React.FC<Props> = ({ specs }) => {
   );
 };
 
-export default Specs;
+export default React.memo(Specs);

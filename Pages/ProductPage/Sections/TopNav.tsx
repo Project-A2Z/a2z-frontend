@@ -43,4 +43,4 @@ const TopNav: React.FC<Props> = ({ items = defaultItems, current = 'المنتج
   );
 };
 
-export default TopNav;
+export default React.memo(TopNav);

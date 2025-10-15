@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import Overview from './Sections/Overview';
 import TopNav from './Sections/TopNav';
 import Specs, { Spec } from './Sections/Specs';
-import DynamicRatings from './Sections/DynamicRatings';
+import Ratings from './Sections/Ratings'; // استخدام Ratings بدلاً من DynamicRatings لتجنب طلبات إضافية
 import Reviews from './Sections/Reviews';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import { productService } from '@/services/api/products'; // Import the service
+import { productService } from '@/services/api/products';
 import { reviewService, type Review } from '@/services/api/reviews';
 
 export type ProductData = {
@@ -20,16 +20,14 @@ export type ProductData = {
   category: string;
   specs: Spec[];
   ratingsDistribution: { stars: number; count: number }[];
-  reviews: { id: string | number; author: string; rating: number; date: string; content: string }[]; // Component expects this format
+  reviews: { id: string | number; author: string; rating: number; date: string; content: string }[];
   stockQty: number;
   stockType: 'unit' | 'kg' | 'ton';
 };
 
-// ProductPage now receives data as prop, with fallback client-side fetch for reviews if missing
 const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [reviews, setReviews] = useState(data.reviews);
 
-  // Fallback: Fetch product if reviews are missing (maps backend productReview to expected format)
   useEffect(() => {
     if (!reviews || reviews.length === 0) {
       const fetchReviewsFallback = async () => {
@@ -38,9 +36,9 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
           const backendReviews = response.data?.productReview || [];
           const mappedReviews = backendReviews.map((r: Review) => ({
             id: r._id,
-            author: 'مستخدم مجهول', // Placeholder since no author in API
+            author: 'مستخدم مجهول',
             rating: r.rateNum,
-            date: new Date(r.date).toLocaleDateString('ar-EG'), // Format date to Arabic
+            date: new Date(r.date).toLocaleDateString('ar-EG'),
             content: r.description,
           }));
           setReviews(mappedReviews);
@@ -63,12 +61,9 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     );
   }
 
-  console.log(data)
-  // console.log(data.price)
   return (
     <div className="min-h-screen bg-background font-beiruti mt-[93px]">
       <div className="mx-auto max-w-[95%] px-4 py-6 space-y-6">
-        {/* Overview */}
         <Overview
           id={data.id}
           title={data.title}
@@ -82,30 +77,27 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
           stockType={data.stockType}
         />
 
-        {/* Content: Specs + Ratings (flex layout) */}
         <div className="flex flex-col lg:flex-row gap-6 max-w-[95%] mx-auto">
           <div className="flex flex-col order-2 lg:order-1 flex-1 space-y-6">
             <Specs specs={data.specs} />
-            <DynamicRatings
+            <Ratings
+              average={data.rating}
+              total={data.ratingCount}
+              distribution={data.ratingsDistribution}
               productId={String(data.id)}
               onStarClick={(stars: number) => {
-                console.log('Star clicked:', stars);
-                // Filter reviews by selected star rating
                 setReviews(prev => prev.filter(review => Math.round(review.rating) === stars));
               }}
               onDistributionClick={(stars: number) => {
-                console.log('Distribution clicked:', stars);
-                // Filter reviews by selected star rating from distribution
                 setReviews(prev => prev.filter(review => Math.round(review.rating) === stars));
               }}
               interactive={true}
             />
-            {/* //Use state which includes fallback */}
-            <Reviews reviews={reviews} /> 
+            <Reviews reviews={reviews} />
           </div>
         </div>
         
-        <RelatedProducts  />
+        <RelatedProducts />
       </div>
     </div>
   );

@@ -45,8 +45,6 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
   // Safely pick a primary image with fallback
   const PLACEHOLDER_SRC = '/acessts/NoImage.jpg';
   const getPrimaryImage = (p: Product): string => {
-    console.log('Product data:', p); // Debug: check what product data we're getting
-
     // Check if imageList exists and has valid images
     if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
       const firstValidImage = p.imageList.find((img) => typeof img === 'string' && img.trim() !== '');
@@ -57,12 +55,10 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
           ? firstValidImage
           : `${BASE_IMAGE_URL}${firstValidImage.startsWith('/') ? '' : '/'}${firstValidImage}`;
 
-        console.log('Final image URL:', imageUrl);
         return imageUrl;
       }
     }
 
-    console.warn(`No valid images found for product ${p?._id || 'unknown'}, imageList:`, p?.imageList);
     return PLACEHOLDER_SRC;
   };
 
@@ -84,15 +80,13 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
           filters.price = { gte: minPriceGte };
         }
 
-        console.log('Fetching products with filters:', filters);
-
         // Use the centralized product fetching with state management
         const response = await productService.getProducts(filters);
 
         // Extract products array from response
         const productsList = Array.isArray(response.data) ? response.data : [];
         if (productsList.length === 0) {
-          console.warn('No products returned from API');
+          // Silent fallback; no log needed
         }
 
         // Filter out current product if currentProductId is provided
@@ -102,7 +96,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
 
         setProducts(filteredProducts.slice(0, 8));
       } catch (error) {
-        console.error('Error fetching related products:', error);
+        // Silent error handling; no log needed in production
 
         // Fallback to empty array on error
         setProducts([]);
@@ -151,7 +145,6 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.warn(`Failed to load image for product ${product._id}: ${getPrimaryImage(product)}`);
                       (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_SRC;
                     }}
                     loading="lazy"

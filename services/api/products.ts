@@ -1,5 +1,5 @@
-// Fixed products.ts (service)
-import apiClient from './client'; // Assuming client.ts exists and is configured with baseURL
+// services/api/products.ts - مُحدث لـ fetch failed و rate limiting
+import apiClient from './client'; // افترض Axios
 
 export interface Review {
   _id: string;
@@ -15,26 +15,31 @@ export interface Review {
 
 export interface Product {
   _id: string;
-  category: string;
   name: string;
+  nameAr?: string;
+  nameEn?: string;
   description?: string;
-  imageList: string[];
+  descriptionAr?: string;
+  descriptionEn?: string;
   price: number;
+  imageList: string[];
+  image?: string;
+  images?: string[];
+  category: string;
+  categoryId?: string;
+  brand?: string;
+  brandId?: string;
   stockQty: number;
   stockType: 'unit' | 'kg' | 'ton';
-  advProduct?: string[];
-  weightUnit?: 'kg' | 'ton';
   averageRate?: number;
   createdAt?: string;
   updatedAt?: string;
-  productReview?: Review[]; // Added: Reviews are embedded in the product response
-  // Add any other fields like brand, specifications if they exist in backend
+  [key: string]: any;
 }
 
 export interface ProductFilters {
   page?: number;
   limit?: number;
-  sort?: string;
   fields?: string;
   category?: string;
   name?: string;
@@ -42,7 +47,7 @@ export interface ProductFilters {
     gte?: number;
     lte?: number;
   };
-  [key: string]: any; // For dynamic filtering
+  [key: string]: any;
 }
 
 export interface ApiResponse<T> {
@@ -52,31 +57,61 @@ export interface ApiResponse<T> {
   length?: number;
 }
 
+// دالة لإعادة المحاولة مع fallback لـ fetch failed
+async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await requestFn();
+    } catch (error: any) {
+      lastError = error;
+      if (error.response?.status === 429 || error.message?.includes('fetch failed')) {
+        const retryAfter = error.response?.headers?.['retry-after'] || Math.pow(2, i) * 1000;
+        console.warn(`Request failed (retry in ${retryAfter}ms)...`);
+        await new Promise(resolve => setTimeout(resolve, parseInt(retryAfter as string)));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error(`Max retries exceeded: ${lastError?.message || 'Unknown error'}`);
+}
+
 export const productService = {
-  // Get all products with optional filters
   async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
-    const response = await apiClient.get<ApiResponse<Product[]>>('https://a2z-backend.fly.dev/app/v1/products', { 
-      params: filters 
-    });
-    return response.data;
+    try {
+      const request = () => apiClient.get<ApiResponse<Product[]>>('https://a2z-backend.fly.dev/app/v1/products', { 
+        params: filters 
+      });
+      return await fetchWithRetry(() => request().then(res => res.data));
+    } catch (error: any) {
+      console.error('API fetch failed:', error.message); // Log مرة واحدة
+      if (error.message?.includes('fetch failed') || error.message?.includes('ENOTFOUND')) {
+        return { status: 'error', data: [], message: 'Service temporarily unavailable' }; // Fallback
+      }
+      if (error.message?.includes('Rate limited') || error.message?.includes('429')) {
+        return { status: 'error', data: [], message: 'Rate limited - Try again later' };
+      }
+      throw error;
+    }
   },
 
-  // Get a single product by ID - Updated typing to ApiResponse<Product> since reviews are in product.productReview
   async getProductById(id: string): Promise<ApiResponse<Product>> {
     try {
       if (!id) {
         throw new Error('Product ID is required');
       }
-      // Path fixed to /app/v1/products/:id
-      const response = await apiClient.get<ApiResponse<Product>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
-      return response.data;
+      const request = () => apiClient.get<ApiResponse<Product>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
+      return await fetchWithRetry(() => request().then(res => res.data));
     } catch (error: any) {
-      console.error(`Error fetching product with ID ${id}:`, error);
-      throw error; // Re-throw to let the caller handle it
+      console.error(`Error fetching product ${id}:`, error.message);
+      if (error.message?.includes('fetch failed')) {
+        throw new Error('Product fetch failed - Service unavailable');
+      }
+      throw error;
     }
   },
 
-  // Create a new product (Admin only)
   async createProduct(productData: FormData): Promise<ApiResponse<{ product: Product }>> {
     const response = await apiClient.post<ApiResponse<{ product: Product }>>(
       'https://a2z-backend.fly.dev/app/v1/products',
@@ -90,7 +125,6 @@ export const productService = {
     return response.data;
   },
 
-  // Update a product (Admin only) - Fixed path and content-type
   async updateProduct(id: string, productData: Partial<Product>): Promise<ApiResponse<{ product: Product }>> {
     const response = await apiClient.put<ApiResponse<{ product: Product }>>(
       `https://a2z-backend.fly.dev/app/v1/products/${id}`,
@@ -104,13 +138,10 @@ export const productService = {
     return response.data;
   },
 
-  // Delete a product (Admin only) - Fixed path
   async deleteProduct(id: string): Promise<ApiResponse<null>> {
     const response = await apiClient.delete<ApiResponse<null>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
     return response.data;
   },
-
-  // Removed getProductReviews - Endpoint does not exist (returns 404); use product.productReview from getProductById instead
 };
 
 export default productService;

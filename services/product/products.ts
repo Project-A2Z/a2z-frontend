@@ -125,60 +125,156 @@ const getRequestConfig = () => ({
   },
 });
 
+// Global state for products with fallback mechanism
+let globalProductsCache: Product[] | null = null;
+let cacheTimestamp: number = 0;
+let isLoadingProducts = false;
+let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
+
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+// Centralized product fetching with state management and fallbacks
+export const getProductsWithState = async (): Promise<Product[]> => {
+  // Return cached data if available and not expired
+  if (globalProductsCache && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
+    console.log('✅ Using cached products');
+    return globalProductsCache;
+  }
+
+  // If already loading, wait for the existing request
+  if (isLoadingProducts) {
+    console.log('⏳ Waiting for existing products request...');
+    return new Promise((resolve, reject) => {
+      pendingPromises.push({ resolve, reject });
+    });
+  }
+
+  // Start new loading process
+  isLoadingProducts = true;
+
+  try {
+    console.log('🔄 Fetching fresh products from API...');
+
+    const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
+      method: 'GET',
+      ...getRequestConfig(),
+    });
+
+    // Handle rate limiting gracefully
+    if (response.status === 429) {
+      console.warn('⏱️ Rate limited, using cached data if available');
+      if (globalProductsCache) {
+        isLoadingProducts = false;
+        pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
+        pendingPromises = [];
+        return globalProductsCache;
+      }
+      throw new Error('Rate limited and no cached data available');
+    }
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: ProductsResponse = await response.json();
+    const products = (data.data || []).map(product => processProductImagesStatic(product));
+
+    // Update global cache
+    globalProductsCache = products;
+    cacheTimestamp = Date.now();
+
+    console.log(`✅ Successfully fetched ${products.length} products`);
+
+    // Resolve all pending promises
+    isLoadingProducts = false;
+    pendingPromises.forEach(({ resolve }) => resolve(products));
+    pendingPromises = [];
+
+    return products;
+
+  } catch (error) {
+    console.error('❌ Error fetching products:', error);
+
+    // Return cached data as fallback
+    if (globalProductsCache) {
+      console.log('🔄 Using cached products as fallback');
+      isLoadingProducts = false;
+      pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
+      pendingPromises = [];
+      return globalProductsCache;
+    }
+
+    // No cached data available
+    console.warn('⚠️ No cached data available');
+    isLoadingProducts = false;
+    pendingPromises.forEach(({ reject }) => reject(error));
+    pendingPromises = [];
+    throw error;
+  }
+};
+
 // ============================================
 // FETCH ALL PRODUCTS (No Pagination - for client-side pagination)
 // ============================================
 export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'limit'> = {}): Promise<ProductsResponse> => {
   try {
-    // Build query parameters
-    const queryParams = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          queryParams.append(key, value.join(','));
-        } else {
-          queryParams.append(key, String(value));
-        }
-      }
-    });
-    
-    const queryString = queryParams.toString();
-    const url = queryString 
-      ? `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?${queryString}`
-      : `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`;
-    
-    console.log('Fetching all products from:', url);
-    
-    const config = getRequestConfig();
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      ...config,
-    });
+    // Use the centralized state management for products
+    const products = await getProductsWithState();
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+    // Apply filters if provided
+    let filteredProducts = products;
+    if (filters.category) {
+      filteredProducts = filteredProducts.filter(p => p.category === filters.category);
+    }
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredProducts = filteredProducts.filter(p =>
+        p.name.toLowerCase().includes(searchTerm) ||
+        p.description?.toLowerCase().includes(searchTerm)
+      );
     }
 
-    const data: ProductsResponse = await response.json();
-    
-    const processedProducts = (data.data || []).map(product => processProductImagesStatic(product));
-    
-    console.log(`✅ Fetched ${processedProducts.length} total products`);
-    
     return {
-      data: processedProducts,
+      data: filteredProducts,
       pagination: {
         page: 1,
-        limit: processedProducts.length,
-        total: processedProducts.length,
+        limit: filteredProducts.length,
+        total: filteredProducts.length,
         totalPages: 1
       },
-      filters: data.filters
+      filters: {
+        categories: [...new Set(products.map(p => p.category))],
+        brands: [],
+        priceRange: {
+          min: Math.min(...products.map(p => p.price)),
+          max: Math.max(...products.map(p => p.price))
+        }
+      }
     };
   } catch (error) {
-    console.error('Error fetching all products:', error);
+    console.error('Error in fetchAllProducts:', error);
+
+    // Return cached data if available
+    if (globalProductsCache) {
+      return {
+        data: globalProductsCache,
+        pagination: {
+          page: 1,
+          limit: globalProductsCache.length,
+          total: globalProductsCache.length,
+          totalPages: 1
+        },
+        filters: {
+          categories: [...new Set(globalProductsCache.map(p => p.category))],
+          brands: [],
+          priceRange: {
+            min: Math.min(...globalProductsCache.map(p => p.price)),
+            max: Math.max(...globalProductsCache.map(p => p.price))
+          }
+        }
+      };
+    }
+
     throw error;
   }
 };
@@ -188,57 +284,83 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 // ============================================
 export const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
   try {
-    // Default pagination
+    // Use the centralized state management for products
+    const products = await getProductsWithState();
+
+    // Apply pagination
     const page = filters.page || 1;
     const limit = filters.limit || 20;
-    
-    // Build query parameters
-    const queryParams = new URLSearchParams();
-    
-    Object.entries({ ...filters, page, limit }).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          queryParams.append(key, value.join(','));
-        } else {
-          queryParams.append(key, String(value));
-        }
-      }
-    });
-    
-    const queryString = queryParams.toString();
-    const url = queryString 
-      ? `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?${queryString}`
-      : `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`;
-    
-    console.log('Fetching products from:', url);
-    
-    const config = getRequestConfig();
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      ...config,
-    });
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = products.slice(startIndex, endIndex);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+    // Apply filters if provided
+    let filteredProducts = paginatedProducts;
+    if (filters.category) {
+      const categories = Array.isArray(filters.category) ? filters.category : [filters.category];
+      filteredProducts = filteredProducts.filter(p => categories.includes(p.category));
+    }
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredProducts = filteredProducts.filter(p =>
+        p.name.toLowerCase().includes(searchTerm) ||
+        p.description?.toLowerCase().includes(searchTerm)
+      );
+    }
+    if (filters.minPrice !== undefined) {
+      filteredProducts = filteredProducts.filter(p => p.price >= filters.minPrice!);
+    }
+    if (filters.maxPrice !== undefined) {
+      filteredProducts = filteredProducts.filter(p => p.price <= filters.maxPrice!);
     }
 
-    const data: ProductsResponse = await response.json();
-    
-    const processedProducts = (data.data || []).map(product => processProductImagesStatic(product));
-    
     return {
-      data: processedProducts,
-      pagination: data.pagination || {
-        page: page,
-        limit: limit,
-        total: processedProducts.length,
-        totalPages: Math.ceil(processedProducts.length / limit)
+      data: filteredProducts,
+      pagination: {
+        page,
+        limit,
+        total: filteredProducts.length,
+        totalPages: Math.ceil(products.length / limit)
       },
-      filters: data.filters
+      filters: {
+        categories: [...new Set(products.map(p => p.category))],
+        brands: [],
+        priceRange: {
+          min: Math.min(...products.map(p => p.price)),
+          max: Math.max(...products.map(p => p.price))
+        }
+      }
     };
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error in fetchProducts:', error);
+
+    // Return cached data if available
+    if (globalProductsCache) {
+      const page = filters.page || 1;
+      const limit = filters.limit || 20;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedProducts = globalProductsCache.slice(startIndex, endIndex);
+
+      return {
+        data: paginatedProducts,
+        pagination: {
+          page,
+          limit,
+          total: globalProductsCache.length,
+          totalPages: Math.ceil(globalProductsCache.length / limit)
+        },
+        filters: {
+          categories: [...new Set(globalProductsCache.map(p => p.category))],
+          brands: [],
+          priceRange: {
+            min: Math.min(...globalProductsCache.map(p => p.price)),
+            max: Math.max(...globalProductsCache.map(p => p.price))
+          }
+        }
+      };
+    }
+
     throw error;
   }
 };
