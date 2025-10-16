@@ -16,6 +16,9 @@ export interface Address {
 }
 
 export interface UserProfile {
+  favoriteItems: number;
+  reviewsCount: number;
+  OrderCount: number;
   _id: string;
   firstName: string;
   lastName: string;

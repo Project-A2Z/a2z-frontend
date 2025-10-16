@@ -1,23 +1,27 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import styles from './profile.module.css';
-import { useRouter } from 'next/navigation';
+"use client";
+import React, { useState, useEffect } from "react";
+import styles from "./profile.module.css";
+import { useRouter } from "next/navigation";
 
 // Components
-import Header from '@/components/Layout/Nav/Header';
-import TopMetrics from './sections/TopScetion/Top';
-import InformationSection from './sections/informationSection.tsx/InformationSection';
-import AccountList from '@/components/UI/Profile/RightSection/List';
-import EditProfileSection from './sections/EditProfile/EditProfileSection';
+import Header from "@/components/Layout/Nav/Header";
+import TopMetrics from "./sections/TopScetion/Top";
+import InformationSection from "./sections/informationSection.tsx/InformationSection";
+import AccountList from "@/components/UI/Profile/RightSection/List";
+import EditProfileSection from "./sections/EditProfile/EditProfileSection";
 
 // Services
-import { getCurrentUser, isUserAuthenticated, logoutUser } from './../../services/auth/login';
-import { ProfileService, UserProfile } from './../../services/profile/profile';
+import {
+  getCurrentUser,
+  isUserAuthenticated,
+  logoutUser,
+} from "./../../services/auth/login";
+import { ProfileService, UserProfile } from "./../../services/profile/profile";
 
 // Icons
-import Heart from './../../public/icons/HeartProf.svg';
-import Cart from './../../public/icons/CartProf.svg';
-import Star from './../../public/icons/StarProf.svg';
+import Heart from "./../../public/icons/HeartProf.svg";
+import Cart from "./../../public/icons/CartProf.svg";
+import Star from "./../../public/icons/StarProf.svg";
 
 // Interfaces
 export interface User {
@@ -46,7 +50,7 @@ export interface User {
 }
 const ProfilePage = () => {
   const router = useRouter();
-  const [box, setBox] = useState('');
+  const [box, setBox] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMain, setShowMobileMain] = useState(false);
 
@@ -65,20 +69,20 @@ const ProfilePage = () => {
 
       // Check if user is authenticated
       if (!isUserAuthenticated()) {
-        console.log('❌ User not authenticated, redirecting to login...');
-        router.push('/login');
+        console.log("❌ User not authenticated, redirecting to login...");
+        router.push("/login");
         return;
       }
 
-      console.log('🔄 Fetching user profile from API...');
-      
+      console.log("🔄 Fetching user profile from API...");
+
       // Fetch profile from API
       const response = await ProfileService.getProfile();
-      
-      if (response.status === 'success' && response.data.user) {
+
+      if (response.status === "success" && response.data.user) {
         const profileData = response.data.user;
-        console.log('✅ Profile data fetched successfully:', profileData);
-        
+        console.log("✅ Profile data fetched successfully:", profileData);
+
         // Convert UserProfile to User type for component compatibility
         const userData: User = {
           _id: profileData._id,
@@ -92,48 +96,50 @@ const ProfilePage = () => {
           role: profileData.role,
           createdAt: profileData.createdAt,
           updatedAt: profileData.updatedAt,
+
+          favoriteItems: profileData?.favoriteItems || 0,
+          reviewsCount: profileData.reviewsCount || 0,
+          OrderCount: profileData.OrderCount || 0,
         };
-        
+
         setUser(userData);
-        console.log('💾 User state updated with profile data');
+        console.log("💾 User state updated with profile data");
       } else {
-        throw new Error('Invalid response structure');
+        throw new Error("Invalid response structure");
       }
     } catch (error: any) {
-      console.error('❌ Error fetching profile:', error);
-      
+      console.error("❌ Error fetching profile:", error);
+
       // Handle specific errors
       if (error.statusCode === 401) {
         // Token expired or invalid - redirect to login
-        console.log('🔒 Authentication failed, redirecting to login...');
-        setError('انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
-        
+        console.log("🔒 Authentication failed, redirecting to login...");
+        setError("انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.");
+
         // Clear auth data and redirect after a delay
         setTimeout(() => {
           logoutUser();
-          router.push('/login');
+          router.push("/login");
         }, 2000);
       } else if (error.isNetworkError) {
-        setError('خطأ في الاتصال بالإنترنت. يرجى التحقق من اتصالك.');
+        setError("خطأ في الاتصال بالإنترنت. يرجى التحقق من اتصالك.");
       } else {
-        setError(error.message || 'حدث خطأ أثناء جلب بيانات الملف الشخصي');
+        setError(error.message || "حدث خطأ أثناء جلب بيانات الملف الشخصي");
       }
-      
+
       // Fallback to localStorage data if API fails (not auth error)
       if (error.statusCode !== 401) {
-        console.log('ℹ️ Falling back to localStorage data...');
+        console.log("ℹ️ Falling back to localStorage data...");
         const localUser = getCurrentUser();
         if (localUser) {
           setUser(localUser);
-          console.log('💾 Using cached user data from localStorage');
+          console.log("💾 Using cached user data from localStorage");
         }
       }
     } finally {
       setIsLoading(false);
     }
   };
-
- 
 
   /**
    * Load user data on component mount
@@ -143,9 +149,9 @@ const ProfilePage = () => {
     const localUser = getCurrentUser();
     if (localUser) {
       setUser(localUser);
-      console.log('💾 Loaded cached user data from localStorage');
+      console.log("💾 Loaded cached user data from localStorage");
     }
-    
+
     // Then fetch fresh data from API
     fetchUserProfile();
   }, []);
@@ -155,20 +161,20 @@ const ProfilePage = () => {
    */
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_data' || e.key === 'auth_token') {
-        console.log('🔄 Storage changed, reloading profile...');
-        
+      if (e.key === "user_data" || e.key === "auth_token") {
+        console.log("🔄 Storage changed, reloading profile...");
+
         if (isUserAuthenticated()) {
           fetchUserProfile();
         } else {
           setUser(null);
-          router.push('/login');
+          router.push("/login");
         }
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   /**
@@ -178,10 +184,10 @@ const ProfilePage = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   /**
@@ -196,22 +202,22 @@ const ProfilePage = () => {
 
   const handleMobileBack = () => {
     setShowMobileMain(false);
-    setBox('');
+    setBox("");
   };
 
   /**
    * Back button SVG icon
    */
   const BackIcon = () => (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="m15 18-6-6 6-6"/>
+      <path d="m15 18-6-6 6-6" />
     </svg>
   );
 
@@ -252,9 +258,9 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className={styles.profile_page}>  
+    <div className={styles.profile_page}>
       {/* <Header /> */}
-      
+
       {/* Error notification banner */}
       {error && user && (
         <div className={styles.error_banner}>
@@ -263,60 +269,77 @@ const ProfilePage = () => {
         </div>
       )}
 
- 
-      
       <TopMetrics
         metrics={[
           {
             icon: <Heart />,
             number: user?.favoriteItems || 0,
-            title: 'المنتجات المفضلة',
+            title: "المنتجات المفضلة",
             className: styles.metric1,
-            onClick: () => { router.push('/favorites'); }
+            onClick: () => {
+              router.push("/favorites");
+            },
           },
           {
             icon: <Cart />,
             number: user?.OrderCount || 0,
-            title: 'عدد الطلبات',
+            title: "عدد الطلبات",
             className: styles.metric2,
-            onClick: () => { router.push('/'); }
+            onClick: () => {
+              // router.push("/cart");
+              setBox("طلباتك");
+            },
           },
           {
             icon: <Star />,
             number: user?.reviewsCount || 0,
-            title: 'التقييمات',
+            title: "التقييمات",
             className: styles.metric3,
-            onClick: () => { router.push('/'); }
+            onClick: () => {
+              // router.push("/");
+              setBox("رسائلك");
+            },
           },
         ]}
         className={styles.metric_card}
       />
 
       <div className={styles.mid}>
-        <div className={`${styles.right_section} ${isMobile && showMobileMain ? styles.mobile_hidden : ''}`}>
-          <InformationSection userProp={user}/>
+        <div
+          className={`${styles.right_section} ${
+            isMobile && showMobileMain ? styles.mobile_hidden : ""
+          }`}
+        >
+          <InformationSection userProp={user} />
           <hr />
-          <AccountList 
-            onItemClick={handleMobileNavigation} 
-            user={user} 
+          <AccountList
+            onItemClick={handleMobileNavigation}
+            user={user}
             setUser={setUser}
             // refreshProfile={refreshProfile}
           />
         </div>
 
-        <div className={`${styles.main} ${isMobile && showMobileMain ? styles.mobile_active : ''}`}>
+        <div
+          className={`${styles.main} ${
+            isMobile && showMobileMain ? styles.mobile_active : ""
+          }`}
+        >
           {/* Mobile Back Button */}
           {isMobile && showMobileMain && (
-            <div className={styles.mobile_back_button} onClick={handleMobileBack}>
+            <div
+              className={styles.mobile_back_button}
+              onClick={handleMobileBack}
+            >
               <BackIcon />
               <span>العودة</span>
             </div>
           )}
-          
-          <EditProfileSection 
-            box={box} 
+
+          <EditProfileSection
+            box={box}
             setBox={setBox}
-            user={user} 
+            user={user}
             setUser={setUser}
             // refreshProfile={refreshProfile}
           />
@@ -326,6 +349,6 @@ const ProfilePage = () => {
       {/* <Footer/> */}
     </div>
   );
-}
+};
 
 export default ProfilePage;

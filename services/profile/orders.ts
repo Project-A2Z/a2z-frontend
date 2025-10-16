@@ -19,15 +19,27 @@ export interface OrderAddress {
   city: string;
   region: string;
 }
-
+ // Update your CartItem interface to include product details
 export interface CartItem {
   _id: string;
   cartId: string;
-  productId: string;
+  // productId: string;
   itemQty: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
+  // Add these fields to include product details
+  productId?: {
+    _id: string;
+    name: string;
+    image: string;
+    price: number;
+    // Add other product fields as needed
+  };
+  // OR if your API returns them flattened:
+  productName?: string;
+  productImage?: string;
+  productPrice?: number;
 }
 
 export interface Cart {

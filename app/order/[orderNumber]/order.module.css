@@ -33,6 +33,12 @@
     font-family: var(--font-primary);
 }
 
+.info_order {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
 .info_section{
     display: flex;
     flex-direction: column;
@@ -41,8 +47,8 @@
     border: 1.5px solid var(--black8);
     border-radius: 24px;
     background-color: white;
-    margin-bottom: 50%;
 }
+
 .items_container{
     display: flex;
     flex-direction: column;

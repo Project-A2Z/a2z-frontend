@@ -150,10 +150,11 @@ export const API_ENDPOINTS = {
 
   // Notifications
   NOTIFICATIONS: {
-    LIST: '/notifications',
-    MARK_READ: '/notifications/:id/read',
-    MARK_ALL_READ: '/notifications/mark-all-read',
-    DELETE: '/notifications/:id',
+    LIST: '/notifications',//GET
+    MARK_READ: '/notifications/:id/read',//PATCH
+    MARK_ALL_READ: '/notifications/mark-all-read',//PATCH
+    DELETE: '/notifications/:id',//DELETE
+    DELETE_ALL: '/notifications',//DELETE
     SETTINGS: '/notifications/settings',
   },
 

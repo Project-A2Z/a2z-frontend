@@ -1,5 +1,3 @@
-// app/(auth)/login/page.tsx - SIMPLIFIED VERSION (NextAuth only)
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -12,6 +10,8 @@ import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
 import styles from './../auth.module.css';
 import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login';
+import Facebook from 'next-auth/providers/facebook';
+import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -30,49 +30,49 @@ export default function LoginForm() {
     general?: string;
   }>({});
 
-  // Handle social login callback with session
+  // ✅ FIXED: Better session handling with proper token storage
   useEffect(() => {
     const handleSocialAuth = async () => {
-      // Small delay to ensure localStorage is updated
+      // Wait a bit for session to fully load
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Check localStorage first (most reliable for client-side)
+      // Check localStorage first
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('user_data');
       
       if (storedToken && storedUser) {
-        console.log('✅ Found auth data in localStorage, redirecting...');
+        console.log('✅ Auth data already in localStorage, redirecting...');
         router.push('/');
         return;
       }
       
-      // Then check session from NextAuth
-      if (session?.backendToken) {
-        console.log('✅ Backend token found in session');
+      // Check if we have a session with backend token
+      if (session?.backendToken && session?.user?.backendUser) {
+        console.log('✅ Backend token found in session, saving to localStorage...');
         
-        // Save to localStorage for consistency
-        if (session.backendToken) {
-          localStorage.setItem('auth_token', session.backendToken);
-        }
+        // Save to localStorage
+        localStorage.setItem('auth_token', session.backendToken);
+        localStorage.setItem('user_data', JSON.stringify(session.user.backendUser));
         
-        if (session.user?.backendUser) {
-          localStorage.setItem('user_data', JSON.stringify(session.user.backendUser));
-        }
         
+        
+        console.log('✅ Token saved, redirecting to home...');
         router.push('/');
         return;
       }
 
-      // Handle error case: session exists but no backend token
-      if (session && status === 'authenticated' && !session.backendToken && !storedToken) {
-        console.error('❌ Session exists but no backend token');
-        setErrors({
-          general: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
-        });
-        setIsLoading(false);
-      }
+      // ✅ FIXED: Better error handling - only show error if authenticated but missing token
+      // if (status === 'authenticated' && session && !session.backendToken && !storedToken) {
+      //   console.error('❌ Session authenticated but no backend token found');
+      //   console.log('Session data:', session);
+      //   setErrors({
+      //     general: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
+      //   });
+      //   setIsLoading(false);
+      // }
     };
 
+    // Only run when status is not loading
     if (status !== 'loading') {
       handleSocialAuth();
     }
@@ -83,9 +83,16 @@ export default function LoginForm() {
     const error = searchParams?.get('error');
     if (error) {
       console.error('OAuth error:', error);
-      setErrors({
-        general: 'فشل تسجيل الدخول عبر الحساب الاجتماعي'
-      });
+      let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
+      
+      // Provide specific error messages
+      if (error === 'OAuthCallback') {
+        errorMessage = 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
+      } else if (error === 'AccessDenied') {
+        errorMessage = 'تم إلغاء تسجيل الدخول';
+      }
+      
+      setErrors({ general: errorMessage });
       setIsLoading(false);
     }
   }, [searchParams]);
@@ -97,7 +104,6 @@ export default function LoginForm() {
       [name]: value
     }));
 
-    // Clear errors when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({
         ...prev,
@@ -358,19 +364,10 @@ export default function LoginForm() {
                   </svg>
                 </button>
 
-                {/* Facebook Login */}
-                <button 
-                  type="button"
-                  className={styles.socialButton}
-                  onClick={handleFacebookLogin}
-                  disabled={isLoading}
-                  title="تسجيل الدخول باستخدام Facebook"
-                  aria-label="تسجيل الدخول باستخدام Facebook"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                </button>
+                <FacebookBtn className={styles.socialButton} onSuccess={handleFacebookLogin}/>
+
+
+                
               </div>
             </div>
           </div>

@@ -140,16 +140,36 @@ const OrderDetails: React.FC = () => {
   const fullAddress = `${order.address.address}, ${order.address.city}, ${order.address.region}`;
   const fullName = `${order.address.firstName} ${order.address.lastName}`;
 
-  // Note: Since the API doesn't return product details, we'll show a placeholder
-  // You may need to fetch cart items separately if available
-  const orderItems = [
-    {
-      id: order.cartId,
-      name: 'منتج من الطلب',
-      image: img,
-      price: order.paymentDetails?.totalPrice || 0
-    }
-  ];
+  // This is the corrected mapping based on your actual API response structure
+  console.log('Order items:', order.cartId);
+const orderItems = order.cartId && 
+                   typeof order.cartId === 'object' && 
+                   order.cartId.items && 
+                   Array.isArray(order.cartId.items)
+  ? order.cartId.items.map(item => {
+      // item.productId is an object containing: name, imageList, price, etc.
+      const product = item.productId;
+
+      console.log('Mapping item:', item);
+      console.log('Product details:', product);
+      
+      return {
+        id: item._id,
+        name: product?.name || 'منتج',
+        image: product?.image?.[0] || img, 
+        price: `${(product?.price || 0) * (item.itemQty || 1)}`, 
+        quantity: item.itemQty || 1
+      };
+    })
+  : [
+      {
+        id: order._id,
+        name: 'منتج من الطلب',
+        image: img,
+        price: `${order.paymentDetails?.totalPrice || 0} ج`,
+        quantity: 1
+      }
+    ];
 
   return (
     <div className={styles.container}>

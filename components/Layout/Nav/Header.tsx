@@ -1,27 +1,35 @@
-"use client"
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import styles from './Header.module.css';
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import styles from "./Header.module.css";
 import "../../../app/globals.css";
 
 // Import your authentication service
-import { getCurrentUser, isUserAuthenticated, logoutUser } from '../../../services/auth/login';
+import {
+  getCurrentUser,
+  isUserAuthenticated,
+  logoutUser,
+} from "../../../services/auth/login";
 
 // Components
-import SearchComponent from './../../UI/search/search';
-import LanguageSelector from './../../UI/Language/language';
-import { Button } from '../../UI/Buttons/Button';
+import SearchComponent from "./../../UI/search/search";
+import NotificationsComponent from "./../../UI/notification/notification";
+import LanguageSelector from "./../../UI/Language/language";
+import { Button } from "../../UI/Buttons/Button";
+
+// Services
+import { getUnreadNotificationsCount } from "../../../services/notifications/notification";
 
 // Icons
-import Logo from './../../../public/icons/logo.svg';
-import Heart from './../../../public/icons/Header/Heart.svg';
-import Cart from './../../../public/icons/Header/Cart Large 2.svg';
-import Notification from './../../../public/icons/Header/Bell Bing.svg';
-import SearchIcon from './../../../public/icons/Header/Rounded Magnifer.svg';
-import MessageCircle from './../../../public/icons/Header/float-btn.svg';
-import MessIcon from './../../../public/icons/Header/float-btn (1).svg';
+import Logo from "./../../../public/icons/logo.svg";
+import Heart from "./../../../public/icons/Header/Heart.svg";
+import Cart from "./../../../public/icons/Header/Cart Large 2.svg";
+import Notification from "./../../../public/icons/Header/Bell Bing.svg";
+import SearchIcon from "./../../../public/icons/Header/Rounded Magnifer.svg";
+import MessageCircle from "./../../../public/icons/Header/float-btn.svg";
+import MessIcon from "./../../../public/icons/Header/float-btn (1).svg";
 
 export interface User {
   _id: string;
@@ -47,28 +55,30 @@ export interface User {
 
 interface HeaderProps {
   className?: string;
-  variant?: 'default' | 'auth' | 'minimal' | 'transparent';
+  variant?: "default" | "auth" | "minimal" | "transparent";
   customStyles?: React.CSSProperties;
   showSearch?: boolean;
   showUserActions?: boolean;
   dataSearch?: any[];
 }
 
-function Header({ 
-  className = '',
-  variant = 'default',
+function Header({
+  className = "",
+  variant = "default",
   customStyles = {},
   showSearch = true,
   showUserActions = true,
   dataSearch = [],
 }: HeaderProps) {
   const router = useRouter();
-  
-  // State for user data - will be populated from localStorage
+
+  // State for user data
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(dataSearch);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [chat, setChat] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -77,18 +87,17 @@ function Header({
     const loadUserData = () => {
       try {
         setIsLoading(true);
-        
-        // Check if user is authenticated and get user data
+
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
-          console.log('✅ User data loaded:', userData);
+          console.log("✅ User data loaded:", userData);
         } else {
           setUser(null);
-          console.log('ℹ️ No user found or not authenticated');
+          console.log("ℹ️ No user found or not authenticated");
         }
       } catch (error) {
-        console.error('❌ Error loading user data:', error);
+        console.error("❌ Error loading user data:", error);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -98,11 +107,31 @@ function Header({
     loadUserData();
   }, []);
 
-  // Listen for storage changes (when user logs in/out in another tab)
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (user) {
+        try {
+          const count = await getUnreadNotificationsCount();
+          setUnreadCount(count);
+        } catch (error) {
+          console.error("Error fetching unread count:", error);
+        }
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Listen for storage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_data' || e.key === 'auth_token') {
-        // Reload user data when storage changes
+      if (e.key === "user_data" || e.key === "auth_token") {
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
@@ -112,8 +141,8 @@ function Header({
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const getUserInitial = (firstName: string, lastName: string): string => {
@@ -124,7 +153,7 @@ function Header({
     } else if (lastName) {
       return lastName.charAt(0).toUpperCase();
     }
-    return 'U';
+    return "U";
   };
 
   const getUserDisplayName = (firstName: string, lastName: string): string => {
@@ -132,28 +161,19 @@ function Header({
   };
 
   const handleLogin = (): void => {
-    console.log('Redirecting to login...');
-    router.push('/login'); // Changed from /register to /login
+    console.log("Redirecting to login...");
+    router.push("/login");
   };
 
   const handleLogout = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      
-      // Call the logout service to clear localStorage and make API call
       await logoutUser();
-      
-      // Update local state
       setUser(null);
-      
-      console.log('✅ User logged out successfully');
-      
-      // Redirect to home page or login page
-      router.push('/');
-      
+      console.log("✅ User logged out successfully");
+      router.push("/");
     } catch (error) {
-      console.error('❌ Logout error:', error);
-      // Even if logout API fails, clear local state
+      console.error("❌ Logout error:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -166,36 +186,39 @@ function Header({
   };
 
   const handleNotificationClick = (): void => {
-    console.log('Notification clicked');
-    router.push('/notifications');
+    setIsNotificationsOpen(true);
   };
 
-  const handleSearchClick = (): void => {
-    console.log('Search clicked');
-    setIsSearchModalOpen(true);
-  };
-
-  // Get variant-specific classes
-  const getVariantClass = (): string => {
-    switch (variant) {
-      case 'auth':
-        return styles.headerAuth;
-      case 'minimal':
-        return styles.headerMinimal;
-      case 'transparent':
-        return styles.headerTransparent;
-      default:
-        return '';
+  const handleNotificationsClose = () => {
+    setIsNotificationsOpen(false);
+    // Refresh unread count after closing
+    if (user) {
+      getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
     }
   };
 
-  // Combine all classes
-  const headerClasses = `${styles.header} ${getVariantClass()} ${className}`.trim();
+  const handleSearchClick = (): void => {
+    setIsSearchModalOpen(true);
+  };
 
-  // Check if user is authenticated
+  const getVariantClass = (): string => {
+    switch (variant) {
+      case "auth":
+        return styles.headerAuth;
+      case "minimal":
+        return styles.headerMinimal;
+      case "transparent":
+        return styles.headerTransparent;
+      default:
+        return "";
+    }
+  };
+
+  const headerClasses = `${
+    styles.header
+  } ${getVariantClass()} ${className}`.trim();
   const isAuthenticated = user !== null && !isLoading;
 
-  // Show loading state during initial load
   if (isLoading && showUserActions) {
     return (
       <header className={headerClasses} style={customStyles}>
@@ -214,7 +237,6 @@ function Header({
 
         <div className={styles.right}>
           <div className={styles.loadingSpinner}>
-            {/* You can replace this with your loading component */}
             <span>...</span>
           </div>
         </div>
@@ -245,41 +267,57 @@ function Header({
               {isAuthenticated && user ? (
                 <>
                   <nav className={styles.navs}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleNotificationClick}
-                      className={styles.notification_btn}
-                      leftIcon={<Notification className={styles.icon} />}
-                    >
-                      <span className={styles.navText}>الإشعارات</span>
-                    </Button>
-                   
+                    {/* Notification Button with Badge */}
+                    <div className={styles.notification_btn}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleNotificationClick}
+                        leftIcon={<Notification className={styles.icon} />}
+                      >
+                        <span className={styles.navText}>الإشعارات</span>
+                      </Button>
+
+                      {/* Unread Badge - Only shows when count > 0 */}
+                      {unreadCount > 0 && (
+                        <div className={styles.unreadIndicator}>
+                          {unreadCount > 99
+                            ? "99+"
+                            : unreadCount > 5
+                            ? "5+"
+                            : unreadCount}
+                        </div>
+                      )}
+                    </div>
+
                     <Link href="/favorites" className={styles.navLink}>
                       <Heart className={styles.icon} />
                       <span className={styles.navText}>المفضلة</span>
                     </Link>
-                    
+
                     <Link href="/cart" className={styles.navLink}>
                       <Cart className={styles.icon} />
                       <span className={styles.navText}>عربة التسوق</span>
                     </Link>
                   </nav>
-                  
+
                   <div className={styles.prof}>
                     <div className={styles.userDropdown}>
-                      <div 
-                        className={styles.avatar} 
-                        onClick={() => router.push('/profile')}
-                        title={`${getUserDisplayName(user.firstName, user.lastName)}`}
+                      <div
+                        className={styles.avatar}
+                        onClick={() => router.push("/profile")}
+                        title={`${getUserDisplayName(
+                          user.firstName,
+                          user.lastName
+                        )}`}
                       >
                         {user.image ? (
-                          <Image 
-                            src={user.image} 
-                            alt="User Avatar" 
-                            width={40} 
-                            height={40} 
-                            className={styles.avatarImage} 
+                          <Image
+                            src={user.image}
+                            alt="User Avatar"
+                            width={40}
+                            height={40}
+                            className={styles.avatarImage}
                           />
                         ) : (
                           <span className={styles.initial}>
@@ -288,7 +326,6 @@ function Header({
                         )}
                         
                       </div>
-                      
                     </div>
                   </div>
                 </>
@@ -312,7 +349,6 @@ function Header({
       {showUserActions && (
         <nav className={styles.bottomNav}>
           <div className={styles.bottomNavContent}>
-            {/* Search Icon */}
             {showSearch && (
               <button
                 onClick={handleSearchClick}
@@ -322,25 +358,36 @@ function Header({
                 <span className={styles.bottomNavText}>البحث</span>
               </button>
             )}
-            
+
             {isAuthenticated && user && (
               <>
-                {/* Notification */}
                 <button
                   onClick={handleNotificationClick}
                   className={styles.bottomNavItem}
                 >
                   <Notification className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>الإشعارات</span>
+
+                  {/* Mobile Badge */}
+                  {unreadCount > 0 && (
+                    <span className={styles.bottomNavBadge}>
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
                 </button>
 
-                {/* Favorites */}
+                {/* Notifications Component */}
+                <NotificationsComponent
+                  isOpen={isNotificationsOpen}
+                  onClose={handleNotificationsClose}
+                  onUnreadCountChange={setUnreadCount}
+                />
+
                 <Link href="/favorites" className={styles.bottomNavItem}>
                   <Heart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>المفضلة</span>
                 </Link>
-                
-                {/* Cart */}
+
                 <Link href="/cart" className={styles.bottomNavItem}>
                   <Cart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>السلة</span>
@@ -348,29 +395,26 @@ function Header({
               </>
             )}
           </div>
-          
+
           {/* Center Floating Button */}
           <div className={styles.MessageCircle}>
             {chat ? (
-              <MessIcon onClick={handleChat}/>
-            ):(
-              <MessageCircle onClick={handleChat}/>
+              <MessIcon onClick={handleChat} />
+            ) : (
+              <MessageCircle onClick={handleChat} />
             )}
             {open && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                {/* Backdrop */}
-                <div 
+                <div
                   className="absolute inset-0 bg-black/50"
                   onClick={() => setOpen(false)}
                   aria-hidden="true"
                 />
 
-                {/* Modal Content */}
                 <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-                  {/* Header */}
                   <div className="bg-primary text-white p-4 text-center relative">
                     <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
-                    <button 
+                    <button
                       onClick={() => setOpen(false)}
                       className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200"
                       aria-label="إغلاق"
@@ -379,14 +423,20 @@ function Header({
                     </button>
                   </div>
 
-                  {/* Form */}
                   <form className="p-6 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <input
                           type="text"
                           placeholder="الاسم"
-                          defaultValue={user ? getUserDisplayName(user.firstName, user.lastName) : ''}
+                          defaultValue={
+                            user
+                              ? getUserDisplayName(
+                                  user.firstName,
+                                  user.lastName
+                                )
+                              : ""
+                          }
                           className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           required
                         />
@@ -395,7 +445,7 @@ function Header({
                         <input
                           type="tel"
                           placeholder="رقم الهاتف"
-                          defaultValue={user?.phoneNumber || ''}
+                          defaultValue={user?.phoneNumber || ""}
                           className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           required
                         />
@@ -406,7 +456,7 @@ function Header({
                       <input
                         type="email"
                         placeholder="البريد الإلكتروني"
-                        defaultValue={user?.email || ''}
+                        defaultValue={user?.email || ""}
                         className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         required
                       />
@@ -437,11 +487,19 @@ function Header({
         </nav>
       )}
 
+      {/* Notifications Modal */}
+
+      <NotificationsComponent
+        isOpen={isNotificationsOpen}
+        onClose={handleNotificationsClose}
+        onUnreadCountChange={setUnreadCount} // NEW: Receive updates
+      />
+
       {/* Full Screen Search Modal */}
       {isSearchModalOpen && (
-        <SearchComponent 
-          data={data} 
-          isModal={true} 
+        <SearchComponent
+          data={data}
+          isModal={true}
           onClose={() => setIsSearchModalOpen(false)}
         />
       )}

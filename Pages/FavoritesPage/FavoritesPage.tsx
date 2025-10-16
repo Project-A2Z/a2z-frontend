@@ -44,7 +44,7 @@ const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
 
         {/* Related products */}
         <section>
-          <h2 className="text-xl font-bold text-black87 mb-4">منتجات قد تعجبك</h2>
+          {/* <h2 className="text-xl font-bold text-black87 mb-4">منتجات قد تعجبك</h2> */}
           <RelatedProducts />
         </section>
       </div>

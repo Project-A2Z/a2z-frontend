@@ -68,7 +68,6 @@
   gap: 7%;
   flex: 0 0 auto;
   height: 100%; /* Take full height of parent */
-  
 }
 
 .logoLink {
@@ -177,6 +176,12 @@
   gap: 20px;
   height: 100%; /* Take full height of parent */
 }
+.notification_btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .navLink,
 .notification_btn {
@@ -209,9 +214,9 @@
   transform: scale(0.95);
 }
 
-.icon svg{
-  width: 70%; 
-  height: 70%; 
+.icon svg {
+  width: 70%;
+  height: 70%;
   color: currentColor;
   transition: color 0.2s ease;
   /* flex-shrink: 0;  */
@@ -243,7 +248,7 @@
 
 /* Tooltip arrow */
 .navText::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -274,7 +279,7 @@
 /* Notification Badge (optional - for future use) */
 .navLink::after,
 .notification_btn::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 4px;
   right: 8px;
@@ -311,7 +316,7 @@
 
 /* Create the notch/cutout for the floating button */
 .bottomNav::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -1px;
   left: 50%;
@@ -320,9 +325,7 @@
   height: 40px;
   background-color: transparent;
   border-radius: 40px 40px 0 0;
-  box-shadow: 
-    -40px 0 0 0 var(--background),
-    40px 0 0 0 var(--background);
+  box-shadow: -40px 0 0 0 var(--background), 40px 0 0 0 var(--background);
   z-index: -1;
 }
 
@@ -370,9 +373,160 @@
   color: var(--primary);
   background-color: var(--black8);
 }
+/* Unread Indicator Badge - Add to your Header.module.css */
 
+/* Unread count badge */
+.unreadIndicator {
+  position: absolute;
+  top: -1%;
+  right: -0.2%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
 
-.bottomNavIcon svg{
+  /* Primary color background */
+  background-color: var(--primary);
+  color: white;
+
+  /* Typography */
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+
+  /* Shape */
+  border-radius: 10px;
+  border: 2px solid white;
+
+  /* Animation */
+  animation: pulse 2s infinite;
+
+  /* Layer above icon */
+  z-index: 1;
+
+  /* Shadow for visibility */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Pulse animation for attention */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* For larger numbers */
+.unreadIndicator:has-text("9+"),
+.unreadIndicator:has-text("99+") {
+  min-width: 24px;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+/* Hover effect on notification button */
+.notification_btn:hover .unreadIndicator {
+  animation: none;
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Alternative styles (comment/uncomment as needed) */
+
+/* Square badge style */
+.unreadIndicator.square {
+  border-radius: 4px;
+}
+
+/* Larger badge style */
+.unreadIndicator.large {
+  min-width: 24px;
+  height: 24px;
+  font-size: 12px;
+  top: -10px;
+  right: -10px;
+}
+
+/* No animation style */
+.unreadIndicator.noAnimation {
+  animation: none;
+}
+
+/* Success/Error color variants */
+.unreadIndicator.success {
+  background-color: #28a745;
+}
+
+.unreadIndicator.error {
+  background-color: #dc3545;
+}
+
+.unreadIndicator.warning {
+  background-color: #ffc107;
+  color: #333;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .unreadIndicator {
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-width: 1.5px;
+  }
+}
+
+/* Bottom navigation badge positioning */
+.bottomNavItem {
+  position: relative;
+}
+
+.bottomNavBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+
+  background-color: var(--primary);
+  color: white;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+
+  border-radius: 9px;
+  border: 2px solid white;
+
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* RTL support for Arabic */
+[dir="rtl"] .unreadIndicator {
+  right: auto;
+  left: -8px;
+}
+
+[dir="rtl"] .bottomNavBadge {
+  right: auto;
+  left: 0;
+}
+
+.bottomNavIcon svg {
   width: 24px;
   height: 24px;
   color: currentColor;
@@ -397,7 +551,7 @@
 }
 
 /* Center floating button - MessageCircle */
-.MessageCircle svg{
+.MessageCircle svg {
   position: absolute;
   top: -30px;
   left: 45%;
@@ -409,9 +563,7 @@
   /* display: flex;
   align-items: center;
   justify-content: center; */
-  box-shadow: 
-    0 8px 3px rgba(34, 197, 94, 0.3),
-    0 4px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 3px rgba(34, 197, 94, 0.3), 0 4px 2px rgba(0, 0, 0, 0.1);
   /* border: 4px solid var(--background); */
   cursor: pointer;
   transition: all 0.3s ease;
@@ -421,9 +573,7 @@
 .MessageCircle svg:hover {
   /* background: linear-gradient(135deg, #22c55e, #16a34a); */
   transform: translateX(-50%) translateY(-2px);
-  box-shadow: 
-    0 12px 32px rgba(34, 197, 94, 0.4),
-    0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 32px rgba(34, 197, 94, 0.4), 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* .MessageCircle svg {
@@ -456,18 +606,18 @@
     padding: 0 16px;
     height: 10vh;
   }
-  
+
   .headerAuth,
   .headerMinimal {
     padding: 0 16px;
     height: 10vh;
   }
-  
+
   .mid {
     margin: 0 16px;
     max-width: 400px;
   }
-  
+
   .left {
     gap: 16px;
   }
@@ -475,16 +625,16 @@
   .right {
     gap: 16px;
   }
-  
+
   .navs {
     gap: 16px;
   }
-  
+
   .icon svg {
     width: 60%;
     height: 60%;
   }
-  
+
   .logo {
     width: 100px;
     max-height: 70%;
@@ -499,19 +649,17 @@
     padding: 0 12px;
     height: 10vh;
   }
-  
+
   /* Hide navigation and search in header on mobile */
   .navs,
   .mid {
     display: none;
   }
-  
+
   /* Show bottom navigation */
   .bottomNav {
     display: block;
   }
-  
- 
 }
 
 @media (max-width: 480px) {
@@ -522,72 +670,69 @@
     padding: 0 12px;
     height: 10vh;
   }
-  
+
   .logo {
     width: 80px;
     max-height: 60%;
   }
-  
+
   .avatar {
     width: 32px;
     height: 32px;
   }
-  
+
   .initial {
     font-size: 14px;
   }
-  
+
   .loginButton {
     padding: 8px 16px;
     font-size: 12px;
   }
-  
+
   .bottomNav {
     height: 80px;
     border-radius: 20px 20px 0 0;
   }
-  
+
   .bottomNav::before {
     width: 70px;
     height: 35px;
     border-radius: 35px 35px 0 0;
-    box-shadow: 
-      -35px 0 0 0 var(--background),
-      35px 0 0 0 var(--background);
+    box-shadow: -35px 0 0 0 var(--background), 35px 0 0 0 var(--background);
   }
-  
+
   /* .MessageCircle {
     width: 55px;
     height: 55px;
     top: -25px;
     border: 3px solid var(--background);
   } */
-  
+
   /* .MessageCircle svg {
     width: 24px;
     height: 24px;
   } */
-  
+
   .bottomNavContent {
     grid-template-columns: 1fr 1fr 100px 1fr 1fr;
     padding: 10px 16px;
   }
-  
+
   .bottomNavItem {
     padding: 6px 8px;
     min-width: 50px;
   }
-  
+
   /* .bottomNavIcon {
     width: 20px;
     height: 20px;
   } */
-  
+
   .bottomNavText {
     font-size: 10px;
   }
 }
-
 
 /* Full Screen Search Modal */
 .searchModal {
@@ -713,18 +858,18 @@
     padding: 0 16px; /* Removed vertical padding */
     height: 10vh; /* Maintain 10% height */
   }
-  
+
   .headerAuth,
   .headerMinimal {
     padding: 0 16px; /* Removed vertical padding */
     height: 10vh; /* Maintain 10% height */
   }
-  
+
   .mid {
     margin: 0 16px;
     max-width: 400px;
   }
-  
+
   .left {
     gap: 16px;
   }
@@ -735,17 +880,15 @@
   .navs {
     gap: 16px;
   }
-  .icon svg{
+  .icon svg {
     width: 60%;
     height: 60%;
   }
-  
-  
+
   .logo {
     width: 100px;
     max-height: 70%; /* Adjust for smaller screens */
   }
-  
 }
 
 @media (max-width: 768px) {
@@ -756,18 +899,18 @@
     padding: 0 12px; /* Removed vertical padding */
     height: 10vh; /* Maintain 10% height */
   }
-  
+
   /* Hide navigation and search in header on mobile */
   .navs,
   .mid {
     display: none;
   }
-  
+
   /* Show bottom navigation */
   .bottomNav {
     display: block;
   }
-  
+
   /* Add padding bottom to body to account for bottom nav */
   .body {
     padding-bottom: 70px;
@@ -782,63 +925,63 @@
     padding: 0 12px; /* Removed vertical padding */
     height: 10vh; /* Maintain 10% height */
   }
-  
+
   .logo {
     width: 80px;
     max-height: 60%; /* Adjust for smallest screens */
   }
-  
+
   .avatar {
     width: 32px;
     height: 32px;
   }
-  
+
   .initial {
     font-size: 14px;
   }
-  
+
   .loginButton {
     padding: 8px 16px;
     font-size: 12px;
   }
-  
+
   .bottomNav {
     height: 75px;
     border-radius: 20px 20px 0 0;
   }
-  
+
   .bottomNavItem.centerButton {
     width: 55px;
     height: 55px;
     top: -22px;
     border: 3px solid var(--background);
   }
-  
+
   .bottomNavItem {
     padding: 6px 8px;
     min-width: 50px;
   }
-  
+
   .bottomNavIcon svg {
     width: 20px;
     height: 20px;
   }
-  
+
   .bottomNavItem.centerButton .bottomNavIcon svg {
     width: 24px;
     height: 24px;
   }
-  
+
   .bottomNavText {
     font-size: 9px;
   }
-  
+
   /* Adjust margins for smaller screens */
   .bottomNavContent > .bottomNavItem:nth-child(1),
   .bottomNavContent > .bottomNavItem:nth-child(2) {
     margin-right: 25px;
   }
-  
+
   .bottomNavContent > .bottomNavItem:nth-child(4),
   .bottomNavContent > .bottomNavItem:nth-child(5) {
     margin-left: 25px;
@@ -848,14 +991,13 @@
   position: relative;
   background: var(--background);
   border-radius: 30px 30px 0 0;
-  box-shadow: 
-    0 -4px 20px rgba(0, 0, 0, 0.1),
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Add notch for center button */
 .bottomNavCurved::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -1px;
   left: 50%;
