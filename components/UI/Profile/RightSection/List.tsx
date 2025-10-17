@@ -43,7 +43,7 @@ const AccountList: React.FC<AccountListProps> = ({ onItemClick, user, setUser })
     'عناوينك',
     'طلباتك',
     'رسائلك',
-    'مدفوعاتك',
+    // 'مدفوعاتك',
     'تسجيل الخروج'
   ];
 

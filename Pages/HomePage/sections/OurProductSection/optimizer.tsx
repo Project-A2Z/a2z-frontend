@@ -316,14 +316,14 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
           </Button>
         )}
 
-        <Button 
+        {/* <Button 
           variant="outline" 
           size="sm" 
           onClick={refreshData}
           disabled={isLoading}
         >
           {isLoading ? 'تحديث...' : 'تحديث'}
-        </Button>
+        </Button> */}
       </div>
 
       {/* Products Display */}

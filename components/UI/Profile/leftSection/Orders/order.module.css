@@ -297,6 +297,28 @@
   flex-direction: column;
   gap: 0;
   margin-top: 20px;
+  
+  scroll-behavior: smooth;
+  overflow-y: auto;
+}
+
+
+.ordersList_new::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ordersList_new::-webkit-scrollbar-track {
+  background: var(--disabled);
+  border-radius: 10px;
+}
+
+.ordersList_new::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.ordersList_new::-webkit-scrollbar-thumb:hover {
+  background: var(--disabled);
 }
 
 /* Updated Order Item */

@@ -4,9 +4,17 @@ const nextConfig: NextConfig = {
   // Image configuration for external domains using the current Next.js format
   images: {
     remotePatterns: [
-      new URL('https://res.cloudinary.com/**'),
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
       // Add other image domains if you have any
-      // new URL('https://another-domain.com/**'),
+      // {
+      //   protocol: 'https',
+      //   hostname: 'another-domain.com',
+      //   pathname: '/**',
+      // },
     ],
     
     // Optional: Image optimization settings
@@ -26,24 +34,18 @@ const nextConfig: NextConfig = {
 
     // Remove console.log in production (client-side only)
     if (!dev && !isServer) {
-      config.optimization.minimizer.forEach((plugin) => {
+      config.optimization.minimizer.forEach((plugin: { constructor: { name: string; }; options: { terserOptions: { compress: { drop_console: boolean; }; }; }; }) => {
         if (plugin.constructor.name === 'TerserPlugin') {
           plugin.options.terserOptions.compress.drop_console = true;
         }
       });
     }
     
-    // You can add more webpack configurations here if needed
     return config;
   },
   
-  // Other Next.js configurations...
-  experimental: {
-    // Add any experimental features you're using
-    logging: {
-      level: 'warn', // Limit logs to warnings in development
-    },
-  },
+  // Remove the invalid experimental.logging option
+  // Logging is automatically handled by Next.js
   
   // If you're using TypeScript
   typescript: {
@@ -55,8 +57,8 @@ const nextConfig: NextConfig = {
     // Add any custom environment variables
   },
 
-  // Global revalidation for ISR (Incremental Static Regeneration)
-  revalidate: 3600, // Revalidate every hour for better caching
+  // Remove the invalid revalidate option from here
+  // Revalidation is set per page, not globally in next.config
 };
 
 export default nextConfig;

@@ -19,7 +19,7 @@
   gap: 30px;
   font-family: var(--font-primary);
   direction: rtl;
-  background-color: #f8f9fa;
+  /* background-color: #2d3436; */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
@@ -45,7 +45,7 @@
 .container > div:last-child {
   width: 280px;
   min-width: 280px; /* Prevent shrinking */
-  background: white;
+  background: var(--background);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -60,6 +60,7 @@
   width: 100%;
   height: fit-content; /* Add this */
   overflow-x: hidden; /* Prevent horizontal scroll */
+  /* background-color: #2d3436; */
 }
 
 .sliderHeader {
@@ -135,7 +136,7 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   height: fit-content; /* Add this instead */
-  min-height: auto; /* Reset min-height */
+  /* min-height: auto;  */
   width: 100%;
   max-width: 100%; /* Ensure grid doesn't exceed container */
 }

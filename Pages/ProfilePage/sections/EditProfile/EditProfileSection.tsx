@@ -225,8 +225,8 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         return <Orders orders={orders} />;
       case 'رسائلك':
         return <MessagesList />;
-      case 'مدفوعاتك':
-        return <Payments />;
+      // case 'مدفوعاتك':
+      //   return <Payments />;
       case 'تسجيل الخروج':
         return <Logout onCancel={setBox} onLogout={handleLogout} />; 
       default:
