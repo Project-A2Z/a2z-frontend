@@ -3,11 +3,9 @@ import React, { useEffect, useState } from 'react';
 import Overview from './Sections/Overview';
 import TopNav from './Sections/TopNav';
 import Specs, { Spec } from './Sections/Specs';
-import Ratings from './Sections/Ratings'; // استخدام Ratings بدلاً من DynamicRatings لتجنب طلبات إضافية
+import Ratings from './Sections/Ratings';
 import Reviews from './Sections/Reviews';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import { productService } from '@/services/api/products';
-import { reviewService, type Review } from '@/services/api/reviews';
 
 export type ProductData = {
   id: number | string;
@@ -26,29 +24,18 @@ export type ProductData = {
 };
 
 const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
-  const [reviews, setReviews] = useState(data.reviews);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!reviews || reviews.length === 0) {
-      const fetchReviewsFallback = async () => {
-        try {
-          const response = await productService.getProductById(String(data.id));
-          const backendReviews = response.data?.productReview || [];
-          const mappedReviews = backendReviews.map((r: Review) => ({
-            id: r._id,
-            author: 'مستخدم مجهول',
-            rating: r.rateNum,
-            date: new Date(r.date).toLocaleDateString('ar-EG'),
-            content: r.description,
-          }));
-          setReviews(mappedReviews);
-        } catch (error) {
-          console.error('Error fetching reviews fallback:', error);
-        }
-      };
-      fetchReviewsFallback();
-    }
-  }, [data.id, reviews]);
+    // Get token from localStorage for authentication
+    const getToken = () => {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('authToken');
+      }
+      return null;
+    };
+    setToken(getToken());
+  }, []);
 
   if (!data) {
     return (
@@ -84,19 +71,12 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
               average={data.rating}
               total={data.ratingCount}
               distribution={data.ratingsDistribution}
-              productId={String(data.id)}
-              onStarClick={(stars: number) => {
-                setReviews(prev => prev.filter(review => Math.round(review.rating) === stars));
-              }}
-              onDistributionClick={(stars: number) => {
-                setReviews(prev => prev.filter(review => Math.round(review.rating) === stars));
-              }}
               interactive={true}
             />
-            <Reviews reviews={reviews} />
+            <Reviews productId={String(data.id)} token={token || undefined} />
           </div>
         </div>
-        
+
         <RelatedProducts />
       </div>
     </div>

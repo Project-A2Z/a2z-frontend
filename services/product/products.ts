@@ -130,13 +130,17 @@ let globalProductsCache: Product[] | null = null;
 let cacheTimestamp: number = 0;
 let isLoadingProducts = false;
 let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
+let lastRequestTime = 0;
 
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes - increased from 10 minutes
+const MIN_REQUEST_INTERVAL = 10000; // 10 seconds minimum between requests
 
 // Centralized product fetching with state management and fallbacks
 export const getProductsWithState = async (): Promise<Product[]> => {
+  const now = Date.now();
+
   // Return cached data if available and not expired
-  if (globalProductsCache && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
+  if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
     console.log('✅ Using cached products');
     return globalProductsCache;
   }
@@ -149,8 +153,16 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     });
   }
 
+  // Rate limiting: don't make requests too frequently
+  if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
+    const waitTime = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
+    console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+
   // Start new loading process
   isLoadingProducts = true;
+  lastRequestTime = now;
 
   try {
     console.log('🔄 Fetching fresh products from API...');
@@ -160,7 +172,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       ...getRequestConfig(),
     });
 
-    // Handle rate limiting gracefully
+    // Handle rate limiting gracefully with exponential backoff
     if (response.status === 429) {
       console.warn('⏱️ Rate limited, using cached data if available');
       if (globalProductsCache) {
@@ -169,7 +181,41 @@ export const getProductsWithState = async (): Promise<Product[]> => {
         pendingPromises = [];
         return globalProductsCache;
       }
-      throw new Error('Rate limited and no cached data available');
+
+      // Try again with exponential backoff
+      const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000); // Max 30 seconds
+      console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
+      await new Promise(resolve => setTimeout(resolve, retryAfter));
+
+      // Retry the request once
+      const retryResponse = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
+        method: 'GET',
+        ...getRequestConfig(),
+      });
+
+      if (retryResponse.status === 429) {
+        throw new Error('Rate limited and retry failed');
+      }
+
+      if (!retryResponse.ok) {
+        throw new Error(`API Error: ${retryResponse.status} ${retryResponse.statusText}`);
+      }
+
+      const data: ProductsResponse = await retryResponse.json();
+      const products = (data.data || []).map(product => processProductImagesStatic(product));
+
+      // Update global cache
+      globalProductsCache = products;
+      cacheTimestamp = now;
+
+      console.log(`✅ Successfully fetched ${products.length} products on retry`);
+
+      // Resolve all pending promises
+      isLoadingProducts = false;
+      pendingPromises.forEach(({ resolve }) => resolve(products));
+      pendingPromises = [];
+
+      return products;
     }
 
     if (!response.ok) {
@@ -181,7 +227,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
     // Update global cache
     globalProductsCache = products;
-    cacheTimestamp = Date.now();
+    cacheTimestamp = now;
 
     console.log(`✅ Successfully fetched ${products.length} products`);
 
@@ -254,8 +300,9 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
   } catch (error) {
     console.error('Error in fetchAllProducts:', error);
 
-    // Return cached data if available
+    // Return cached data if available, even if it's expired
     if (globalProductsCache) {
+      console.log('🔄 Using cached products as fallback in fetchAllProducts');
       return {
         data: globalProductsCache,
         pagination: {
@@ -334,8 +381,9 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
   } catch (error) {
     console.error('Error in fetchProducts:', error);
 
-    // Return cached data if available
+    // Return cached data if available, even if it's expired
     if (globalProductsCache) {
+      console.log('🔄 Using cached products as fallback in fetchProducts');
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const startIndex = (page - 1) * limit;
@@ -478,32 +526,21 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
   );
 };
 
-export const withErrorHandling = <T extends (...args: any[]) => Promise<any>>(
-  fn: T
-): T => {
-  return (async (...args: Parameters<T>) => {
-    try {
-      return await fn(...args);
-    } catch (error) {
-      console.error(`API Error in ${fn.name}:`, error);
-      
-      return {
-        data: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          totalPages: 0
-        },
-        filters: {
-          categories: [],
-          brands: [],
-          priceRange: {
-            min: 0,
-            max: 0
-          }
-        }
-      } as ProductsResponse;
-    }
-  }) as T;
+// ============================================
+// CACHE MANAGEMENT
+// ============================================
+export const clearProductsCache = () => {
+  globalProductsCache = null;
+  cacheTimestamp = 0;
+  console.log('🗑️ Products cache cleared');
+};
+
+export const getCacheInfo = () => {
+  return {
+    hasCache: !!globalProductsCache,
+    cacheSize: globalProductsCache?.length || 0,
+    cacheAge: cacheTimestamp ? Date.now() - cacheTimestamp : 0,
+    isLoading: isLoadingProducts,
+    pendingRequests: pendingPromises.length
+  };
 };

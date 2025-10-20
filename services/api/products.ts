@@ -1,5 +1,4 @@
-// services/api/products.ts - مُحدث لـ fetch failed و rate limiting
-import apiClient from './client'; // افترض Axios
+import apiClient from './client'; 
 
 export interface Review {
   _id: string;
@@ -57,7 +56,9 @@ export interface ApiResponse<T> {
   length?: number;
 }
 
-// دالة لإعادة المحاولة مع fallback لـ fetch failed
+const url = 'https://a2z-backend.fly.dev/app/v1/';
+
+
 async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
@@ -80,7 +81,7 @@ async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): P
 export const productService = {
   async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
     try {
-      const request = () => apiClient.get<ApiResponse<Product[]>>('https://a2z-backend.fly.dev/app/v1/products', { 
+      const request = () => apiClient.get<ApiResponse<Product[]>>(url + 'products', { 
         params: filters 
       });
       return await fetchWithRetry(() => request().then(res => res.data));
@@ -101,7 +102,7 @@ export const productService = {
       if (!id) {
         throw new Error('Product ID is required');
       }
-      const request = () => apiClient.get<ApiResponse<Product>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
+      const request = () => apiClient.get<ApiResponse<Product>>(url + `products/${id}`);
       return await fetchWithRetry(() => request().then(res => res.data));
     } catch (error: any) {
       console.error(`Error fetching product ${id}:`, error.message);
@@ -112,36 +113,7 @@ export const productService = {
     }
   },
 
-  async createProduct(productData: FormData): Promise<ApiResponse<{ product: Product }>> {
-    const response = await apiClient.post<ApiResponse<{ product: Product }>>(
-      'https://a2z-backend.fly.dev/app/v1/products',
-      productData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
-  },
-
-  async updateProduct(id: string, productData: Partial<Product>): Promise<ApiResponse<{ product: Product }>> {
-    const response = await apiClient.put<ApiResponse<{ product: Product }>>(
-      `https://a2z-backend.fly.dev/app/v1/products/${id}`,
-      productData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return response.data;
-  },
-
-  async deleteProduct(id: string): Promise<ApiResponse<null>> {
-    const response = await apiClient.delete<ApiResponse<null>>(`https://a2z-backend.fly.dev/app/v1/products/${id}`);
-    return response.data;
-  },
+  
 };
 
 export default productService;
