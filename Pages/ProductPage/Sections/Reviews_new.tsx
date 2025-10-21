@@ -1,15 +1,14 @@
 "use client";
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { Star, Edit, Trash2, MessageCircle, Loader2, LogIn } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Star, Edit, Trash2, MessageCircle, Loader2 } from 'lucide-react';
 import { reviewService, Review, CreateReviewRequest, UpdateReviewRequest } from '@/services/api/reviews';
 
 type Props = {
   productId: string;
+  token?: string;
 };
 
-const Reviews: React.FC<Props> = ({ productId }) => {
-  const router = useRouter();
+const Reviews: React.FC<Props> = ({ productId, token }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,42 +25,21 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [hasUserReview, setHasUserReview] = useState<boolean>(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
-  // Check authentication from localStorage
   useEffect(() => {
-    const checkAuth = () => {
-      if (typeof window !== 'undefined') {
-        const storedToken = localStorage.getItem('auth_token');
-        setAuthToken(storedToken);
-
-        if (storedToken) {
-          try {
-            const payload = JSON.parse(atob(storedToken.split('.')[1]));
-            setUserId(payload.userId || payload.id || null);
-          } catch (error) {
-            console.error('Error decoding token:', error);
-            setUserId(null);
-            setAuthToken(null);
-          }
-        } else {
-          setUserId(null);
-        }
+    const getCurrentUserId = (): string | null => {
+      if (typeof window === 'undefined') return null;
+      try {
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.userId || payload.id || null;
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        return null;
       }
     };
-
-    checkAuth();
-
-    // Listen for localStorage changes (when user logs in/out)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'auth_token') {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    setUserId(getCurrentUserId());
+  }, [token]);
 
   useEffect(() => {
     if (userId && reviews.length > 0) {
@@ -78,16 +56,8 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       const response = await reviewService.getProductReviews(productId);
       const fetchedReviews = response.data?.reviews || [];
       setReviews(fetchedReviews);
-    } catch (err: any) {
-      console.error('Get reviews error:', err);
-      const errorMessage = err.message || 'فشل في جلب التعليقات';
-      if (errorMessage.includes('logged in') || errorMessage.includes('تسجيل الدخول')) {
-        setError('يرجى تسجيل الدخول لعرض التعليقات');
-        setAuthToken(null);
-        setUserId(null);
-      } else {
-        setError(errorMessage);
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في جلب التعليقات');
     } finally {
       setLoading(false);
     }
@@ -100,35 +70,17 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   }, [productId, refreshReviews]);
 
   const handleAddReview = async () => {
-    if (!newReview.description.trim() || submitting || hasUserReview || !authToken) {
-      if (!authToken) {
-        console.log('❌ No auth token found');
-        setError('يرجى تسجيل الدخول أولاً لإضافة تقييم');
-      } else {
-        console.log('✅ Auth token found:', authToken.substring(0, 20) + '...');
-      }
-      return;
-    }
-
-    console.log('🚀 Attempting to add review...');
-    console.log('📦 Review data:', newReview);
-    console.log('🔑 Auth token:', authToken.substring(0, 20) + '...');
+    if (!newReview.description.trim() || submitting || hasUserReview || !token) return;
 
     try {
       setSubmitting(true);
-      await reviewService.addReview(newReview, authToken);
-      console.log('✅ Review added successfully');
+      await reviewService.addReview(newReview, token);
       setNewReview({ productId, description: '', rateNum: 5 });
       await refreshReviews();
     } catch (err: any) {
-      console.error('❌ Add review error:', err);
       const errorMessage = err.message || 'فشل في إضافة التعليق';
       if (errorMessage.includes('409') || errorMessage.includes('بالفعل')) {
         setError('لقد قمت بإضافة تقييم لهذا المنتج بالفعل');
-      } else if (errorMessage.includes('logged in') || errorMessage.includes('تسجيل الدخول')) {
-        setError('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
-        setAuthToken(null);
-        setUserId(null);
       } else {
         setError(errorMessage);
       }
@@ -146,58 +98,32 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   };
 
   const handleUpdateReview = async () => {
-    if (!editForm.description?.trim() || !editingId || submitting || !authToken) {
-      if (!authToken) {
-        setError('يرجى تسجيل الدخول أولاً لتعديل التقييم');
-      }
-      return;
-    }
+    if (!editForm.description?.trim() || !editingId || submitting || !token) return;
 
     try {
       setSubmitting(true);
-      await reviewService.updateReview(productId, editForm, authToken);
+      await reviewService.updateReview(editingId, editForm, token);
       setEditingId(null);
       setEditForm({ description: '', rateNum: 5 });
       await refreshReviews();
-    } catch (err: any) {
-      console.error('Update review error:', err);
-      const errorMessage = err.message || 'فشل في تحديث التعليق';
-      if (errorMessage.includes('logged in') || errorMessage.includes('تسجيل الدخول')) {
-        setError('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
-        setAuthToken(null);
-        setUserId(null);
-      } else {
-        setError(errorMessage);
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في تحديث التعليق');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (submitting || !authToken) {
-      if (!authToken) {
-        setError('يرجى تسجيل الدخول أولاً لحذف التقييم');
-      }
-      return;
-    }
+    if (submitting || !token) return;
 
     if (!window.confirm('هل أنت متأكد من حذف هذا التعليق؟')) return;
 
     try {
       setSubmitting(true);
-      await reviewService.deleteReview(productId, authToken);
+      await reviewService.deleteReview(reviewId, token);
       await refreshReviews();
-    } catch (err: any) {
-      console.error('Delete review error:', err);
-      const errorMessage = err.message || 'فشل في حذف التعليق';
-      if (errorMessage.includes('logged in') || errorMessage.includes('تسجيل الدخول')) {
-        setError('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
-        setAuthToken(null);
-        setUserId(null);
-      } else {
-        setError(errorMessage);
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل في حذف التعليق');
     } finally {
       setSubmitting(false);
     }
@@ -210,10 +136,6 @@ const Reviews: React.FC<Props> = ({ productId }) => {
 
   const isUserReview = (review: Review) => {
     return userId && review.userId._id === userId;
-  };
-
-  const handleLoginRedirect = () => {
-    router.push('/login');
   };
 
   if (loading) {
@@ -232,25 +154,12 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
         <div className="text-red-600 text-center py-4">
           خطأ: {error}
-          <div className="mt-3 flex justify-center gap-2">
-            <button
-              onClick={() => {
-                setError(null);
-                refreshReviews();
-              }}
-              className="text-blue-600 hover:text-blue-800 underline"
-            >
-              إعادة المحاولة
-            </button>
-            {error.includes('تسجيل الدخول') && (
-              <button
-                onClick={handleLoginRedirect}
-                className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary/90"
-              >
-                تسجيل الدخول
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => refreshReviews()}
+            className="block mx-auto mt-2 text-blue-600 hover:text-blue-800 underline"
+          >
+            إعادة المحاولة
+          </button>
         </div>
       </section>
     );
@@ -258,34 +167,6 @@ const Reviews: React.FC<Props> = ({ productId }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Debug Panel - Remove this in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-          <details className="text-sm">
-            <summary className="cursor-pointer font-medium text-yellow-800">🔧 Debug Info (Development Only)</summary>
-            <div className="mt-2 space-y-1 text-yellow-700">
-              <div>Product ID: {productId}</div>
-              <div>Auth Token: {authToken ? `${authToken.substring(0, 20)}...` : 'Not found'}</div>
-              <div>User ID: {userId || 'Not found'}</div>
-              <div>Has User Review: {hasUserReview ? 'Yes' : 'No'}</div>
-              <div>Reviews Count: {reviews.length}</div>
-              <div>LocalStorage Token: {typeof window !== 'undefined' ? localStorage.getItem('auth_token')?.substring(0, 20) + '...' : 'N/A'}</div>
-              <button
-                onClick={() => {
-                  const token = localStorage.getItem('auth_token');
-                  console.log('🔍 Manual token check:', token);
-                  console.log('🔍 Token decoded:', token ? JSON.parse(atob(token.split('.')[1])) : 'No token');
-                  alert(`Token: ${token ? 'Found' : 'Not found'}\nLength: ${token?.length || 0}\nUser ID: ${token ? JSON.parse(atob(token.split('.')[1])).userId || JSON.parse(atob(token.split('.')[1])).id : 'N/A'}`);
-                }}
-                className="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs"
-              >
-                Test Auth
-              </button>
-            </div>
-          </details>
-        </div>
-      )}
-
       {/* Reviews List Section */}
       <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
@@ -403,12 +284,12 @@ const Reviews: React.FC<Props> = ({ productId }) => {
 
                     {/* Reply if exists */}
                     {review.reply && (
-                      <div className="mt-3 p-3 bg-primary/10 border-r-4 border-primary rounded-l-lg">
+                      <div className="mt-3 p-3 bg-blue-50 border-r-4 border-blue-400 rounded-l-lg">
                         <div className="flex items-center gap-2 mb-1">
-                          <MessageCircle className="w-4 h-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">رد من الإدارة</span>
+                          <MessageCircle className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">رد من الإدارة</span>
                         </div>
-                        <p className="text-sm text-primary/80">{review.reply}</p>
+                        <p className="text-sm text-blue-700">{review.reply}</p>
                       </div>
                     )}
                   </div>
@@ -425,7 +306,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
           {editingId ? "تعديل التقييم" : "أضف تقييمك"}
         </h2>
 
-        {authToken ? (
+        {token ? (
           hasUserReview && !editingId ? (
             <div className="text-green-700 text-center bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
               <p className="mb-3">لقد قمت بإضافة تقييم لهذا المنتج بالفعل</p>
@@ -520,16 +401,9 @@ const Reviews: React.FC<Props> = ({ productId }) => {
           )
         ) : (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed">
-            <LogIn className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="font-medium mb-2">يرجى تسجيل الدخول</p>
-            <p className="text-sm mb-4">قم بتسجيل الدخول لإضافة تعليقك وتقييم المنتج</p>
-            <button
-              onClick={handleLoginRedirect}
-              className="bg-primary text-white px-6 py-2 rounded-lg text-sm hover:bg-primary/90 flex items-center gap-2 transition-colors mx-auto"
-            >
-              <LogIn className="w-4 h-4" />
-              تسجيل الدخول
-            </button>
+            <p className="text-sm">قم بتسجيل الدخول لإضافة تعليقك وتقييم المنتج</p>
           </div>
         )}
 

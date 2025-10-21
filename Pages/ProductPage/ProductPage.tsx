@@ -12,7 +12,7 @@ export type ProductData = {
   title: string;
   description?: string;
   price: number;
-  image: string;
+  imageList: string[];
   rating: number;
   ratingCount: number;
   category: string;
@@ -56,7 +56,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
           title={data.title}
           description={data.description}
           price={data.price}
-          image={data.image}
+          imageList={data.imageList}
           rating={data.rating}
           ratingCount={data.ratingCount}
           category={data.category}
@@ -73,7 +73,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
               distribution={data.ratingsDistribution}
               interactive={true}
             />
-            <Reviews productId={String(data.id)} token={token || undefined} />
+            <Reviews productId={String(data.id)} />
           </div>
         </div>
 

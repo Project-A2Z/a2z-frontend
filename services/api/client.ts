@@ -5,16 +5,17 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://a2z-backend.fly.dev
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
+  timeout: 15000, // 15 second timeout to prevent hanging
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Attach Authorization header from localStorage token and ensure lang query param
+// Enhanced request interceptor with timeout and error handling
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers = config.headers ?? {};
       (config.headers as any)['Authorization'] = `Bearer ${token}`;
@@ -29,21 +30,50 @@ apiClient.interceptors.request.use((config) => {
     config.params = params;
   }
 
+  console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
 
-// Global 401 handler: redirect to /login
+// Enhanced response interceptor with retry logic for network errors
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
+  async (error) => {
+    console.error(`❌ API Error:`, {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.message,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+
+    // Retry logic for network errors (socket hang up, timeout, etc.)
+    const config = error.config;
+    if (config && !config._retry && (
+      error.message?.includes('socket hang up') ||
+      error.message?.includes('timeout') ||
+      error.code === 'ECONNABORTED'
+    )) {
+      config._retry = true;
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
+      return apiClient(config);
+    }
+
     if (typeof window !== 'undefined' && error?.response?.status === 401) {
       try {
         // Optionally clear invalid token
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('auth_token');
       } catch {}
       // Redirect to login
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );

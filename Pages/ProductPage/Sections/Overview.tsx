@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { Heart, ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
 import { Minus, Plus } from 'lucide-react';
 import { CustomImage } from '@/components/UI/Image/Images';
@@ -14,7 +14,7 @@ type Props = {
   title: string;
   description?: string;
   price: number;
-  image: string;
+  imageList: string[];
   rating: number;
   ratingCount: number;
   category: string;
@@ -22,12 +22,15 @@ type Props = {
   stockType: 'unit' | 'kg' | 'ton';
 };
 
-const Overview: React.FC<Props> = ({ id, title, description, price, image, rating, ratingCount, category, stockQty, stockType }) => {
+const Overview: React.FC<Props> = ({ id, title, description, price, imageList, rating, ratingCount, category, stockQty, stockType }) => {
   const { toggle, isFavorite } = useFavorites();
   const loved = isFavorite(id);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(stockType); // State for selected unit, init with prop
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isManualNavigation, setIsManualNavigation] = useState(false);
   const router = useRouter();
 
   const unitOptions = {
@@ -40,6 +43,56 @@ const Overview: React.FC<Props> = ({ id, title, description, price, image, ratin
     setSelectedUnit(key); // Update selected unit dynamically
   };
 
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % imageList.length);
+    setIsManualNavigation(true);
+    // Reset manual navigation after 5 seconds
+    setTimeout(() => setIsManualNavigation(false), 5000);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + imageList.length) % imageList.length);
+    setIsManualNavigation(true);
+    // Reset manual navigation after 5 seconds
+    setTimeout(() => setIsManualNavigation(false), 5000);
+  };
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsManualNavigation(true);
+    // Reset manual navigation after 5 seconds
+    setTimeout(() => setIsManualNavigation(false), 5000);
+  };
+
+  // Auto-play: advance to next image every 5 seconds
+  useEffect(() => {
+    if (imageList.length <= 1 || isHovering || isManualNavigation) return;
+
+    const autoPlayInterval = setInterval(() => {
+      nextImage();
+    }, 3000); // 3 seconds
+
+    return () => clearInterval(autoPlayInterval);
+  }, [imageList.length, isHovering, isManualNavigation]); // Re-run effect when imageList, hover state, or manual navigation changes
+
+  // Keyboard navigation for image slider
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (imageList.length <= 1) return;
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        prevImage();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        nextImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [imageList.length]); // Re-run effect when imageList changes
+
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
     try {
@@ -49,9 +102,9 @@ const Overview: React.FC<Props> = ({ id, title, description, price, image, ratin
         return;
       }
       // Send selected unit to cart
-      await cartService.addToCart({ 
-        productId: String(id), 
-        quantity, 
+      await cartService.addToCart({
+        productId: String(id),
+        quantity,
         stockType: selectedUnit // Include the selected stockType
       });
       router.push('/cart');
@@ -64,17 +117,60 @@ const Overview: React.FC<Props> = ({ id, title, description, price, image, ratin
     <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-4">
-          <div className="w-full max-w-sm mx-auto lg:mx-0 aspect-square bg-card rounded-xl overflow-hidden flex items-center justify-center">
+          <div
+            className="w-full max-w-sm mx-auto lg:mx-0 aspect-square bg-card rounded-xl overflow-hidden flex items-center justify-center relative animate-in fade-in duration-500"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            {/* Main Image */}
             <CustomImage
-              src={image}
-              alt={title}
+              src={imageList[currentImageIndex] || "/assets/download (47).jpg"}
+              alt={`${title} - Image ${currentImageIndex + 1}`}
               fill
               objectFit="contain"
               priority={true}
               fallbackSrc="/assets/download (47).jpg"
-              className="w-full h-full"
+              className="w-full h-full transition-all duration-700 ease-in-out"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
+
+            {/* Navigation Arrows - Only show if there are multiple images */}
+            {imageList.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-primary/80 hover:bg-primary text-white p-2 rounded-full transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary/80 hover:bg-primary text-white p-2 rounded-full transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </>
+            )}
+
+            {/* Dots Navigation - Only show if there are multiple images */}
+            {imageList.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {imageList.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToImage(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 hover:scale-125 ${
+                      index === currentImageIndex
+                        ? 'bg-white scale-125 animate-pulse'
+                        : 'bg-white/50 hover:bg-white/75'
+                    } ${!isHovering && !isManualNavigation && imageList.length > 1 ? 'animate-pulse' : ''}`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -83,7 +179,7 @@ const Overview: React.FC<Props> = ({ id, title, description, price, image, ratin
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">{title}</h1>
             <button
               aria-label={loved ? 'remove from wishlist' : 'add to wishlist'}
-              onClick={() => toggle({ id, name: title, price, image })}
+              onClick={() => toggle({ id, name: title, price, image: imageList[0] || "/assets/download (47).jpg" })}
               className={`p-2 rounded-full border hover:border-primary transition-colors ${loved ? 'text-primary border-primary' : 'text-black60'}`}
             >
               <Heart className={`w-5 h-5 ${loved ? 'fill-current' : ''}`} />

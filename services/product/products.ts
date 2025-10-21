@@ -132,8 +132,8 @@ let isLoadingProducts = false;
 let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
 let lastRequestTime = 0;
 
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes - increased from 10 minutes
-const MIN_REQUEST_INTERVAL = 10000; // 10 seconds minimum between requests
+const CACHE_DURATION = 60 * 60 * 1000; // 60 minutes - increased for better performance
+const MIN_REQUEST_INTERVAL = 15000; // 15 seconds minimum between requests
 
 // Centralized product fetching with state management and fallbacks
 export const getProductsWithState = async (): Promise<Product[]> => {
@@ -194,7 +194,15 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       });
 
       if (retryResponse.status === 429) {
-        throw new Error('Rate limited and retry failed');
+        console.warn('⏱️ Retry also rate limited, using cached data if available');
+        if (globalProductsCache) {
+          isLoadingProducts = false;
+          pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
+          pendingPromises = [];
+          return globalProductsCache;
+        }
+        // If no cached data available, throw a more graceful error
+        throw new Error('Service temporarily unavailable due to rate limiting. Please try again later.');
       }
 
       if (!retryResponse.ok) {
@@ -241,7 +249,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   } catch (error) {
     console.error('❌ Error fetching products:', error);
 
-    // Return cached data as fallback
+    // Return cached data as fallback, even if expired or partially loaded
     if (globalProductsCache) {
       console.log('🔄 Using cached products as fallback');
       isLoadingProducts = false;
@@ -250,8 +258,17 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       return globalProductsCache;
     }
 
-    // No cached data available
-    console.warn('⚠️ No cached data available');
+    // If it's a rate limiting error, provide a more helpful message
+    if (error instanceof Error && error.message.includes('temporarily unavailable')) {
+      console.warn('⚠️ Rate limiting error with no cached data available');
+      isLoadingProducts = false;
+      pendingPromises.forEach(({ reject }) => reject(new Error('Service temporarily unavailable due to high demand. Please try again in a few minutes.')));
+      pendingPromises = [];
+      return []; // Return empty array to maintain return type
+    }
+
+    // For other errors, try to provide a graceful fallback
+    console.warn('⚠️ No cached data available for error fallback');
     isLoadingProducts = false;
     pendingPromises.forEach(({ reject }) => reject(error));
     pendingPromises = [];
@@ -317,6 +334,28 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
           priceRange: {
             min: Math.min(...globalProductsCache.map(p => p.price)),
             max: Math.max(...globalProductsCache.map(p => p.price))
+          }
+        }
+      };
+    }
+
+    // If error is due to service unavailability, return empty response
+    if (error instanceof Error && error.message.includes('temporarily unavailable')) {
+      console.warn('⚠️ Returning empty response due to service unavailability');
+      return {
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          totalPages: 0
+        },
+        filters: {
+          categories: [],
+          brands: [],
+          priceRange: {
+            min: 0,
+            max: 0
           }
         }
       };
@@ -404,6 +443,31 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
           priceRange: {
             min: Math.min(...globalProductsCache.map(p => p.price)),
             max: Math.max(...globalProductsCache.map(p => p.price))
+          }
+        }
+      };
+    }
+
+    // If error is due to service unavailability, return empty response
+    if (error instanceof Error && error.message.includes('temporarily unavailable')) {
+      console.warn('⚠️ Returning empty response due to service unavailability');
+      const page = filters.page || 1;
+      const limit = filters.limit || 20;
+
+      return {
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0
+        },
+        filters: {
+          categories: [],
+          brands: [],
+          priceRange: {
+            min: 0,
+            max: 0
           }
         }
       };
