@@ -8,6 +8,7 @@ import { Button } from '@/components/UI/Buttons';
 import { cartService } from '@/services/api/cart';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/utils/auth';
+import Alert from '@/components/UI/Alert/alert';
 
 type Props = {
   id: number | string;
@@ -31,6 +32,7 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isManualNavigation, setIsManualNavigation] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
   const router = useRouter();
 
   const unitOptions = {
@@ -113,6 +115,35 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
     }
   };
 
+  const handleFavoriteClick = () => {
+    // Check if user is authenticated using UserStorage
+    const { UserStorage } = require('@/services/auth/login');
+    const user = UserStorage.getUser();
+
+    if (!user) {
+      // Show custom alert for unauthenticated users
+      setShowLoginAlert(true);
+      return;
+    }
+
+    // User is authenticated, proceed with toggle
+    toggle({
+      id,
+      name: title,
+      price,
+      image: imageList[0] || "/assets/download (47).jpg",
+    });
+  };
+
+  const handleLoginConfirm = () => {
+    setShowLoginAlert(false);
+    router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+  };
+
+  const handleLoginCancel = () => {
+    setShowLoginAlert(false);
+  };
+
   return (
     <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -179,7 +210,7 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">{title}</h1>
             <button
               aria-label={loved ? 'remove from wishlist' : 'add to wishlist'}
-              onClick={() => toggle({ id, name: title, price, image: imageList[0] || "/assets/download (47).jpg" })}
+              onClick={handleFavoriteClick}
               className={`p-2 rounded-full border hover:border-primary transition-colors ${loved ? 'text-primary border-primary' : 'text-black60'}`}
             >
               <Heart className={`w-5 h-5 ${loved ? 'fill-current' : ''}`} />
@@ -259,6 +290,18 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
           </div>
         </div>
       </div>
+
+      {/* Login Alert */}
+      <Alert
+        isOpen={showLoginAlert}
+        title="تسجيل الدخول مطلوب"
+        message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
+        onConfirm={handleLoginConfirm}
+        onCancel={handleLoginCancel}
+        confirmText="تسجيل الدخول"
+        cancelText="إلغاء"
+        type="warning"
+      />
     </section>
   );
 };

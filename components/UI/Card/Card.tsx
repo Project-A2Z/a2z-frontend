@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import type { StaticImageData } from "next/image";
 
 import styles from './card.module.css'
@@ -7,6 +7,7 @@ import { CustomImage } from './../Image/Images'
 import Availablity from './Availablity';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
 import { isAuthenticated } from '@/utils/auth';
+import Alert from './../Alert/alert';
 
 import Img from './../../../public/acessts/Logo-picsart.png'
 
@@ -97,6 +98,7 @@ function Card({
 }: CardProps) {
     const { toggle, isFavorite } = useFavorites();
     const router = useRouter();
+    const [showLoginAlert, setShowLoginAlert] = useState(false);
 
     const numericPrice = useMemo(() => {
         const n = parseFloat(String(productPrice ?? '0').replace(/[^0-9.]/g, ''));
@@ -128,18 +130,34 @@ function Card({
     const onHeartClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent navigation when clicking heart
         if (!id || isLoading) return;
-        // Require login to use wishlist
-        if (!isAuthenticated()) {
-            router.push('/login');
+
+        // Check if user is authenticated using UserStorage
+        const { UserStorage } = require('@/services/auth/login');
+        const user = UserStorage.getUser();
+
+        if (!user) {
+            // Show custom alert for unauthenticated users
+            setShowLoginAlert(true);
             return;
         }
+
+        // User is authenticated, proceed with toggle
         toggle({
             id,
             name: productName || 'منتج',
             price: numericPrice,
             image: imageSrc,
         });
-    }, [id, toggle, productName, numericPrice, imageSrc, isLoading]);
+    }, [id, toggle, productName, numericPrice, imageSrc, isLoading, router]);
+
+    const handleLoginConfirm = useCallback(() => {
+        setShowLoginAlert(false);
+        router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+    }, [router]);
+
+    const handleLoginCancel = useCallback(() => {
+        setShowLoginAlert(false);
+    }, []);
 
     const handleCardClick = useCallback(() => {
         if (isLoading) return;
@@ -166,110 +184,124 @@ function Card({
     }
 
     return (
-        <div className={`${styles.card} ${!available ? styles.unavailable : ''}`}>
-            {/* Badges */}
-            {badge && (
-                <div className={styles.badge}>
-                    {badge}
-                </div>
-            )}
-            
-            {discountPercentage > 0 && (
-                <div className={styles.discountBadge}>
-                    -{discountPercentage}%
-                </div>
-            )}
+        <>
+            <div className={`${styles.card} ${!available ? styles.unavailable : ''}`}>
+                {/* Badges */}
+                {badge && (
+                    <div className={styles.badge}>
+                        {badge}
+                    </div>
+                )}
+                
+                {discountPercentage > 0 && (
+                    <div className={styles.discountBadge}>
+                        -{discountPercentage}%
+                    </div>
+                )}
 
-            <div className={styles.cardHeader}>
-                <div className={styles.icon}>
-                    {loved ? (
-                        <img
-                            src={FHEART_SRC}
-                            onClick={onHeartClick}
-                            className={styles.heartIcon}
-                            role="button"
-                            aria-label="إزالة من المفضلة"
-                            alt="مفضل"
-                        />
-                    ) : (
-                        <img
-                            src={EHEART_SRC}
-                            onClick={onHeartClick}
-                            className={styles.heartIcon}
-                            role="button"
-                            aria-label="إضافة إلى المفضلة"
-                            alt="غير مفضل"
-                        />
-                    )}
-                </div>
-                
-                <div
-                    className={styles.cardImage}
-                    onClick={handleCardClick}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            handleCardClick();
-                        }
-                    }}
-                >
-                    <CustomImage
-                        src={imageSrc}
-                        alt={productName || 'صورة المنتج'}
-                        width={192}
-                        height={192}
-                        rounded="md"
-                        className={styles.img}
-                        objectFit="cover" 
-                    />
+                <div className={styles.cardHeader}>
+                    <div className={styles.icon}>
+                        {loved ? (
+                            <img
+                                src={FHEART_SRC}
+                                onClick={onHeartClick}
+                                className={styles.heartIcon}
+                                role="button"
+                                aria-label="إزالة من المفضلة"
+                                alt="مفضل"
+                            />
+                        ) : (
+                            <img
+                                src={EHEART_SRC}
+                                onClick={onHeartClick}
+                                className={styles.heartIcon}
+                                role="button"
+                                aria-label="إضافة إلى المفضلة"
+                                alt="غير مفضل"
+                            />
+                        )}
+                    </div>
                     
-                    {/* Hover overlay */}
-                    <div className={styles.hoverOverlay}>
-                        <span className={styles.viewDetails}>عرض التفاصيل</span>
+                    <div
+                        className={styles.cardImage}
+                        onClick={handleCardClick}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                handleCardClick();
+                            }
+                        }}
+                    >
+                        <CustomImage
+                            src={imageSrc}
+                            alt={productName || 'صورة المنتج'}
+                            width={192}
+                            height={192}
+                            rounded="md"
+                            className={styles.img}
+                            objectFit="cover" 
+                        />
+                        
+                        {/* Hover overlay */}
+                        <div className={styles.hoverOverlay}>
+                            <span className={styles.viewDetails}>عرض التفاصيل</span>
+                        </div>
+                    </div>
+                    
+                    <div className={styles.available}>
+                        <Availablity available={available} />
                     </div>
                 </div>
                 
-                <div className={styles.available}>
-                    <Availablity available={available} />
-                </div>
-            </div>
-            
-            <div className={styles.cardBody}>
-                <div className={styles.category}>
-                    <span className={styles.categoryText}>{productCategory || 'غير محدد'}</span>
-                </div>
-                
-                <h2 
-                    className={styles.productName}
-                    title={productName} // Show full name on hover
-                    onClick={handleCardClick}
-                >
-                    {productName || 'اسم المنتج'} 
-                </h2>
-                
-                {/* Rating */}
-                <StarRating rating={rating} reviewsCount={reviewsCount} />
-                
-                {/* Price section */}
-                <div className={styles.priceSection}>
-                    <div className={styles.currentPrice}>
-                        {formatPrice(productPrice)}
-                        <span className={styles.currency}>ج</span>
+                <div className={styles.cardBody}>
+                    <div className={styles.category}>
+                        <span className={styles.categoryText}>{productCategory || 'غير محدد'}</span>
                     </div>
                     
-                    {numericOriginalPrice && numericOriginalPrice > numericPrice && (
-                        <div className={styles.originalPrice}>
-                            {formatPrice(originalPrice)}
+                    <h2 
+                        className={styles.productName}
+                        title={productName} // Show full name on hover
+                        onClick={handleCardClick}
+                    >
+                        {productName || 'اسم المنتج'} 
+                    </h2>
+                    
+                    {/* Rating */}
+                    <StarRating rating={rating} reviewsCount={reviewsCount} />
+                    
+                    {/* Price section */}
+                    <div className={styles.priceSection}>
+                        <div className={styles.currentPrice}>
+                            {formatPrice(productPrice)}
                             <span className={styles.currency}>ج</span>
                         </div>
-                    )}
+                        
+                        {numericOriginalPrice && numericOriginalPrice > numericPrice && (
+                            <div className={styles.originalPrice}>
+                                {formatPrice(originalPrice)}
+                                <span className={styles.currency}>ج</span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    
+                    
                 </div>
-                
-                
-                
             </div>
-        </div>
+
+            {/* Login Alert */}
+            <Alert
+                isOpen={showLoginAlert}
+                title="تسجيل الدخول مطلوب"
+                message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
+                onConfirm={handleLoginConfirm}
+                onCancel={handleLoginCancel}
+                confirmText="تسجيل الدخول"
+                cancelText="إلغاء"
+                type="warning"
+            />
+        </>
     );
 }
 

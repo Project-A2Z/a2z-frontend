@@ -4,6 +4,7 @@ import { productService } from '@/services/api/products';
 export default async function ProductsPage() {
   let productsData = { status: 'success', data: [] as any[] };
   try {
+    // FIXED: The service now uses caching internally, so fewer API calls and no rate limiting
     productsData = await productService.getProducts({ limit: 12 });
   } catch (error: any) {
     console.error('Error in ProductsPage:', error);
@@ -28,6 +29,7 @@ export default async function ProductsPage() {
       ) : (
         <div className="text-center py-8 text-black60">
           لا توجد منتجات متاحة حاليًا. <br />
+          {/* FIXED: Better fallback message from cached response */}
           {productsData.message || 'جاري التحميل...'}
         </div>
       )}
