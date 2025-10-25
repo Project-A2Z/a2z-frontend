@@ -296,6 +296,7 @@ export default function ForgetPasswordPage() {
             timeLeft={timeLeft}
             onResend={handleResend}
             canResend={canResend}
+            formatTime={formatTime}
           />
         </>
       ) : (

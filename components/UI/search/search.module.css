@@ -24,6 +24,7 @@
   transition: all 0.2s ease;
   outline: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 80%;
 }
 
 .searchInput::placeholder {
@@ -59,19 +60,39 @@
 }
 
 /* Search Dropdown for regular search */
+/* Fix for searchForm to allow dropdown overflow */
+.searchForm {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+  margin: 0 16px;
+  overflow: visible; /* ADD THIS */
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+  overflow: visible; /* ADD THIS */
+}
+
+/* Search Dropdown for regular search */
+
 .searchDropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   background-color: var(--background);
   border: 1px solid var(--black16);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  max-height: 300px;
+  z-index: 9999;
+  /* max-height: 300px; */
   overflow-y: auto;
-  margin-top: 4px;
+  display: block;
+  visibility: visible;
+  min-height: 300px;
+
 }
 
 .searchDropdownItem {

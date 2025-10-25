@@ -13,6 +13,9 @@ import {
   logoutUser,
 } from "../../../services/auth/login";
 
+// Import products service
+import { getProductsWithState, Product } from "../../../services/product/products";
+
 // Components
 import SearchComponent from "./../../UI/search/search";
 import NotificationsComponent from "./../../UI/notification/notification";
@@ -75,7 +78,8 @@ function Header({
   // State for user data
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState(dataSearch);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -107,27 +111,80 @@ function Header({
     loadUserData();
   }, []);
 
-  // Fetch unread notifications count
+  // Fetch cached products for search
   useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (user) {
-        try {
-          const count = await getUnreadNotificationsCount();
-          setUnreadCount(count);
-        } catch (error) {
-          console.error("Error fetching unread count:", error);
-        }
+    const loadCachedProducts = async () => {
+      try {
+        setIsProductsLoading(true);
+        const cachedProducts = await getProductsWithState();
+        setProducts(cachedProducts);
+        console.log(`✅ Loaded ${cachedProducts.length} products for search`);
+      } catch (error) {
+        console.error("❌ Error loading cached products:", error);
+        setProducts([]);
+      } finally {
+        setIsProductsLoading(false);
       }
     };
 
+    loadCachedProducts();
+  }, []);
+
+  // Fetch unread notifications count
+// Fetch unread notifications count - Updated section
+useEffect(() => {
+  // Reference to track if component is mounted
+  let isMounted = true;
+  let intervalId: NodeJS.Timeout | null = null;
+
+  const fetchUnreadCount = async () => {
+    // Only fetch if user is authenticated and component is mounted
+    if (!user || !isMounted) {
+      console.log("⏭️ Skipping unread count fetch - no user or unmounted");
+      return;
+    }
+
+    try {
+      console.log("🔔 Fetching unread notification count");
+      const count = await getUnreadNotificationsCount();
+      
+      if (isMounted) {
+        setUnreadCount(count);
+        console.log(`✅ Unread count updated: ${count}`);
+      }
+    } catch (error) {
+      if (isMounted) {
+        console.error("❌ Error fetching unread count:", error);
+      }
+    }
+  };
+
+  // Only set up polling if user is authenticated
+  if (user) {
+    console.log("⏰ Setting up unread count polling (5min interval)");
+    
+    // Fetch immediately
     fetchUnreadCount();
 
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    // Set up interval for polling every 5 minutes (300000ms)
+    intervalId = setInterval(() => {
+      if (isMounted) {
+        fetchUnreadCount();
+      }
+    }, 300000); // 5 minutes = 300000ms
+  }
 
-    return () => clearInterval(interval);
-  }, [user]);
-
+  // Cleanup function
+  return () => {
+    console.log("🧹 Cleaning up unread count polling");
+    isMounted = false;
+    
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+  };
+}, [user]); // Changed from [user?.id] to [user] for better stability
   // Listen for storage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -165,21 +222,7 @@ function Header({
     router.push("/login");
   };
 
-  const handleLogout = async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      await logoutUser();
-      setUser(null);
-      console.log("✅ User logged out successfully");
-      router.push("/");
-    } catch (error) {
-      console.error("❌ Logout error:", error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  
   const handleChat = () => {
     setChat(!chat);
     setOpen(!open);
@@ -231,7 +274,7 @@ function Header({
 
         {showSearch && (
           <div className={styles.mid}>
-            <SearchComponent data={data} />
+            <SearchComponent data={[]} />
           </div>
         )}
 
@@ -243,6 +286,9 @@ function Header({
       </header>
     );
   }
+
+  // Prepare search data - use cached products if available, fallback to dataSearch prop
+  const searchData = products.length > 0 ? products : dataSearch;
 
   return (
     <>
@@ -257,7 +303,7 @@ function Header({
 
         {showSearch && (
           <div className={styles.mid}>
-            <SearchComponent data={data} />
+            <SearchComponent data={searchData} />
           </div>
         )}
 
@@ -324,7 +370,6 @@ function Header({
                             {getUserInitial(user.firstName, user.lastName)}
                           </span>
                         )}
-                        
                       </div>
                     </div>
                   </div>
@@ -488,17 +533,16 @@ function Header({
       )}
 
       {/* Notifications Modal */}
-
       <NotificationsComponent
         isOpen={isNotificationsOpen}
         onClose={handleNotificationsClose}
-        onUnreadCountChange={setUnreadCount} // NEW: Receive updates
+        onUnreadCountChange={setUnreadCount}
       />
 
       {/* Full Screen Search Modal */}
       {isSearchModalOpen && (
         <SearchComponent
-          data={data}
+          data={searchData}
           isModal={true}
           onClose={() => setIsSearchModalOpen(false)}
         />

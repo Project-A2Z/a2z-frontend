@@ -1,13 +1,15 @@
 "use client";
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import styles from './search.module.css';
-import SearchIcon from './../../../public/icons/search.svg';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./search.module.css";
+import SearchIcon from "./../../../public/icons/search.svg";
 
 interface Product {
+  id: string;
   name: string;
   category: string;
   price: number;
-  status: boolean;
+  instock: boolean;
   img: any; // or string if it's a URL
 }
 
@@ -18,54 +20,57 @@ interface SearchComponentProps {
   onProductSelect?: (product: Product) => void; // Added callback for product selection
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = ({ 
-  data = [], 
-  isModal = false, 
+const SearchComponent: React.FC<SearchComponentProps> = ({
+  data = [],
+  isModal = false,
   onClose,
-  onProductSelect
+  onProductSelect,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredResults, setFilteredResults] = useState<Product[]>([]);
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // Sample data for demonstration - memoized to prevent recreation on every render
-  const sampleData: Product[] = useMemo(() => [
-    { name: 'زنك كبريتات (1 كجم)', category: 'كيميائيات مبيدات', price: 150.00, status: true, img: null },
-    { name: 'نحاس كبريتات (500 جم)', category: 'كيميائيات مبيدات', price: 85.00, status: true, img: null },
-    { name: 'مبيد حشري طبيعي', category: 'مبيدات حشرية', price: 120.00, status: true, img: null },
-    { name: 'سماد عضوي (5 كجم)', category: 'أسمدة', price: 200.00, status: true, img: null },
-    { name: 'بذور طماطم هجين', category: 'بذور', price: 45.00, status: true, img: null },
-    { name: 'أدوات تقليم', category: 'أدوات زراعية', price: 75.00, status: false, img: null },
-    { name: 'خرطوم ري (25 متر)', category: 'معدات الري', price: 95.00, status: true, img: null },
-    { name: 'تربة زراعية مخصبة', category: 'تربة ومواد نمو', price: 65.00, status: true, img: null }
-  ], []);
+  // const sampleData: Product[] = useMemo(() => [
+  //   { name: 'زنك كبريتات (1 كجم)', category: 'كيميائيات مبيدات', price: 150.00, status: true, img: null },
+  //   { name: 'نحاس كبريتات (500 جم)', category: 'كيميائيات مبيدات', price: 85.00, status: true, img: null },
+  //   { name: 'مبيد حشري طبيعي', category: 'مبيدات حشرية', price: 120.00, status: true, img: null },
+  //   { name: 'سماد عضوي (5 كجم)', category: 'أسمدة', price: 200.00, status: true, img: null },
+  //   { name: 'بذور طماطم هجين', category: 'بذور', price: 45.00, status: true, img: null },
+  //   { name: 'أدوات تقليم', category: 'أدوات زراعية', price: 75.00, status: false, img: null },
+  //   { name: 'خرطوم ري (25 متر)', category: 'معدات الري', price: 95.00, status: true, img: null },
+  //   { name: 'تربة زراعية مخصبة', category: 'تربة ومواد نمو', price: 65.00, status: true, img: null }
+  // ], []);
 
   // Memoize searchData to prevent infinite re-renders
-  const searchData = useMemo(() => {
-    return data.length > 0 ? data : sampleData;
-  }, [data, sampleData]);
+  // const searchData = useMemo(() => {
+  //   return data.length > 0 ? data : sampleData;
+  // }, [data, sampleData]);
 
   // Popular searches based on your product categories - memoized
-  const popularSearches = useMemo(() => 
-    ['مبيدات', 'أسمدة', 'بذور', 'أدوات زراعية', 'معدات الري'], 
+  const popularSearches = useMemo(
+    () => ["مبيدات", "أسمدة", "بذور", "أدوات زراعية", "معدات الري"],
     []
   );
 
   // Filter results based on search term
   useEffect(() => {
     if (searchTerm.trim()) {
-      const filtered = searchData.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = data.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredResults(filtered);
       setShowResults(true);
+      console.log("Filtered results:", filtered);
     } else {
       setFilteredResults([]);
       setShowResults(false);
     }
-  }, [searchTerm, searchData]);
+  }, [searchTerm, data]);
 
   // Focus input when modal opens
   useEffect(() => {
@@ -76,21 +81,25 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Searching for:', searchTerm);
+    console.log("Searching for:", searchTerm);
     // Add your search logic here
   };
 
   const handleResultClick = (product: Product) => {
-    console.log('Selected product:', product);
+    console.log("Selected product:", product);
     setSearchTerm(product.name);
     setShowResults(false);
-    
+
+
     // Call the product selection callback if provided
     if (onProductSelect) {
       onProductSelect(product);
     }
-    
+
     if (onClose) onClose();
+    setSearchTerm("");
+    router.push(`/product/${product.id}`);
+
   };
 
   const handlePopularSearchClick = (term: string) => {
@@ -101,7 +110,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   };
 
   const handleClose = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     setShowResults(false);
     if (onClose) onClose();
   };
@@ -126,28 +135,47 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             dir="rtl"
           />
           <SearchIcon className={styles.searchIcon} />
-          
+
           {/* Dropdown results for regular search */}
           {showResults && (
             <div className={styles.searchDropdown}>
               {filteredResults.length > 0 ? (
-                filteredResults
-                  .filter(product => product.status) // Only show active products
-                  .slice(0, 5)
-                  .map((product, index) => (
-                    <div
-                      key={`${product.name}-${index}`}
-                      className={styles.searchDropdownItem}
-                      onClick={() => handleResultClick(product)}
-                    >
-                      <div className={styles.resultTitle}>{product.name}</div>
+                filteredResults.map((product, index) => (
+                  <div
+                    key={`${product.name}-${index}`}
+                    className={`${styles.searchResultItem} ${
+                      !product.instock ? styles.outOfStock : ""
+                    }`}
+                    onClick={() =>
+                      {
+                        handleResultClick(product)
+                        console.log("Clicked product:", product);
+                      }
+                    }
+                  >
+                    <div>
+                      <div className={styles.resultTitle}>
+                        {product.name}
+                        {!product.instock && (
+                          <span className={styles.outOfStockBadge}>
+                            {" "}
+                            - غير متوفر
+                          </span>
+                        )}
+                      </div>
                       <div className={styles.resultCategory}>
-                        {product.category} • {formatPrice(product.price)}
+                        {product.category}
+                      </div>
+                      <div className={styles.resultPrice}>
+                        {formatPrice(product.price)}
                       </div>
                     </div>
-                  ))
+                  </div>
+                ))
               ) : (
-                <div className={styles.noResults}>لا توجد نتائج</div>
+                <div className={styles.noResults}>
+                  لا توجد نتائج للبحث "{searchTerm}"
+                </div>
               )}
             </div>
           )}
@@ -158,18 +186,18 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   // Full-screen modal search
   return (
-    <div className={`${styles.searchModal} ${isModal ? styles.active : ''}`}>
+    <div className={`${styles.searchModal} ${isModal ? styles.active : ""}`}>
       <div className={styles.searchModalHeader}>
         <h2 className={styles.searchModalTitle}>البحث</h2>
-        <button 
-          className={styles.closeButton} 
+        <button
+          className={styles.closeButton}
           onClick={handleClose}
           type="button"
         >
           ✕
         </button>
       </div>
-      
+
       <div className={styles.searchModalContent}>
         <form onSubmit={handleSearch} className={styles.searchForm}>
           <div className={styles.searchContainer}>
@@ -193,16 +221,27 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
               filteredResults.map((product, index) => (
                 <div
                   key={`${product.name}-${index}`}
-                  className={`${styles.searchResultItem} ${!product.status ? styles.outOfStock : ''}`}
-                  onClick={() => product.status && handleResultClick(product)}
+                  className={`${styles.searchResultItem} ${
+                    !product.instock ? styles.outOfStock : ""
+                  }`}
+                  onClick={() => product.instock && handleResultClick(product)}
                 >
                   <div>
                     <div className={styles.resultTitle}>
                       {product.name}
-                      {!product.status && <span className={styles.outOfStockBadge}> - غير متوفر</span>}
+                      {!product.instock && (
+                        <span className={styles.outOfStockBadge}>
+                          {" "}
+                          - غير متوفر
+                        </span>
+                      )}
                     </div>
-                    <div className={styles.resultCategory}>{product.category}</div>
-                    <div className={styles.resultPrice}>{formatPrice(product.price)}</div>
+                    <div className={styles.resultCategory}>
+                      {product.category}
+                    </div>
+                    <div className={styles.resultPrice}>
+                      {formatPrice(product.price)}
+                    </div>
                   </div>
                 </div>
               ))

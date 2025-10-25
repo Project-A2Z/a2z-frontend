@@ -112,14 +112,23 @@ const Summary: React.FC<SummaryInter> = ({
                 ملخص الطلب
             </span>
 
-            <span className={styles.details}>عدد المنتجات ({numberItems})</span>
-            <span className={styles.price}>ج{Total}</span>
+            {/* Row 1: Product count */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
+                <span className={styles.details}>عدد المنتجات ({numberItems})</span>
+                <span className={`${styles.price} notranslate`}>ج{Total}</span>
+            </div>
 
-            <span className={styles.details}>التوصيل</span>
-            <span className={styles.price}>ج{delivery}</span>
+            {/* Row 2: Delivery */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
+                <span className={styles.details}>التوصيل</span>
+                <span className={`${styles.price} notranslate`}>ج{delivery}</span>
+            </div>
 
-            <span className={styles.details}>الإجمالي</span>
-            <span className={styles.price}>ج{Total + delivery}</span>
+            {/* Row 3: Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px', borderTop: '1px solid var(--black16)', width: '100%' }}>
+                <span className={styles.details} style={{ fontWeight: 600 }}>الإجمالي</span>
+                <span className={`${styles.price} notranslate`} style={{ fontWeight: 600, fontSize: '18px' }}>ج{Total + delivery}</span>
+            </div>
 
             {error && (
                 <div className={styles.error} style={{

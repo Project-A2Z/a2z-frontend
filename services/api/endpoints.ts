@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     FAVORITES: '/users/favorites',
     ADD_FAVORITE: '/users/favorites/add',
     REMOVE_FAVORITE: '/users/favorites/:id',
+    MESSAGES : '/inquiries'
 
   },
 

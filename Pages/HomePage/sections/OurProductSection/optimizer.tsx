@@ -31,7 +31,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   
   // Filter states
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLetter, setSelectedLetter] = useState<string>('كل');
+  const [selectedLetter, setSelectedLetter] = useState<string>('الكل');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Pagination states
@@ -45,7 +45,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   // Mobile filter modal states
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<string[]>([]);
-  const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('كل');
+  const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('الكل');
 
   const mountedRef = useRef(true);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,6 +58,14 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         clearTimeout(searchTimeoutRef.current);
       }
     };
+  }, []);
+
+  // Helper function to check if "All" is selected
+  const isAllLetter = useCallback((letter: string): boolean => {
+    const normalizedLetter = letter.toLowerCase().trim();
+    return normalizedLetter === 'all' || 
+           normalizedLetter === 'الكل' || 
+           normalizedLetter === 'كل';
   }, []);
 
   // ============================================
@@ -126,8 +134,8 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       );
     }
 
-    // Apply letter filter
-    if (selectedLetter && selectedLetter !== 'كل') {
+    // Apply letter filter - ONLY if it's not "All"/"الكل"
+    if (selectedLetter && !isAllLetter(selectedLetter)) {
       filtered = getByFirstLetter(selectedLetter, filtered);
     }
 
@@ -145,7 +153,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }
 
     return filtered;
-  }, [allProducts, selectedCategories, selectedLetter, searchQuery]);
+  }, [allProducts, selectedCategories, selectedLetter, searchQuery, isAllLetter]);
 
   // Update filtered products whenever filters change
   useEffect(() => {
@@ -170,7 +178,8 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, []);
 
   const handleLetterFilter = useCallback((letter: string | null | undefined) => {
-    setSelectedLetter(letter || 'كل');
+    // Store the letter as-is (including "All"/"الكل")
+    setSelectedLetter(letter || 'الكل');
   }, []);
 
   // Debounced search
@@ -223,7 +232,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, []);
 
   const handleTempLetterFilter = useCallback((letter: string | null | undefined) => {
-    setTempSelectedLetter(letter || 'كل');
+    setTempSelectedLetter(letter || 'الكل');
   }, []);
 
   // ============================================
@@ -231,7 +240,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   // ============================================
   const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
-    setSelectedLetter('كل');
+    setSelectedLetter('الكل');
     setSearchQuery('');
     setCurrentPage(1);
     
@@ -247,10 +256,12 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     loadAllProducts();
   }, [loadAllProducts]);
 
-  // Active filters count
+  // Active filters count - don't count "All" as an active filter
   const activeFiltersCount = useMemo(() => 
-    selectedCategories.length + (selectedLetter !== 'كل' ? 1 : 0) + (searchQuery.trim() ? 1 : 0),
-    [selectedCategories.length, selectedLetter, searchQuery]
+    selectedCategories.length + 
+    (!isAllLetter(selectedLetter) ? 1 : 0) + 
+    (searchQuery.trim() ? 1 : 0),
+    [selectedCategories.length, selectedLetter, searchQuery, isAllLetter]
   );
 
   // ============================================
@@ -315,15 +326,6 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             مسح الفلاتر
           </Button>
         )}
-
-        {/* <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={refreshData}
-          disabled={isLoading}
-        >
-          {isLoading ? 'تحديث...' : 'تحديث'}
-        </Button> */}
       </div>
 
       {/* Products Display */}
@@ -341,7 +343,6 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         />
       </div>
 
-      {/* Pagination Controls */}
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className={style.paginationContainer}>
@@ -389,11 +390,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             >
               ›
             </button>
-
-           
           </div>
-
-         
         </div>
       )}
 

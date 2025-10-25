@@ -265,3 +265,39 @@ body, p, span, div {
     font-variation-settings: normal;
   }
 }
+
+/* Add to globals.css */
+
+/* Prevent Google Translate from breaking React */
+#__next {
+  isolation: isolate;
+}
+
+/* Disable all transitions/animations during translation */
+body.translating * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Prevent layout shifts from Google Translate */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+/* Prevent Google Translate toolbar from affecting layout */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body > .skiptranslate {
+  display: none !important;
+}

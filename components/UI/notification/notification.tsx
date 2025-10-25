@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./notification.module.css";
 
 //icon
@@ -23,7 +23,7 @@ interface NotificationsComponentProps {
 const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
   isOpen,
   onClose,
-  onUnreadCountChange = () => {}, // Default to no-op if not provided
+  onUnreadCountChange = () => {},
 }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -34,101 +34,139 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
   const [hasMore, setHasMore] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isManualRefetchRef = useRef(false);
+  const lastFetchTimeRef = useRef<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
 
-  // Fetch notifications
-  const fetchNotifications = async (
-    pageNum: number = 1,
-    append: boolean = false
-  ) => {
-    try {
-      if (!append) {
-        setIsLoading(true);
-      }
-      setError(null);
-
-      const params = {
-        page: pageNum,
-        limit: 20,
-        sort: "-createdAt",
-        ...(filter === "unread" && { isRead: false }),
-      };
-
-      const response = await getNotifications(params);
-
-      // Update notifications from the correct response structure
-      if (append) {
-        setNotifications((prev) => [...prev, ...response.data]);
-      } else {
-        setNotifications(response.data);
+  // Memoized fetch function with debouncing
+  const fetchNotifications = useCallback(
+    async (pageNum: number = 1, append: boolean = false) => {
+      // Prevent duplicate fetches
+      if (isFetchingRef.current) {
+        console.log("⏭️ Skipping fetch - already fetching");
+        return;
       }
 
-      // Update unread count
-      setUnreadCount(response.unreadCount);
-
-      // Check if there are more notifications
-      if (response.data.length < 20) {
-        setHasMore(false);
+      // Debounce: prevent fetches within 2 seconds of last fetch
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTimeRef.current;
+      if (timeSinceLastFetch < 2000 && lastFetchTimeRef.current > 0) {
+        console.log(`⏭️ Skipping fetch - too soon (${timeSinceLastFetch}ms ago)`);
+        return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "فشل في تحميل الإشعارات");
-      console.error("Error fetching notifications:", err);
-    } finally {
-      if (!append) {
-        setIsLoading(false);
-      }
-    }
-  };
 
-  // Set up auto-refetch interval (5 minutes = 300000ms)
-  useEffect(() => {
-    if (isOpen) {
-      // Fetch immediately when opening
-      fetchNotifications(1, false);
+      try {
+        isFetchingRef.current = true;
+        lastFetchTimeRef.current = now;
 
-      // Set up interval to refetch every 5 minutes automatically
-      // This will happen regardless of user interaction
-      intervalRef.current = setInterval(() => {
-        console.log("🔄 Auto-refetching notifications...");
-        fetchNotifications(1, false);
-      }, 300000); // 5 minutes
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
+        if (!append) {
+          setIsLoading(true);
         }
-      };
-    } else {
+        setError(null);
+
+        const params = {
+          page: pageNum,
+          limit: 20,
+          sort: "-createdAt",
+          ...(filter === "unread" && { isRead: false }),
+        };
+
+        console.log(`🔄 Fetching notifications - Page ${pageNum}, Filter: ${filter}`);
+        const response = await getNotifications(params);
+
+        // Update notifications from the correct response structure
+        if (append) {
+          setNotifications((prev) => [...prev, ...response.data]);
+        } else {
+          setNotifications(response.data);
+        }
+
+        // Update unread count
+        setUnreadCount(response.unreadCount);
+        onUnreadCountChange(response.unreadCount);
+
+        // Check if there are more notifications
+        if (response.data.length < 20) {
+          setHasMore(false);
+        }
+
+        console.log(`✅ Fetched ${response.data.length} notifications`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "فشل في تحميل الإشعارات");
+        console.error("❌ Error fetching notifications:", err);
+      } finally {
+        if (!append) {
+          setIsLoading(false);
+        }
+        isFetchingRef.current = false;
+      }
+    },
+    [filter, onUnreadCountChange]
+  );
+
+  // Set up auto-refetch interval only when modal is open
+  useEffect(() => {
+    if (!isOpen) {
       // Clear interval when modal is closed
       if (intervalRef.current) {
+        console.log("🛑 Clearing notification interval - modal closed");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      return;
     }
-  }, [isOpen]);
 
-  // Load notifications when filter changes
-  useEffect(() => {
-    if (isOpen) {
-      setPage(1);
-      setHasMore(true);
+    // Fetch immediately when opening (only if not fetched recently)
+    const timeSinceLastFetch = Date.now() - lastFetchTimeRef.current;
+    if (timeSinceLastFetch > 2000 || lastFetchTimeRef.current === 0) {
+      console.log("📂 Modal opened - fetching notifications");
       fetchNotifications(1, false);
     }
-  }, [filter, isOpen]);
+
+    // Set up interval to refetch every 5 minutes
+    console.log("⏰ Setting up 5-minute notification interval");
+    intervalRef.current = setInterval(() => {
+      console.log("🔄 Auto-refetching notifications (5-min interval)");
+      fetchNotifications(1, false);
+    }, 300000); // 5 minutes
+
+    return () => {
+      if (intervalRef.current) {
+        console.log("🧹 Cleaning up notification interval");
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isOpen, fetchNotifications]);
+
+  // Handle filter changes
+  useEffect(() => {
+    if (!isOpen) return;
+
+    console.log(`🔀 Filter changed to: ${filter}`);
+    setPage(1);
+    setHasMore(true);
+    
+    // Small delay to prevent rapid successive calls
+    const timeoutId = setTimeout(() => {
+      fetchNotifications(1, false);
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [filter, isOpen, fetchNotifications]);
 
   // Handle scroll for infinite loading
-  const handleScroll = () => {
-    if (!scrollRef.current || isLoading || !hasMore) return;
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current || isLoading || !hasMore || isFetchingRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
 
     if (scrollTop + clientHeight >= scrollHeight - 100) {
       const nextPage = page + 1;
+      console.log(`📜 Loading more - Page ${nextPage}`);
       setPage(nextPage);
       fetchNotifications(nextPage, true);
     }
-  };
+  }, [isLoading, hasMore, page, fetchNotifications]);
 
   // Mark notification as read
   const handleNotificationClick = async (notification: Notification) => {
@@ -144,8 +182,9 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
         );
 
         // Decrease unread count
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-        onUnreadCountChange(Math.max(0, unreadCount - 1));
+        const newCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newCount);
+        onUnreadCountChange(newCount);
       }
 
       // Navigate to action URL if exists
@@ -188,8 +227,9 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
         (n) => n._id === notificationId
       );
       if (deletedNotification && !deletedNotification.isRead) {
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-        onUnreadCountChange(Math.max(0, unreadCount - 1));
+        const newCount = Math.max(0, unreadCount - 1);
+        setUnreadCount(newCount);
+        onUnreadCountChange(newCount);
       }
 
       // Remove from local state
@@ -223,10 +263,9 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       setPage(1);
       setFilter("all");
 
-      // Optional: Show success message (you can replace with a toast notification)
       console.log("✅ All notifications deleted successfully");
 
-      // Trigger callback if provided
+      // Trigger callback
       onUnreadCountChange(0);
     } catch (err) {
       const errorMessage =
