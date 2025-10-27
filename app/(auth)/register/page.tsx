@@ -6,7 +6,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from './../../../components/UI/Buttons/Button'; 
 import Input from './../../../components/UI/Inputs/Input'; 
 import Logo from './../../../public/icons/logo.svg';
-import Background from './../../../components/UI/Background/Background'; 
+import Background from './../../../components/UI/Background/Background';
+import Alert from '@/components/UI/Alert/alert';
 import styles from './../auth.module.css';
 import { registerUser, RegisterRequest } from '../../../services/auth/register';
 
@@ -29,6 +30,11 @@ export default function RegistrationForm() {
     phoneNumber?: string;
     general?: string;
   }>({});
+
+  // Alert states
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -149,10 +155,8 @@ export default function RegistrationForm() {
         console.log('✅ Registration successful:', response.data.user);
         
         // Show success message to user
-        alert('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
-        
-        // Redirect to email verification page or login page
-        router.push('/active-code');
+        setAlertMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
+        setShowSuccessAlert(true);
       }
     } catch (error: any) {
       console.error('❌ Registration failed:', error);
@@ -216,13 +220,21 @@ export default function RegistrationForm() {
 
       // Set errors
       setErrors({
-        general: errorMessage,
         ...translatedFieldErrors
       });
+
+      // Show error alert
+      setAlertMessage(errorMessage);
+      setShowErrorAlert(true);
 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSuccessConfirm = () => {
+    setShowSuccessAlert(false);
+    router.push('/active-code');
   };
 
   return (
@@ -377,6 +389,38 @@ export default function RegistrationForm() {
           </div>
         </div>
       </div>
+
+      {/* Success Alert */}
+      {showSuccessAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowSuccessAlert(false)}
+          buttons={[
+            { 
+              label: 'حسناً', 
+              onClick: handleSuccessConfirm, 
+              variant: 'success' 
+            }
+          ]}
+          type="success"
+        />
+      )}
+
+      {/* Error Alert */}
+      {showErrorAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowErrorAlert(false)}
+          buttons={[
+            { 
+              label: 'إغلاق', 
+              onClick: () => setShowErrorAlert(false), 
+              variant: 'danger' 
+            }
+          ]}
+          type="error"
+        />
+      )}
     </>
   );
 }

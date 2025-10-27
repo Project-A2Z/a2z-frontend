@@ -9,6 +9,8 @@ import { useFavorites } from '@/services/favorites/FavoritesContext';
 import { isAuthenticated } from '@/utils/auth';
 import Alert from './../Alert/alert';
 
+
+
 import Img from './../../../public/acessts/Logo-picsart.png'
 
 // const Img = './../../../public/acessts/Logo-picsart.png'
@@ -291,16 +293,25 @@ function Card({
             </div>
 
             {/* Login Alert */}
-            <Alert
-                isOpen={showLoginAlert}
-                title="تسجيل الدخول مطلوب"
+            {showLoginAlert && (
+                <Alert
                 message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
-                onConfirm={handleLoginConfirm}
-                onCancel={handleLoginCancel}
-                confirmText="تسجيل الدخول"
-                cancelText="إلغاء"
+                setClose={handleLoginCancel}
+                buttons={[
+                    { 
+                    label: 'إلغاء', 
+                    onClick: handleLoginCancel, 
+                    variant: 'ghost' 
+                    },
+                    { 
+                    label: 'تسجيل الدخول', 
+                    onClick: handleLoginConfirm, 
+                    variant: 'primary' 
+                    }
+                ]}
                 type="warning"
             />
+            )}
         </>
     );
 }

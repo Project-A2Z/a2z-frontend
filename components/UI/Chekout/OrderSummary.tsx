@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { orderService, CreateOrderData} from '@/services/checkout/order';
 import { getAuthToken } from '@/services/auth/login';
 import { PaymentData } from './Cash';
+import Alert, { AlertButton } from './../../UI/Alert/alert';
 
 interface Address {
     id: number;
@@ -38,16 +39,50 @@ const Summary: React.FC<SummaryInter> = ({
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // Alert state
+    const [alertConfig, setAlertConfig] = useState<{
+        show: boolean;
+        message: string;
+        type: 'warning' | 'error' | 'info' | 'success';
+        buttons: AlertButton[];
+    }>({
+        show: false,
+        message: '',
+        type: 'info',
+        buttons: []
+    });
+
+    const showAlert = (
+        message: string, 
+        type: 'warning' | 'error' | 'info' | 'success' = 'info',
+        buttons?: AlertButton[]
+    ) => {
+        setAlertConfig({
+            show: true,
+            message,
+            type,
+            buttons: buttons || [
+                {
+                    label: 'حسناً',
+                    onClick: () => setAlertConfig(prev => ({ ...prev, show: false })),
+                    variant: 'primary'
+                }
+            ]
+        });
+    };
 
     const handleSubmit = async () => {
         // Validate data
         if (!addressData) {
             setError('يرجى تحديد عنوان التوصيل');
+            showAlert('يرجى تحديد عنوان التوصيل', 'warning');
             return;
         }
 
         if (!paymentData || !paymentData.paymentWay) {
             setError('يرجى تحديد طريقة الدفع');
+            showAlert('يرجى تحديد طريقة الدفع', 'warning');
             return;
         }
 
@@ -89,72 +124,95 @@ const Summary: React.FC<SummaryInter> = ({
             
             console.log('✅ Order created successfully:', response);
 
-            // Show success message
-            alert('تم إنشاء الطلب بنجاح! رقم الطلب: ' + response.data.orderId);
-
-            // Redirect to orders page or success page
-            router.push('/');
+            // Show success message with redirect
+            showAlert(
+                `تم إنشاء الطلب بنجاح! رقم الطلب: ${response.data.orderId}`,
+                'success',
+                [
+                    {
+                        label: 'عرض الطلبات',
+                        onClick: () => {
+                            setAlertConfig(prev => ({ ...prev, show: false }));
+                            router.push('/');
+                        },
+                        variant: 'primary'
+                    }
+                ]
+            );
 
         } catch (error: any) {
             console.error('❌ Error creating order:', error);
-            setError(error.message || 'حدث خطأ أثناء إنشاء الطلب');
+            const errorMessage = error.message || 'حدث خطأ أثناء إنشاء الطلب';
+            setError(errorMessage);
             
             // Show error alert
-            alert('خطأ: ' + (error.message || 'حدث خطأ أثناء إنشاء الطلب'));
+            showAlert(`خطأ: ${errorMessage}`, 'error');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className={styles.SummaryContainer}>
-            <span className={styles.title}>
-                ملخص الطلب
-            </span>
-
-            {/* Row 1: Product count */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
-                <span className={styles.details}>عدد المنتجات ({numberItems})</span>
-                <span className={`${styles.price} notranslate`}>ج{Total}</span>
-            </div>
-
-            {/* Row 2: Delivery */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
-                <span className={styles.details}>التوصيل</span>
-                <span className={`${styles.price} notranslate`}>ج{delivery}</span>
-            </div>
-
-            {/* Row 3: Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px', borderTop: '1px solid var(--black16)', width: '100%' }}>
-                <span className={styles.details} style={{ fontWeight: 600 }}>الإجمالي</span>
-                <span className={`${styles.price} notranslate`} style={{ fontWeight: 600, fontSize: '18px' }}>ج{Total + delivery}</span>
-            </div>
-
-            {error && (
-                <div className={styles.error} style={{
-                    color: '#dc3545',
-                    fontSize: '14px',
-                    marginTop: '10px',
-                    padding: '8px',
-                    backgroundColor: '#f8d7da',
-                    borderRadius: '4px'
-                }}>
-                    {error}
-                </div>
+        <>
+            {/* Custom Alert */}
+            {alertConfig.show && (
+                <Alert
+                    message={alertConfig.message}
+                    type={alertConfig.type}
+                    setClose={() => setAlertConfig(prev => ({ ...prev, show: false }))}
+                    buttons={alertConfig.buttons}
+                />
             )}
-            
-            <Button 
-                variant="custom"
-                fullWidth
-                rounded
-                size="lg"
-                className={styles.button}
-                onClick={handleSubmit}
-                disabled={disabled || isSubmitting}
-            > 
-                {isSubmitting ? 'جاري الإرسال...' : 'إتمام عملية الشراء'}
-            </Button>
-        </div>
+
+            <div className={styles.SummaryContainer}>
+                <span className={styles.title}>
+                    ملخص الطلب
+                </span>
+
+                {/* Row 1: Product count */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
+                    <span className={styles.details}>عدد المنتجات ({numberItems})</span>
+                    <span className={`${styles.price} notranslate`}>ج{Total}</span>
+                </div>
+
+                {/* Row 2: Delivery */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
+                    <span className={styles.details}>التوصيل</span>
+                    <span className={`${styles.price} notranslate`}>ج{delivery}</span>
+                </div>
+
+                {/* Row 3: Total */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px', borderTop: '1px solid var(--black16)', width: '100%' }}>
+                    <span className={styles.details} style={{ fontWeight: 600 }}>الإجمالي</span>
+                    <span className={`${styles.price} notranslate`} style={{ fontWeight: 600, fontSize: '18px' }}>ج{Total + delivery}</span>
+                </div>
+
+                {error && (
+                    <div className={styles.error} style={{
+                        color: '#dc3545',
+                        fontSize: '14px',
+                        marginTop: '10px',
+                        padding: '8px',
+                        backgroundColor: '#f8d7da',
+                        borderRadius: '4px'
+                    }}>
+                        {error}
+                    </div>
+                )}
+                
+                <Button 
+                    variant="custom"
+                    fullWidth
+                    rounded
+                    size="lg"
+                    className={styles.button}
+                    onClick={handleSubmit}
+                    disabled={disabled || isSubmitting}
+                > 
+                    {isSubmitting ? 'جاري الإرسال...' : 'إتمام عملية الشراء'}
+                </Button>
+            </div>
+        </>
     )
 }
 

@@ -100,7 +100,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   }, [productId, refreshReviews]);
 
   const handleAddReview = async () => {
-    if (!newReview.description.trim() || submitting || hasUserReview || !authToken) {
+    if (!newReview.description?.trim() || submitting || hasUserReview || !authToken) {
       if (!authToken) {
         console.log('❌ No auth token found');
         setError('يرجى تسجيل الدخول أولاً لإضافة تقييم');
@@ -508,7 +508,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
                 ) : (
                   <button
                     onClick={handleAddReview}
-                    disabled={submitting || !newReview.description.trim()}
+                    disabled={submitting || !newReview.description?.trim()}
                     className="bg-primary text-white px-6 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 transition-colors"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

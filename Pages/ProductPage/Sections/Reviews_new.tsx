@@ -70,7 +70,7 @@ const Reviews: React.FC<Props> = ({ productId, token }) => {
   }, [productId, refreshReviews]);
 
   const handleAddReview = async () => {
-    if (!newReview.description.trim() || submitting || hasUserReview || !token) return;
+    if (!newReview.description?.trim() || submitting || hasUserReview || !token) return;
 
     try {
       setSubmitting(true);
@@ -389,7 +389,7 @@ const Reviews: React.FC<Props> = ({ productId, token }) => {
                 ) : (
                   <button
                     onClick={handleAddReview}
-                    disabled={submitting || !newReview.description.trim()}
+                    disabled={submitting || !newReview.description?.trim()}
                     className="bg-primary text-white px-6 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 transition-colors"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

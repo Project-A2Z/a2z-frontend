@@ -8,9 +8,9 @@ import { Button } from './../../../components/UI/Buttons/Button';
 import Input from './../../../components/UI/Inputs/Input'; 
 import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
+import Alert from '@/components/UI/Alert/alert';
 import styles from './../auth.module.css';
 import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
-import Facebook from 'next-auth/providers/facebook';
 import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
 
 export default function LoginForm() {
@@ -29,6 +29,11 @@ export default function LoginForm() {
     password?: string;
     general?: string;
   }>({});
+
+  // Alert states
+  const [showVerificationAlert, setShowVerificationAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   // ✅ FIXED: Better session handling with proper token storage including expiry
   useEffect(() => {
@@ -94,7 +99,8 @@ export default function LoginForm() {
         errorMessage = 'تم إلغاء تسجيل الدخول';
       }
       
-      setErrors({ general: errorMessage });
+      setAlertMessage(errorMessage);
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   }, [searchParams]);
@@ -157,7 +163,8 @@ export default function LoginForm() {
       const response = await AuthService.login(formData);
       
       if (!response.status || response.status !== 'success') {
-        alert('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+        setAlertMessage('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+        setShowVerificationAlert(true);
       } else {
         router.push('/');
       }
@@ -165,14 +172,11 @@ export default function LoginForm() {
       console.error('Login error:', error);
       
       if (error instanceof AuthError) {
-        setErrors({
-          general: error.message
-        });
+        setAlertMessage(error.message);
       } else {
-        setErrors({
-          general: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
-        });
+        setAlertMessage('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
       }
+      setShowErrorAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -192,17 +196,15 @@ export default function LoginForm() {
       
       if (result?.error) {
         console.error('Google sign-in error:', result.error);
-        setErrors({
-          general: 'فشل تسجيل الدخول عبر Google'
-        });
+        setAlertMessage('فشل تسجيل الدخول عبر Google');
+        setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
       console.error('Google login error:', error);
-      setErrors({
-        general: 'حدث خطأ في تسجيل الدخول عبر Google'
-      });
+      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   };
@@ -221,17 +223,15 @@ export default function LoginForm() {
       
       if (result?.error) {
         console.error('Facebook sign-in error:', result.error);
-        setErrors({
-          general: 'فشل تسجيل الدخول عبر Facebook'
-        });
+        setAlertMessage('فشل تسجيل الدخول عبر Facebook');
+        setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
       console.error('Facebook login error:', error);
-      setErrors({
-        general: 'حدث خطأ في تسجيل الدخول عبر Facebook'
-      });
+      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   };
@@ -372,6 +372,38 @@ export default function LoginForm() {
           </div>
         </div>
       </div>
+
+      {/* Verification Alert */}
+      {showVerificationAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowVerificationAlert(false)}
+          buttons={[
+            { 
+              label: 'حسناً', 
+              onClick: () => setShowVerificationAlert(false), 
+              variant: 'primary' 
+            }
+          ]}
+          type="info"
+        />
+      )}
+
+      {/* Error Alert */}
+      {showErrorAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowErrorAlert(false)}
+          buttons={[
+            { 
+              label: 'إغلاق', 
+              onClick: () => setShowErrorAlert(false), 
+              variant: 'danger' 
+            }
+          ]}
+          type="error"
+        />
+      )}
     </>
   );
 }
