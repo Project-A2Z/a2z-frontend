@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'; // FIXED: Import for server-side caching
 import apiClient from './client';
 
 export interface Review {
@@ -56,6 +57,92 @@ export interface ApiResponse<T> {
   length?: number;
 }
 
+// Client-side cache for rate limiting prevention
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+class ClientCache<T> {
+  private cache = new Map<string, CacheEntry<T>>();
+
+  set(key: string, data: T, ttlMs: number = 5 * 60 * 1000) { // 5 minutes default
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: ttlMs
+    });
+  }
+
+  get(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    if (Date.now() - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+
+  delete(key: string) {
+    this.cache.delete(key);
+  }
+
+  // Clean expired entries - public method
+  public cleanup() {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
+
+// Global cleanup - run every 5 minutes
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    productsCache.cleanup();
+    productDetailCache.cleanup();
+    console.log('🧹 Products cache cleanup completed');
+  }, 5 * 60 * 1000); // 5 minutes
+}
+
+// Global cache instances
+const productsCache = new ClientCache<ApiResponse<Product[]>>();
+const productDetailCache = new ClientCache<ApiResponse<Product>>();
+
+// Generate cache key for products list
+function getProductsCacheKey(filters: ProductFilters): string {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      if (typeof value === 'object') {
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          if (subValue !== undefined) {
+            params.append(`${key}[${subKey}]`, String(subValue));
+          }
+        });
+      } else {
+        params.append(key, String(value));
+      }
+    }
+  });
+  return `products:${params.toString()}`;
+}
+
+// Generate cache key for product detail
+function getProductCacheKey(id: string): string {
+  return `product:${id}`;
+}
+
 async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let lastError: any;
   for (let i = 0; i < maxRetries; i++) {
@@ -100,8 +187,9 @@ async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): P
   throw new Error(`Request failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
 }
 
-export const productService = {
-  async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
+// FIXED: Cached version of getProducts (5 minutes TTL to avoid rate limiting)
+const getProductsCached = unstable_cache(
+  async (filters: ProductFilters) => {
     try {
       const request = () => apiClient.get<ApiResponse<Product[]>>('/products', {
         params: filters
@@ -131,16 +219,56 @@ export const productService = {
       throw error;
     }
   },
+  ['products'], // Cache key prefix
+  {
+    revalidate: 300, // 5 minutes (in seconds)
+    tags: ['products'] // For invalidation if needed
+  }
+);
+
+export const productService = {
+  async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
+    // Client-side cache check first
+    const cacheKey = getProductsCacheKey(filters);
+    const cachedData = productsCache.get(cacheKey);
+
+    if (cachedData) {
+      console.log(`✅ Using cached products data (${filters.page || 1})`);
+      return cachedData;
+    }
+
+    // FIXED: Use cached version to avoid rate limiting
+    const result = await getProductsCached(filters);
+
+    // Store in client cache for future requests
+    productsCache.set(cacheKey, result);
+
+    return result;
+  },
 
   async getProductById(id: string): Promise<ApiResponse<Product>> {
-    try {
-      if (!id) {
-        throw new Error('Product ID is required');
-      }
+    if (!id) {
+      throw new Error('Product ID is required');
+    }
 
+    // Client-side cache check first
+    const cacheKey = getProductCacheKey(id);
+    const cachedData = productDetailCache.get(cacheKey);
+
+    if (cachedData) {
+      console.log(`✅ Using cached product data for ${id}`);
+      return cachedData;
+    }
+
+    try {
       console.log(`🔄 Fetching product ${id}...`);
       const request = () => apiClient.get<ApiResponse<Product>>(`/products/${id}`);
-      return await fetchWithRetry(() => request().then(res => res.data));
+      const result = await fetchWithRetry(() => request().then(res => res.data));
+
+      // Store in client cache for future requests
+      productDetailCache.set(cacheKey, result, 10 * 60 * 1000); // 10 minutes for product details
+
+      return result;
     } catch (error: any) {
       console.error(`❌ Error fetching product ${id}:`, error.message);
 
@@ -175,7 +303,18 @@ export const productService = {
     }
   },
 
+  // Method to clear cache when needed (e.g., after mutations)
+  clearCache() {
+    productsCache.clear();
+    productDetailCache.clear();
+    console.log('🧹 Products cache cleared');
+  },
 
+  // Method to clear specific cache entry
+  clearProductCache(id: string) {
+    productDetailCache.delete(getProductCacheKey(id));
+    console.log(`🧹 Product cache cleared for ${id}`);
+  }
 };
 
 export default productService;

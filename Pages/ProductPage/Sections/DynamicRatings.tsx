@@ -17,11 +17,12 @@ const Ratings: React.FC<Props> = ({
   onDistributionClick,
   interactive = true
 }) => {
+  const [hoveredStars, setHoveredStars] = useState<number | null>(null);
+  const [selectedStars, setSelectedStars] = useState<number | null>(null);
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredStars, setHoveredStars] = useState<number | null>(null);
-  const [selectedStars, setSelectedStars] = useState<number | null>(null);
 
   // Fetch reviews when component mounts or productId changes
   useEffect(() => {
@@ -32,18 +33,17 @@ const Ratings: React.FC<Props> = ({
 
         const response = await reviewService.getProductReviews(productId, {
           limit: 100, // Get enough reviews for distribution
-          sort: 'date',
-          order: 'desc'
+          sort: 'date'
         });
 
         if (response.status === 'success') {
           setReviews(response.data.reviews);
         } else {
-          setError('Failed to load reviews');
+          setError('فشل في تحميل التقييمات');
         }
       } catch (err) {
         console.error('Error fetching reviews:', err);
-        setError('Failed to load reviews');
+        setError('فشل في تحميل التقييمات');
       } finally {
         setLoading(false);
       }
