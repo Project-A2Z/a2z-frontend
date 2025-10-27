@@ -9,7 +9,7 @@ import Input from './../../../components/UI/Inputs/Input';
 import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
 import styles from './../auth.module.css';
-import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login';
+import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
 import Facebook from 'next-auth/providers/facebook';
 import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
 
@@ -30,7 +30,7 @@ export default function LoginForm() {
     general?: string;
   }>({});
 
-  // ✅ FIXED: Better session handling with proper token storage
+  // ✅ FIXED: Better session handling with proper token storage including expiry
   useEffect(() => {
     const handleSocialAuth = async () => {
       // Wait a bit for session to fully load
@@ -39,37 +39,39 @@ export default function LoginForm() {
       // Check localStorage first
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('user_data');
+      const storedExpiry = localStorage.getItem('token_expiry');
       
-      if (storedToken && storedUser) {
-        console.log('✅ Auth data already in localStorage, redirecting...');
-        router.push('/');
-        return;
+      // ✅ FIX: Only redirect if we have valid token with expiry
+      if (storedToken && storedUser && storedExpiry) {
+        const isValid = Date.now() < parseInt(storedExpiry, 10);
+        if (isValid) {
+          console.log('✅ Valid auth data in localStorage, redirecting...');
+          router.push('/');
+          return;
+        } else {
+          console.log('⚠️ Token expired in localStorage, clearing...');
+          UserStorage.removeUser();
+        }
       }
       
       // Check if we have a session with backend token
       if (session?.backendToken && session?.user?.backendUser) {
         console.log('✅ Backend token found in session, saving to localStorage...');
         
-        // Save to localStorage
-        localStorage.setItem('auth_token', session.backendToken);
-        localStorage.setItem('user_data', JSON.stringify(session.user.backendUser));
+        // ✅ FIX: Use UserStorage methods to save with expiry tracking
+        UserStorage.saveUser(session.user.backendUser);
+        UserStorage.saveToken(session.backendToken); // This now includes expiry
         
+        // Start token monitoring
+        AuthService.startTokenMonitoring(() => {
+          console.log('🔒 Token expired - redirecting to login');
+          router.push('/login');
+        });
         
-        
-        console.log('✅ Token saved, redirecting to home...');
+        console.log('✅ Token saved with expiry, redirecting to home...');
         router.push('/');
         return;
       }
-
-      // ✅ FIXED: Better error handling - only show error if authenticated but missing token
-      // if (status === 'authenticated' && session && !session.backendToken && !storedToken) {
-      //   console.error('❌ Session authenticated but no backend token found');
-      //   console.log('Session data:', session);
-      //   setErrors({
-      //     general: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
-      //   });
-      //   setIsLoading(false);
-      // }
     };
 
     // Only run when status is not loading
@@ -365,9 +367,6 @@ export default function LoginForm() {
                 </button>
 
                 <FacebookBtn className={styles.socialButton} onSuccess={handleFacebookLogin}/>
-
-
-                
               </div>
             </div>
           </div>
