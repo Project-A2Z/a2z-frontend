@@ -1,19 +1,14 @@
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import Link from 'next/link';
 import { Product, productService, ProductFilters } from '@/services/api/products';
 
-// Define props to accept currentProductId and minPriceGte
-interface RelatedProductsProps {
-  currentProductId?: string;
-  minPriceGte?: number;
-}
-
-const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, minPriceGte }) => {
+const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProductId }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: true,
@@ -63,50 +58,37 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
   };
 
   // Fetch related products from API
-  useEffect(() => {
-    const fetchRelatedProducts = async () => {
-      try {
-        setLoading(true);
+  const fetchRelatedProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Build filters using the ProductFilters interface
-        const filters: ProductFilters = {
-          limit: 12,
-          // Remove fields filter to ensure we get all product data including images
-          // fields: '_id,name,category,price,imageList,stockType,stockQty',
-        };
+      // Build filters using the ProductFilters interface
+      const filters: ProductFilters = {
+        limit: 8, // Limit to 8 related products
+        ...(currentProductId && { excludeId: currentProductId }) // Exclude current product if ID is provided
+      };
 
-        // Add price filter if minPriceGte is provided
-        if (typeof minPriceGte === 'number' && !isNaN(minPriceGte)) {
-          filters.price = { gte: minPriceGte };
-        }
+      // Use the product service to fetch products
+      const response = await productService.getProducts(filters);
 
-        // Use the centralized product fetching with state management
-        const response = await productService.getProducts(filters);
-
-        // Extract products array from response
-        const productsList = Array.isArray(response.data) ? response.data : [];
-        if (productsList.length === 0) {
-          // Silent fallback; no log needed
-        }
-
-        // Filter out current product if currentProductId is provided
-        const filteredProducts = currentProductId
-          ? productsList.filter((p: Product) => p._id !== currentProductId)
-          : productsList;
-
-        setProducts(filteredProducts.slice(0, 8));
-      } catch (error) {
-        // Silent error handling; no log needed in production
-
-        // Fallback to empty array on error
+      if (response && Array.isArray(response.data)) {
+        setProducts(response.data);
+      } else {
         setProducts([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching related products:', err);
+      setError('حدث خطأ أثناء تحميل المنتجات المتعلقة');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentProductId]);
 
+  useEffect(() => {
     fetchRelatedProducts();
-  }, [currentProductId, minPriceGte]);
+  }, [fetchRelatedProducts]);
 
   useEffect(() => {
     start();
@@ -122,8 +104,17 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ currentProductId, min
     );
   }
 
+  if (error) {
+    return (
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
   if (products.length === 0) {
-    return null;
+    return null; // Don't show the section if no products are available
   }
 
   return (

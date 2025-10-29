@@ -1,5 +1,7 @@
-import { unstable_cache } from 'next/cache'; // FIXED: Import for server-side caching
 import apiClient from './client';
+
+// Check if we're on the server or client
+const isServer = typeof window === 'undefined';
 
 export interface Review {
   _id: string;
@@ -187,44 +189,34 @@ async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): P
   throw new Error(`Request failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
 }
 
-// FIXED: Cached version of getProducts (5 minutes TTL to avoid rate limiting)
-const getProductsCached = unstable_cache(
-  async (filters: ProductFilters) => {
-    try {
-      const request = () => apiClient.get<ApiResponse<Product[]>>('/products', {
-        params: filters
-      });
-      return await fetchWithRetry(() => request().then(res => res.data));
-    } catch (error: any) {
-      console.error('API fetch failed:', error.message);
-
-      // For rate limiting, provide graceful fallback
-      if (error.message?.includes('temporarily unavailable')) {
-        return {
-          status: 'error',
-          data: [],
-          message: 'Products temporarily unavailable due to high demand. Please try again in a few minutes.'
-        };
-      }
-
-      // For network errors, provide fallback
-      if (error.message?.includes('fetch failed') || error.message?.includes('ENOTFOUND') || error.message?.includes('timeout')) {
-        return {
-          status: 'error',
-          data: [],
-          message: 'Unable to load products. Please check your connection and try again.'
-        };
-      }
-
-      throw error;
+// Client-side version of getProducts
+const getProductsClient = async (filters: ProductFilters) => {
+  try {
+    const request = () => apiClient.get('/products', { params: filters });
+    return await fetchWithRetry(() => request().then(res => res.data));
+  } catch (error: any) {
+    console.error('API fetch failed:', error.message);
+    // For rate limiting, provide graceful fallback
+    if (error.message?.includes('temporarily unavailable')) {
+      return {
+        status: 'error',
+        data: [],
+        message: 'Products temporarily unavailable due to high demand. Please try again in a few minutes.'
+      };
     }
-  },
-  ['products'], // Cache key prefix
-  {
-    revalidate: 300, // 5 minutes (in seconds)
-    tags: ['products'] // For invalidation if needed
+    // For network errors, provide fallback
+    if (error.message?.includes('fetch failed') || 
+        error.message?.includes('ENOTFOUND') || 
+        error.message?.includes('timeout')) {
+      return {
+        status: 'error',
+        data: [],
+        message: 'Unable to load products. Please check your connection and try again.'
+      };
+    }
+    throw error;
   }
-);
+};
 
 export const productService = {
   async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
@@ -237,12 +229,11 @@ export const productService = {
       return cachedData;
     }
 
-    // FIXED: Use cached version to avoid rate limiting
-    const result = await getProductsCached(filters);
+    // Use client-side fetch
+    const result = await getProductsClient(filters);
 
-    // Store in client cache for future requests
-    productsCache.set(cacheKey, result);
-
+    // Store in client cache for future requests (5 minutes TTL)
+    productsCache.set(cacheKey, result, 5 * 60 * 1000);
     return result;
   },
 
