@@ -1,5 +1,6 @@
 // services/auth/register.ts
 import { API_ENDPOINTS, Api } from './../api/endpoints';
+import AlertHandler from './../Utils/alertHandler';
 
 // Types
 export interface RegisterRequest {
@@ -56,14 +57,12 @@ const STORAGE_KEYS = {
 
 // User state management class
 class UserStorage {
-  // Save user data to localStorage
   static saveUser(user: User): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     }
   }
 
-  // Get user data from localStorage
   static getUser(): User | null {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem(STORAGE_KEYS.USER);
@@ -72,7 +71,6 @@ class UserStorage {
     return null;
   }
 
-  // Remove user data from localStorage - FIXED THE TYPO
   static removeUser(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.USER);
@@ -81,7 +79,6 @@ class UserStorage {
     }
   }
 
-  // Update user data
   static updateUser(updates: Partial<User>): void {
     const currentUser = this.getUser();
     if (currentUser) {
@@ -90,19 +87,16 @@ class UserStorage {
     }
   }
 
-  // Check if user is logged in
   static isLoggedIn(): boolean {
     return this.getUser() !== null;
   }
 
-  // Save auth token
   static saveToken(token: string): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.TOKEN, token);
     }
   }
 
-  // Get auth token
   static getToken(): string | null {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(STORAGE_KEYS.TOKEN);
@@ -110,14 +104,12 @@ class UserStorage {
     return null;
   }
 
-  // Save refresh token
   static saveRefreshToken(token: string): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
     }
   }
 
-  // Get refresh token
   static getRefreshToken(): string | null {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -126,10 +118,8 @@ class UserStorage {
   }
 }
 
-// API Configuration
 const API_BASE_URL = Api;
 
-// Enhanced Register function with better error handling
 export const registerUser = async (userData: RegisterRequest): Promise<RegisterResponse> => {
   console.log('🚀 Starting registration...');
   console.log('🔧 API Base URL:', API_BASE_URL);
@@ -155,7 +145,6 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
     console.log('📊 Response ok:', response.ok);
     console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
 
-    // Try to parse response data
     let data;
     const contentType = response.headers.get('content-type');
     console.log('📋 Content-Type:', contentType);
@@ -166,7 +155,6 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       } else {
         const textData = await response.text();
         console.log('📄 Non-JSON response:', textData);
-        // Try to parse as JSON anyway (sometimes servers send JSON without proper header)
         try {
           data = JSON.parse(textData);
         } catch {
@@ -182,7 +170,6 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
     if (!response.ok) {
       console.log('❌ Registration failed with status:', response.status);
       
-      // Enhanced error handling for different status codes
       let errorMessage = 'Registration failed';
       let errorDetails = {};
 
@@ -193,7 +180,6 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
             errorMessage = data.message || data.error || 'Invalid request data';
             errorDetails = data.errors || data.validationErrors || data.data || {};
             
-            // Common 400 error scenarios
             if (typeof data === 'string') {
               errorMessage = data;
             } else if (data.message) {
@@ -226,7 +212,6 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       console.log('🔍 Final error message:', errorMessage);
       console.log('🔍 Error details:', errorDetails);
 
-      // Create comprehensive error object
       const error = new Error(errorMessage) as any;
       error.status = response.status;
       error.response = {
@@ -240,16 +225,13 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       throw error;
     }
 
-    // Success case
     console.log('✅ Registration successful!');
     console.log('🎉 Response data:', data);
 
-    // Save user data to localStorage after successful registration
     if (data.status === 'success' && data.data?.user) {
       console.log('💾 Saving user data to localStorage...');
       UserStorage.saveUser(data.data.user);
       
-      // If there's a token in the response, save it
       if (data.data.token) {
         console.log('🔑 Saving auth token...');
         UserStorage.saveToken(data.data.token);
@@ -265,25 +247,21 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
   } catch (error: any) {
     console.error('❌ Registration error:', error);
     
-    // Handle network errors
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       const networkError = new Error('Network error - please check your internet connection') as any;
       networkError.original = error;
       throw networkError;
     }
     
-    // Re-throw the error so it can be handled by the component
     throw error;
   }
 };
 
-// Debug function to test API connectivity
 export const debugApiConnection = async (): Promise<any> => {
   console.log('🔍 Testing API connection...');
   
   try {
-    // Test basic connectivity
-    const healthUrl = `${API_BASE_URL}/health`; // Adjust this endpoint as needed
+    const healthUrl = `${API_BASE_URL}/health`;
     console.log('🏥 Testing health endpoint:', healthUrl);
     
     const response = await fetch(healthUrl, {
@@ -315,7 +293,6 @@ export const debugApiConnection = async (): Promise<any> => {
   }
 };
 
-// Test the registration endpoint specifically
 export const debugRegistrationEndpoint = async (): Promise<any> => {
   console.log('🔍 Testing registration endpoint...');
   
@@ -374,8 +351,6 @@ interface VerifyEmailResponse {
   status: string;
   success: boolean;
   message: string;
-  
-  // data?: any;
 }
 
 export const verifyEmail = async (
@@ -384,7 +359,6 @@ export const verifyEmail = async (
 ): Promise<VerifyEmailResponse> => {
   try {
     const url = `${Api}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`;
-
     console.log('url : ' , url)
     
     const requestBody: VerifyEmailRequest = {
@@ -392,7 +366,6 @@ export const verifyEmail = async (
       OTP: code,
       type: "EmailVerification"
     };
-
     console.log('requestBody : ' , requestBody)
 
     const response = await fetch(url, {
@@ -403,7 +376,6 @@ export const verifyEmail = async (
       body: JSON.stringify(requestBody),
     });
 
-    // Parse response data first
     let data;
     try {
       data = await response.json();
@@ -417,14 +389,11 @@ export const verifyEmail = async (
     if (!response.ok) {
       console.error('❌ Verification request failed with status:', response.status);
       
-      // Even if the HTTP status is not ok, check if the data contains success info
-      // Some APIs return success data with non-200 status codes
       if (data && (data.success === true || data.status === 'success')) {
         console.log('✅ Email verification successful despite HTTP status!');
         return data;
       }
       
-      // Handle different error status codes
       let errorMessage = 'Email verification failed';
       
       switch (response.status) {
@@ -444,11 +413,9 @@ export const verifyEmail = async (
       throw new Error(errorMessage);
     }
 
-    // Check for successful verification in response data
     if (data.success === true || data.status === 'success') {
       console.log('✅ Email verification successful!');
       
-      // Update user verification status in localStorage if user data is returned
       if (data.data?.user) {
         UserStorage.updateUser({ isVerified: true });
       }
@@ -461,18 +428,10 @@ export const verifyEmail = async (
 
   } catch (error) {
     console.error('❌ Email verification failed:', error);
-    
-    
-    
-    // Return a standardized error response for caught errors
     throw error;
   }
 };
 
-// interface ResendVerificationCodeRequest {
-//   email: string;
-// }
-// Types for the API request and response
 interface ResendOTPRequest {
   email: string;
   type: 'EmailVerification' | 'passwordReset';
@@ -483,7 +442,6 @@ interface ResendOTPResponse {
   message: string;
 }
 
-// Custom error class for API errors
 class APIError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -491,24 +449,13 @@ class APIError extends Error {
   }
 }
 
-// Configuration for different environments
 const API_CONFIG = {
-  // Use production URL - change this based on your environment
   baseUrl: 'https://a2z-backend.fly.dev',
-  // For development, you might want to use: 'http://localhost:3000'
   endpoints: {
     primary: '/app/v1/users/OTPResend'
   }
 };
 
-/**
- * Resends verification code to the specified email
- * @param email - The email address to send the verification code to
- * @param type - Type of verification (defaults to 'EmailVerification')
- * @param baseUrl - Optional custom base URL (defaults to localhost:3000)
- * @returns Promise<ResendOTPResponse>
- * @throws APIError when the request fails
- */
 export async function resendVerificationCode(
   email: string,
   type: 'EmailVerification' | 'passwordReset' = 'EmailVerification',
@@ -519,7 +466,6 @@ export async function resendVerificationCode(
     type
   };
 
-  // Try the primary endpoint first
   const primaryUrl = `${baseUrl}${API_CONFIG.endpoints.primary}`;
   
   try {
@@ -537,7 +483,6 @@ export async function resendVerificationCode(
     console.log(`📡 Response status: ${response.status}`);
     
     if (!response.ok) {
-      // Log the response for debugging
       let errorText = '';
       try {
         errorText = await response.text();
@@ -561,7 +506,6 @@ export async function resendVerificationCode(
       throw error;
     }
     
-    // Handle network errors or other fetch errors
     console.error(`🚨 Network error:`, error);
     throw new APIError(
       0,
@@ -570,10 +514,6 @@ export async function resendVerificationCode(
   }
 }
 
-/**
- * Debug function to test different endpoint variations
- * Use this to find the correct endpoint if the main function fails
- */
 export async function debugEndpoints(
   email: string,
   type: 'EmailVerification' | 'passwordReset' = 'EmailVerification',
@@ -583,7 +523,7 @@ export async function debugEndpoints(
   
   console.log(`🔍 Testing different endpoint variations for: ${email}`);
   
-  const allEndpoints = [API_CONFIG.endpoints.primary, '/users/OTPResend', '/auth/OTPResend', '/users/OTPResendCode' ];
+  const allEndpoints = [API_CONFIG.endpoints.primary, '/users/OTPResend', '/auth/OTPResend', '/users/OTPResendCode'];
   
   for (const endpoint of allEndpoints) {
     const url = `${baseUrl}${endpoint}`;
@@ -615,65 +555,39 @@ export async function debugEndpoints(
   console.log(`\n❌ None of the endpoints worked. Check your server configuration.`);
 }
 
-// Usage examples:
-
-// Example 1: Resend email verification code
-async function example1() {
-  try {
-    const result = await resendVerificationCode('ahmed@example.com');
-    console.log('Success:', result.message);
-  } catch (error) {
-    if (error instanceof APIError) {
-      console.error(`API Error (${error.status}):`, error.message);
-    } else {
-      console.error('Unexpected error:', error);
-    }
-  }
-}
-
-// Example 2: Resend password reset code
-async function example2() {
-  try {
-    const result = await resendVerificationCode('user@example.com', 'passwordReset');
-    console.log('Password reset code sent:', result.message);
-  } catch (error) {
-    if (error instanceof APIError) {
-      console.error(`Failed to send password reset code:`, error.message);
-    }
-  }
-}
-
-// Example 3: With async/await in a React component or similar
+// Updated handleResendCode with AlertHandler
 export const handleResendCode = async (userEmail: string) => {
   try {
     const response = await resendVerificationCode(userEmail, 'EmailVerification');
     
-    // Show success message to user
-    alert(response.message);
+    // Use AlertHandler instead of native alert
+    AlertHandler.success(response.message || 'تم إرسال رمز التحقق بنجاح');
     
     return response;
   } catch (error) {
     if (error instanceof APIError) {
-      // Handle different error status codes
+      let errorMessage = 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى';
+      
       switch (error.status) {
         case 400:
-          alert('Invalid email address or request');
+          errorMessage = 'عنوان بريد إلكتروني غير صالح';
           break;
         case 404:
-          alert('User not found');
+          errorMessage = 'المستخدم غير موجود';
           break;
         case 429:
-          alert('Too many requests. Please wait before trying again');
+          errorMessage = 'طلبات كثيرة جداً. يرجى الانتظار قبل المحاولة مرة أخرى';
           break;
-        default:
-          alert('Failed to send verification code. Please try again');
       }
+      
+      AlertHandler.error(errorMessage);
     } else {
-      alert('Network error. Please check your connection');
+      AlertHandler.error('خطأ في الشبكة. يرجى التحقق من اتصالك');
     }
     throw error;
   }
 };
+
 // Utility functions
 export const getCurrentUser = (): User | null => {
   return UserStorage.getUser();
@@ -700,10 +614,8 @@ export const isEmailVerified = (): boolean => {
   return user?.isVerified || false;
 };
 
-// Export the UserStorage class for direct usage if needed
 export { UserStorage };
 
-// Default export
 export default {
   registerUser,
   verifyEmail,

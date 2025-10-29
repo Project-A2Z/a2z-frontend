@@ -1,77 +1,144 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import MessageComponent from './Messages';
 import styles from './Messages.module.css';
+import { MessageCircle } from 'lucide-react';
+import { 
+  fetchProfileMessages, 
+  ProfileMessages,
+  ProfileMessagesError,
+  sortMessagesByDate,
+  filterMessagesByStatus
+} from './../../../../../services/profile/messages';
 
-// Static test data
-const messagesData = [
-  {
-    id: 1,
-    message: "أود أن أستفسر عن مشكلة واجهتها وأحتاج مساعدتكم في حل هذه المشكلة",
-    timestamp: "20/2/2025",
-    isCurrentUser: true,
-    senderName: "شكرا لكم",
-    response: "شكرا لتواصلك معنا تحت خدماتنا المتاحة في حل هذه المشكلة في أقرب وقت ممكن",
-    responseTimestamp: "25/2/2025",
-    responseSenderName: "فريق المساندة"
-  },
-  {
-    id: 2,
-    message: "مرحبا، أريد الاستفسار عن خدماتكم المتاحة",
-    timestamp: "18/2/2025",
-    isCurrentUser: true,
-    senderName: "أحمد محمد"
-    // No response - will show like Image 2
-  },
-  {
-    id: 3,
-    message: "هل يمكنني الحصول على مزيد من المعلومات حول الأسعار؟",
-    timestamp: "15/2/2025",
-    isCurrentUser: true,
-    senderName: "سارة أحمد",
-    response: "بالطبع، يمكنك الاطلاع على قائمة الأسعار في الموقع الإلكتروني أو التواصل مع قسم المبيعات",
-    responseTimestamp: "15/2/2025",
-    responseSenderName: "فريق خدمة العملاء"
-  },
-  {
-    id: 4,
-    message: "شكرا لكم على الخدمة الممتازة",
-    timestamp: "12/2/2025",
-    isCurrentUser: true,
-    senderName: "محمد علي"
-    // No response
-  },
-  {
-    id: 5,
-    message: "أحتاج مساعدة في تفعيل حسابي الجديد",
-    timestamp: "10/2/2025",
-    isCurrentUser: true,
-    senderName: "فاطمة حسن",
-    response: "مرحبا فاطمة، لتفعيل حسابك يرجى اتباع الرابط المرسل إلى بريدك الإلكتروني",
-    responseTimestamp: "10/2/2025",
-    responseSenderName: "الدعم التقني"
-  }
-];
+type MessageStatus = 'open' | 'closed' | 'pending';
 
 const MessagesList = () => {
+  const [messages, setMessages] = useState<ProfileMessages[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<MessageStatus | 'all'>('all');
+
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  const loadMessages = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const data = await fetchProfileMessages();
+      
+      // Sort by newest first
+      const sortedMessages = sortMessagesByDate(data, 'desc');
+      setMessages(sortedMessages);
+    } catch (err) {
+      if (err instanceof ProfileMessagesError) {
+        setError(err.message);
+      } else {
+        setError('حدث خطأ أثناء تحميل الرسائل. يرجى المحاولة مرة أخرى.');
+      }
+      console.error('Error loading messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getFilteredMessages = () => {
+    if (filterStatus === 'all') {
+      return messages;
+    }
+    return filterMessagesByStatus(messages, filterStatus);
+  };
+
+  const filteredMessages = getFilteredMessages();
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={styles.messagesContainer}>
+        <div className={styles.pageTitle}>رسائلك</div>
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>جاري تحميل الرسائل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={styles.messagesContainer}>
+        <div className={styles.pageTitle}>رسائلك</div>
+        <div className={styles.errorContainer}>
+          <p className={styles.errorMessage}>{error}</p>
+          <button 
+            onClick={loadMessages} 
+            className={styles.retryButton}
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state - No messages at all
+  if (messages.length === 0) {
+    return (
+      <div className={styles.messagesContainer}>
+        <div className={styles.pageTitle}>رسائلك</div>
+        
+        <div className={styles.emptyStateContainer}>
+          <MessageCircle size={64} className={styles.emptyIcon} strokeWidth={1.5} />
+          <p className={styles.emptyStateText}>لا يوجد رسائل</p>
+          
+        </div>
+      </div>
+    );
+  }
+
+
+  
+
   return (
     <div className={styles.messagesContainer}>
       {/* Page Title */}
       <div className={styles.pageTitle}>رسائلك</div>
-      
+
+    
+
+      {/* Messages List */}
       <div className={styles.messagesList}>
-        {messagesData.map((messageData) => (
+        {filteredMessages.map((messageData) => (
           <MessageComponent
-            key={messageData.id}
-            message={messageData.message}
-            timestamp={messageData.timestamp}
-            isCurrentUser={messageData.isCurrentUser}
-            senderName={messageData.senderName}
-            response={messageData.response}
-            responseTimestamp={messageData.responseTimestamp}
-            responseSenderName={messageData.responseSenderName}
+            key={messageData._id}
+            message={messageData.description}
+            timestamp={formatDate(messageData.createdAt)}
+            isCurrentUser={true}
+            senderName={messageData.name}
+            response={messageData.reply || null}
+            responseTimestamp={messageData.reply ? formatDate(messageData.updatedAt) : null}
+            responseSenderName={messageData.reply ? 'فريق الدعم' : null}
           />
         ))}
       </div>
+
+      
     </div>
   );
 };

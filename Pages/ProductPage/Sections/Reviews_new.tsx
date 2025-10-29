@@ -92,12 +92,16 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   }, [productId, refreshReviews]);
 
   const handleAddReview = async () => {
+<<<<<<< HEAD
     if (!newReview.description.trim() || submitting || hasUserReview || !authToken) {
       if (!authToken) {
         setError('يرجى تسجيل الدخول أولاً لإضافة تقييم');
       }
       return;
     }
+=======
+    if (!newReview.description?.trim() || submitting || hasUserReview || !token) return;
+>>>>>>> bcac2fd6e0f8dc7fe91cdb2fdfbbe974a97c5283
 
     try {
       setSubmitting(true);

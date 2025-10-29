@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { Button } from '../../../Buttons/Button';
 import Input from '../../../Inputs/Input';
 import styles from './info.module.css';
+import Alert, { AlertButton } from '../../../Alert/alert';
 
 import { UpdateProfileData , updateUserProfile} from '@/services/profile/profile';
-import { u } from 'motion/react-client';
 
-// Icons (you can replace these with your preferred icon library)
+// Icons
 const EditIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -62,6 +62,38 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
+  // Alert state
+  const [alertConfig, setAlertConfig] = useState<{
+    show: boolean;
+    message: string;
+    type: 'warning' | 'error' | 'info' | 'success';
+    buttons: AlertButton[];
+  }>({
+    show: false,
+    message: '',
+    type: 'info',
+    buttons: []
+  });
+
+  const showAlert = (
+    message: string, 
+    type: 'warning' | 'error' | 'info' | 'success' = 'info',
+    buttons?: AlertButton[]
+  ) => {
+    setAlertConfig({
+      show: true,
+      message,
+      type,
+      buttons: buttons || [
+        {
+          label: 'حسناً',
+          onClick: () => setAlertConfig(prev => ({ ...prev, show: false })),
+          variant: 'primary'
+        }
+      ]
+    });
+  };
+
   const handleInputChange = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -83,21 +115,21 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
     const newErrors: Partial<FormData> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = 'الاسم الأول مطلوب';
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = 'الاسم الأخير مطلوب';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'البريد الإلكتروني مطلوب';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'يرجى إدخال بريد إلكتروني صحيح';
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = 'رقم الهاتف مطلوب';
     } else {
       // Remove all non-digit characters except the + sign
       const cleanPhone = formData.phone.replace(/[^\d+]/g, '');
@@ -106,7 +138,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
       
       if (!isValidFormat) {
-        newErrors.phone = 'Please enter a valid phone number (must start with 01 or +201)';
+        newErrors.phone = 'يرجى إدخال رقم هاتف صحيح (يجب أن يبدأ برقم 01 أو +201)';
       }
     }
 
@@ -131,15 +163,14 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
         phoneNumber: formData.phone,
       };
       
-      // Simulate API call
       await updateUserProfile(payload);
       
-      // Handle successful submission
       console.log('Form submitted:', formData);
-      alert('Account details updated successfully!');
+      showAlert('تم تحديث بيانات الحساب بنجاح!', 'success');
+      setEdit(false);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Failed to update account details. Please try again.');
+      showAlert('فشل تحديث بيانات الحساب. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -151,128 +182,139 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
   };
 
   return (
-    <div className={styles.container_form}>
-      <div className={styles.formCard}>
-        <h1 className={styles.title}>تفاصيل الحساب</h1>
-        
-        <form  className={styles.form}>
-          <div className={styles.inputGroup}>
-            <Input
-              type="text"
-              placeholder="الاسم الأول"
-              value={formData.firstName}
-              onChange={handleInputChange('firstName')}
-              icon={<UserIcon />}
-              onIconClick={() => handleIconClick('firstName')}
-              error={!!errors.firstName}
-              readOnly={!edit}
-              className={styles.input}
-            />
-            {errors.firstName && (
-              <span className={styles.errorText}>{errors.firstName}</span>
-            )}
-          </div>
+    <>
+      {/* Custom Alert */}
+      {alertConfig.show && (
+        <Alert
+          message={alertConfig.message}
+          type={alertConfig.type}
+          setClose={() => setAlertConfig(prev => ({ ...prev, show: false }))}
+          buttons={alertConfig.buttons}
+        />
+      )}
 
-          <div className={styles.inputGroup}>
-            <Input
-              type="text"
-              placeholder="الاسم الأخير"
-              value={formData.lastName}
-              onChange={handleInputChange('lastName')}
-              icon={<UserIcon />}
-              onIconClick={() => handleIconClick('lastName')}
-              error={!!errors.lastName}
-              readOnly={!edit}
-              className={styles.input}
-            />
-            {errors.lastName && (
-              <span className={styles.errorText}>{errors.lastName}</span>
-            )}
-          </div>
+      <div className={styles.container_form}>
+        <div className={styles.formCard}>
+          <h1 className={styles.title}>تفاصيل الحساب</h1>
+          
+          <form  className={styles.form}>
+            <div className={styles.inputGroup}>
+              <Input
+                type="text"
+                placeholder="الاسم الأول"
+                value={formData.firstName}
+                onChange={handleInputChange('firstName')}
+                icon={<UserIcon />}
+                onIconClick={() => handleIconClick('firstName')}
+                error={!!errors.firstName}
+                readOnly={!edit}
+                className={styles.input}
+              />
+              {errors.firstName && (
+                <span className={styles.errorText}>{errors.firstName}</span>
+              )}
+            </div>
 
-          <div className={styles.inputGroup}>
-            <Input
-              type="email"
-              placeholder="البريد الإليكتروني"
-              value={formData.email}
-              onChange={handleInputChange('email')}
-              icon={<MailIcon />}
-              onIconClick={() => handleIconClick('email')}
-              error={!!errors.email}
-              readOnly={!edit}
-              className={styles.input}
-            />
-            {errors.email && (
-              <span className={styles.errorText}>{errors.email}</span>
-            )}
-          </div>
+            <div className={styles.inputGroup}>
+              <Input
+                type="text"
+                placeholder="الاسم الأخير"
+                value={formData.lastName}
+                onChange={handleInputChange('lastName')}
+                icon={<UserIcon />}
+                onIconClick={() => handleIconClick('lastName')}
+                error={!!errors.lastName}
+                readOnly={!edit}
+                className={styles.input}
+              />
+              {errors.lastName && (
+                <span className={styles.errorText}>{errors.lastName}</span>
+              )}
+            </div>
 
-          <div className={styles.inputGroup}>
-            <Input
-              type="tel"
-              placeholder="رقم الهاتف"
-              value={formData.phone}
-              onChange={handleInputChange('phone')}
-              icon={<PhoneIcon />}
-              onIconClick={() => handleIconClick('phone')}
-              error={!!errors.phone}
-              readOnly={!edit}
-              className={styles.input}
-            />
-            {errors.phone && (
-              <span className={styles.errorText}>{errors.phone}</span>
-            )}
-          </div>
+            <div className={styles.inputGroup}>
+              <Input
+                type="email"
+                placeholder="البريد الإليكتروني"
+                value={formData.email}
+                onChange={handleInputChange('email')}
+                icon={<MailIcon />}
+                onIconClick={() => handleIconClick('email')}
+                error={!!errors.email}
+                readOnly={!edit}
+                className={styles.input}
+              />
+              {errors.email && (
+                <span className={styles.errorText}>{errors.email}</span>
+              )}
+            </div>
 
-          <div className={styles.buttonGroup}>
-            {edit ? (
-                <>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        size="lg"
-                        state={isLoading ? 'loading' : 'default'}
-                        loadingText="جاري التحديث..."
-                        leftIcon={<EditIcon />}
-                        fullWidth
-                        className={styles.submitButton}
-                        rounded ={true}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            if (validateForm()) {
-                                handleSubmit(e);
-                                setEdit(false);
-                            }
-                        }}
-                        >
-                        حفظ 
-                    </Button>
-                </>
-               ) : ( 
-                <>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        size="lg"
-                        state={isLoading ? 'loading' : 'default'}
-                        loadingText="جاري التحديث..."
-                        leftIcon={<EditIcon />}
-                        fullWidth
-                        className={styles.submitButton}
-                        rounded ={true}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setEdit(true);
-                        }}
-                        >
-                        تعديل البيانات
-                    </Button>
-                </>
-                 )}
-          </div>
-        </form>
+            <div className={styles.inputGroup}>
+              <Input
+                type="tel"
+                placeholder="رقم الهاتف"
+                value={formData.phone}
+                onChange={handleInputChange('phone')}
+                icon={<PhoneIcon />}
+                onIconClick={() => handleIconClick('phone')}
+                error={!!errors.phone}
+                readOnly={!edit}
+                className={styles.input}
+              />
+              {errors.phone && (
+                <span className={styles.errorText}>{errors.phone}</span>
+              )}
+            </div>
+
+            <div className={styles.buttonGroup}>
+              {edit ? (
+                  <>
+                      <Button
+                          type="button"
+                          variant="primary"
+                          size="lg"
+                          state={isLoading ? 'loading' : 'default'}
+                          loadingText="جاري التحديث..."
+                          leftIcon={<EditIcon />}
+                          fullWidth
+                          className={styles.submitButton}
+                          rounded ={true}
+                          onClick={(e) => {
+                              e.preventDefault();
+                              if (validateForm()) {
+                                  handleSubmit(e);
+                              }
+                          }}
+                          >
+                          حفظ 
+                      </Button>
+                  </>
+                 ) : ( 
+                  <>
+                      <Button
+                          type="button"
+                          variant="primary"
+                          size="lg"
+                          state={isLoading ? 'loading' : 'default'}
+                          loadingText="جاري التحديث..."
+                          leftIcon={<EditIcon />}
+                          fullWidth
+                          className={styles.submitButton}
+                          rounded ={true}
+                          onClick={(e) => {
+                              e.preventDefault();
+                              setEdit(true);
+                          }}
+                          >
+                          تعديل البيانات
+                      </Button>
+                  </>
+                   )}
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -8,9 +8,9 @@ import { Button } from './../../../components/UI/Buttons/Button';
 import Input from './../../../components/UI/Inputs/Input'; 
 import Logo from './../../../public/icons/logo.svg';
 import Background from './../../../components/UI/Background/Background';
+import Alert from '@/components/UI/Alert/alert';
 import styles from './../auth.module.css';
-import { AuthService, AuthError, LoginCredentials } from './../../../services/auth/login';
-import Facebook from 'next-auth/providers/facebook';
+import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
 import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
 
 export default function LoginForm() {
@@ -30,7 +30,12 @@ export default function LoginForm() {
     general?: string;
   }>({});
 
-  // ✅ FIXED: Better session handling with proper token storage
+  // Alert states
+  const [showVerificationAlert, setShowVerificationAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  // ✅ FIXED: Better session handling with proper token storage including expiry
   useEffect(() => {
     const handleSocialAuth = async () => {
       // Wait a bit for session to fully load
@@ -39,37 +44,39 @@ export default function LoginForm() {
       // Check localStorage first
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('user_data');
+      const storedExpiry = localStorage.getItem('token_expiry');
       
-      if (storedToken && storedUser) {
-        console.log('✅ Auth data already in localStorage, redirecting...');
-        router.push('/');
-        return;
+      // ✅ FIX: Only redirect if we have valid token with expiry
+      if (storedToken && storedUser && storedExpiry) {
+        const isValid = Date.now() < parseInt(storedExpiry, 10);
+        if (isValid) {
+          console.log('✅ Valid auth data in localStorage, redirecting...');
+          router.push('/');
+          return;
+        } else {
+          console.log('⚠️ Token expired in localStorage, clearing...');
+          UserStorage.removeUser();
+        }
       }
       
       // Check if we have a session with backend token
       if (session?.backendToken && session?.user?.backendUser) {
         console.log('✅ Backend token found in session, saving to localStorage...');
         
-        // Save to localStorage
-        localStorage.setItem('auth_token', session.backendToken);
-        localStorage.setItem('user_data', JSON.stringify(session.user.backendUser));
+        // ✅ FIX: Use UserStorage methods to save with expiry tracking
+        UserStorage.saveUser(session.user.backendUser);
+        UserStorage.saveToken(session.backendToken); // This now includes expiry
         
+        // Start token monitoring
+        AuthService.startTokenMonitoring(() => {
+          console.log('🔒 Token expired - redirecting to login');
+          router.push('/login');
+        });
         
-        
-        console.log('✅ Token saved, redirecting to home...');
+        console.log('✅ Token saved with expiry, redirecting to home...');
         router.push('/');
         return;
       }
-
-      // ✅ FIXED: Better error handling - only show error if authenticated but missing token
-      // if (status === 'authenticated' && session && !session.backendToken && !storedToken) {
-      //   console.error('❌ Session authenticated but no backend token found');
-      //   console.log('Session data:', session);
-      //   setErrors({
-      //     general: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.'
-      //   });
-      //   setIsLoading(false);
-      // }
     };
 
     // Only run when status is not loading
@@ -92,7 +99,8 @@ export default function LoginForm() {
         errorMessage = 'تم إلغاء تسجيل الدخول';
       }
       
-      setErrors({ general: errorMessage });
+      setAlertMessage(errorMessage);
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   }, [searchParams]);
@@ -155,7 +163,8 @@ export default function LoginForm() {
       const response = await AuthService.login(formData);
       
       if (!response.status || response.status !== 'success') {
-        alert('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+        setAlertMessage('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+        setShowVerificationAlert(true);
       } else {
         router.push('/');
       }
@@ -163,14 +172,11 @@ export default function LoginForm() {
       console.error('Login error:', error);
       
       if (error instanceof AuthError) {
-        setErrors({
-          general: error.message
-        });
+        setAlertMessage(error.message);
       } else {
-        setErrors({
-          general: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'
-        });
+        setAlertMessage('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
       }
+      setShowErrorAlert(true);
     } finally {
       setIsLoading(false);
     }
@@ -190,17 +196,15 @@ export default function LoginForm() {
       
       if (result?.error) {
         console.error('Google sign-in error:', result.error);
-        setErrors({
-          general: 'فشل تسجيل الدخول عبر Google'
-        });
+        setAlertMessage('فشل تسجيل الدخول عبر Google');
+        setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
       console.error('Google login error:', error);
-      setErrors({
-        general: 'حدث خطأ في تسجيل الدخول عبر Google'
-      });
+      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   };
@@ -219,17 +223,15 @@ export default function LoginForm() {
       
       if (result?.error) {
         console.error('Facebook sign-in error:', result.error);
-        setErrors({
-          general: 'فشل تسجيل الدخول عبر Facebook'
-        });
+        setAlertMessage('فشل تسجيل الدخول عبر Facebook');
+        setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
       console.error('Facebook login error:', error);
-      setErrors({
-        general: 'حدث خطأ في تسجيل الدخول عبر Facebook'
-      });
+      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
+      setShowErrorAlert(true);
       setIsLoading(false);
     }
   };
@@ -365,14 +367,43 @@ export default function LoginForm() {
                 </button>
 
                 <FacebookBtn className={styles.socialButton} onSuccess={handleFacebookLogin}/>
-
-
-                
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Verification Alert */}
+      {showVerificationAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowVerificationAlert(false)}
+          buttons={[
+            { 
+              label: 'حسناً', 
+              onClick: () => setShowVerificationAlert(false), 
+              variant: 'primary' 
+            }
+          ]}
+          type="info"
+        />
+      )}
+
+      {/* Error Alert */}
+      {showErrorAlert && (
+        <Alert
+          message={alertMessage}
+          setClose={() => setShowErrorAlert(false)}
+          buttons={[
+            { 
+              label: 'إغلاق', 
+              onClick: () => setShowErrorAlert(false), 
+              variant: 'danger' 
+            }
+          ]}
+          type="error"
+        />
+      )}
     </>
   );
 }

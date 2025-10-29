@@ -91,6 +91,7 @@
 }
 
 /* Middle Section - Search */
+/* Allow dropdown to overflow from mid section */
 .mid {
   display: flex;
   align-items: center;
@@ -98,9 +99,11 @@
   flex: 1;
   max-width: 600px;
   margin: 0 24px;
-  height: 100%; /* Take full height of parent */
+  height: 100%;
+  position: relative; /* Changed from absolute */
+  overflow: visible; /* ADD THIS */
+  z-index: 101; /* Ensure it's above header background */
 }
-
 /* Left Section - User Actions */
 .left {
   display: flex;

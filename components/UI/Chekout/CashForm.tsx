@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react"
 import styles from './Style.module.css'
 import { Button } from './../Buttons/Button' 
-import Input from './../Inputs/Input' 
+import Input from './../Inputs/Input'
+import Alert, { AlertButton } from './../Alert/alert'
 
 interface FormData {
     opId: string;
@@ -24,15 +25,25 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     const [receiptFile, setReceiptFile] = useState<File | undefined>(undefined)
     const [paymentWith, setPaymentWith] = useState('')
     const [isConfirmed, setIsConfirmed] = useState(false)
-    // const [paymentMethod , setPaymentMethod] = useState('');
+    
+    // Alert state
+    const [alertConfig, setAlertConfig] = useState<{
+        show: boolean;
+        message: string;
+        type: 'warning' | 'error' | 'info' | 'success';
+        buttons: AlertButton[];
+    }>({
+        show: false,
+        message: '',
+        type: 'info',
+        buttons: []
+    })
 
     // Calculate price based on payment method
     useEffect(() => {
         if (way === 'cash') {
-            // 15% deposit for cash payment
             setPrice(Math.round(Total * 15 / 100))
         } else {
-            // Full amount for online payment
             setPrice(Total)
         }
     }, [way, Total])
@@ -46,16 +57,13 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                 paymentWith: paymentWith || undefined
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isConfirmed, transactionId, transactionDate, receiptFile, paymentWith, way]);
+    }, [isConfirmed, transactionId, transactionDate, receiptFile, paymentWith, way, onDataChange]);
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file) {
-            // Store the actual file object
             setReceiptFile(file)
             
-            // Create preview URL
             const reader = new FileReader()
             reader.onload = (e) => {
                 const result = e.target?.result as string
@@ -65,17 +73,34 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         }
     }
 
+    const showAlert = (message: string, type: 'warning' | 'error' | 'info' | 'success' = 'warning') => {
+        setAlertConfig({
+            show: true,
+            message,
+            type,
+            buttons: [
+                {
+                    label: 'حسناً',
+                    onClick: () => setAlertConfig(prev => ({ ...prev, show: false })),
+                    variant: 'primary'
+                }
+            ]
+        })
+    }
+
     const handleSubmit = () => {
-        if (!transactionId || !transactionDate || !receiptFile) {
-            alert('يرجى ملء جميع الحقول المطلوبة')
-            return
-        }
+         console.log('way:', way, 'paymentWith:', paymentWith)
 
-        if (way === 'online' && !paymentWith) {
-            alert('يرجى اختيار وسيلة الدفع')
-            return
-        }
+    if (!transactionId || !transactionDate || !receiptFile) {
+        showAlert('يرجى ملء جميع الحقول المطلوبة', 'warning')
+        return
+    }
 
+    if (!paymentWith) {
+        console.log('❗ Missing paymentWith')
+        showAlert('يرجى اختيار وسيلة الدفع', 'warning')
+        return
+    }
         setIsConfirmed(true)
         
         console.log('✅ Form confirmed:', {
@@ -93,7 +118,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         setIsConfirmed(false)
     }
 
-    // Check if form is complete
     const isFormComplete = transactionId && 
                           transactionDate && 
                           receiptFile && 
@@ -101,6 +125,16 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
 
     return (
         <>
+            {/* Custom Alert */}
+            {alertConfig.show && (
+                <Alert
+                    message={alertConfig.message}
+                    type={alertConfig.type}
+                    setClose={() => setAlertConfig(prev => ({ ...prev, show: false }))}
+                    buttons={alertConfig.buttons}
+                />
+            )}
+
             {/* Form Container */}
             <div className={styles.formContainer}>
                 <div className={styles.priceSection}>
@@ -115,26 +149,22 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                 </div>
 
                 <div className={styles.formFields}>
-                  
-                    {(
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>
-                                وسيلة الدفع <span style={{color: 'red'}}>*</span>
-                            </label>
-                            <select
-                                value={paymentWith}
-                                onChange={(e) => setPaymentWith(e.target.value)}
-                                className={styles.selectInput}
-                                disabled={isConfirmed}
-                            >
-                                <option value="">اختر وسيلة الدفع</option>
-                                <option value="instaPay">InstaPay (انستا باي)</option>
-                                <option value="vodafone">Vodafone Cash (فودافون كاش)</option>
-                            </select>
-                        </div>
-                    )}
+                    <div className={styles.fieldGroup}>
+                        <label className={styles.label}>
+                            وسيلة الدفع <span style={{color: 'red'}}>*</span>
+                        </label>
+                        <select
+                            value={paymentWith}
+                            onChange={(e) => setPaymentWith(e.target.value)}
+                            className={styles.selectInput}
+                            disabled={isConfirmed}
+                        >
+                            <option value="">اختر وسيلة الدفع</option>
+                            <option value="instaPay">InstaPay (انستا باي)</option>
+                            <option value="vodafone">Vodafone Cash (فودافون كاش)</option>
+                        </select>
+                    </div>
 
-                    {/* Transaction ID */}
                     <div className={styles.fieldGroup}>
                         <label className={styles.label}>
                             رقم المعاملة <span style={{color: 'red'}}>*</span>
@@ -147,9 +177,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             disabled={isConfirmed}
                         />
                     </div>
-                    
 
-                    {/* Transaction Date */}
                     <div className={styles.fieldGroup}>
                         <label className={styles.label}>
                             التاريخ <span style={{color: 'red'}}>*</span>
@@ -160,12 +188,10 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             onChange={(e) => setTransactionDate(e.target.value)}
                             className={styles.customInput}
                             disabled={isConfirmed}
-                            max={new Date().toISOString().split('T')[0]} // Don't allow future dates
+                            max={new Date().toISOString().split('T')[0]}
                         />
                     </div>
 
-
-                    {/* Receipt Image Upload */}
                     <div className={styles.fieldGroup}>
                         <label className={styles.label}>
                             صورة الإيصال <span style={{color: 'red'}}>*</span>
@@ -220,7 +246,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className={styles.buttonContainer}>
                     {!isConfirmed ? (
                         <Button
@@ -260,11 +285,9 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                     )}
                 </div>
 
-                {/* Payment Information Section */}
                 <div className={styles.paymentInfo}>
                     <div className={styles.title}> معلومات التحويل</div>
                     <div className={styles.infoGrid}>
-                        {/* Vodafone Cash */}
                         <div className={styles.infoSection}>
                             <div className={styles.infoSectionTitle}>
                                  للدفع باستخدام محفظة فودافون كاش
@@ -275,7 +298,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             </div>
                         </div>
                         
-                        {/* InstaPay */}
                         <div className={styles.infoSection}>
                             <div className={styles.infoSectionTitle}>
                                 للدفع باستخدام انستا باي
@@ -290,7 +312,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             </div>
                         </div>
                         
-                        {/* Bank Transfer */}
                         <div className={styles.infoSection}>
                             <div className={styles.infoSectionTitle}>
                                 للدفع باستخدام حساب بنكي
@@ -313,8 +334,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             </div>
                         </div>
                     </div>
-                    
-                    
                 </div>
             </div>
         </>

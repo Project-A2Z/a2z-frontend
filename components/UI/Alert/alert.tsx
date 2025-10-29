@@ -1,41 +1,50 @@
 "use client";
 import React from 'react';
+import { Button, ButtonVariant } from './../Buttons/Button';
 import styles from './alert.module.css';
 
+export interface AlertButton {
+  label: string;
+  onClick: () => void;
+  variant?: ButtonVariant;
+}
+
 interface AlertProps {
-  isOpen: boolean;
-  title: string;
   message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  confirmText?: string;
-  cancelText?: string;
+  setClose: () => void;
+  buttons: AlertButton[];
   type?: 'warning' | 'error' | 'info' | 'success';
 }
 
 const Alert: React.FC<AlertProps> = ({
-  isOpen,
-  title,
   message,
-  onConfirm,
-  onCancel,
-  confirmText = 'موافق',
-  cancelText = 'إلغاء',
-  type = 'warning'
+  setClose,
+  buttons,
+  type = 'info'
 }) => {
-  if (!isOpen) return null;
+  const getTypeIcon = () => {
+    switch (type) {
+      case 'warning':
+        return '⚠️';
+      case 'error':
+        return '❌';
+      case 'info':
+        return 'ℹ️';
+      case 'success':
+        return '✅';
+      default:
+        return 'ℹ️';
+    }
+  };
 
   return (
-    <div className={styles.overlay}>
-      <div className={`${styles.alert} ${styles[type]}`}>
+    <div className={styles.overlay} onClick={setClose}>
+      <div 
+        className={`${styles.alert} ${styles[type]}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
-          <div className={styles.icon}>
-            {type === 'warning' && '⚠️'}
-            {type === 'error' && '❌'}
-            {type === 'info' && 'ℹ️'}
-            {type === 'success' && '✅'}
-          </div>
-          <h3 className={styles.title}>{title}</h3>
+          <div className={styles.icon}>{getTypeIcon()}</div>
         </div>
 
         <div className={styles.body}>
@@ -43,18 +52,16 @@ const Alert: React.FC<AlertProps> = ({
         </div>
 
         <div className={styles.footer}>
-          <button
-            className={`${styles.button} ${styles.cancelButton}`}
-            onClick={onCancel}
-          >
-            {cancelText}
-          </button>
-          <button
-            className={`${styles.button} ${styles.confirmButton}`}
-            onClick={onConfirm}
-          >
-            {confirmText}
-          </button>
+          {buttons.map((button, index) => (
+            <Button
+              key={index}
+              onClick={button.onClick}
+              variant={button.variant || 'primary'}
+              size="sm"
+            >
+              {button.label}
+            </Button>
+          ))}
         </div>
       </div>
     </div>

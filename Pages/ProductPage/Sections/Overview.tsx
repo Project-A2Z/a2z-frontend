@@ -1,14 +1,14 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useFavorites } from '@/services/favorites/FavoritesContext';
-import { Minus, Plus } from 'lucide-react';
-import { CustomImage } from '@/components/UI/Image/Images';
-import { Button } from '@/components/UI/Buttons';
-import { cartService } from '@/services/api/cart';
-import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/utils/auth';
-import Alert from '@/components/UI/Alert/alert';
+import React, { useState, useEffect } from "react";
+import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { useFavorites } from "@/services/favorites/FavoritesContext";
+import { Minus, Plus } from "lucide-react";
+import { CustomImage } from "@/components/UI/Image/Images";
+import { Button } from "@/components/UI/Buttons";
+import { cartService } from "@/services/api/cart";
+import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/utils/auth";
+import Alert from "@/components/UI/Alert/alert";
 
 type Props = {
   id: number | string;
@@ -20,10 +20,21 @@ type Props = {
   ratingCount: number;
   category: string;
   stockQty: number;
-  stockType: 'unit' | 'kg' | 'ton';
+  stockType: "unit" | "kg" | "ton";
 };
 
-const Overview: React.FC<Props> = ({ id, title, description, price, imageList, rating, ratingCount, category, stockQty, stockType }) => {
+const Overview: React.FC<Props> = ({
+  id,
+  title,
+  description,
+  price,
+  imageList,
+  rating,
+  ratingCount,
+  category,
+  stockQty,
+  stockType,
+}) => {
   const { toggle, isFavorite } = useFavorites();
   const loved = isFavorite(id);
   const [quantity, setQuantity] = useState(1);
@@ -36,9 +47,9 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
   const router = useRouter();
 
   const unitOptions = {
-    unit: 'قطعة',
-    kg: 'كيلو',
-    ton: 'طن',
+    unit: "قطعة",
+    kg: "كيلو",
+    ton: "طن",
   };
 
   const handleUnitSelect = (key: keyof typeof unitOptions) => {
@@ -53,7 +64,9 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + imageList.length) % imageList.length);
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + imageList.length) % imageList.length
+    );
     setIsManualNavigation(true);
     // Reset manual navigation after 5 seconds
     setTimeout(() => setIsManualNavigation(false), 5000);
@@ -82,17 +95,17 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
     const handleKeyDown = (event: KeyboardEvent) => {
       if (imageList.length <= 1) return;
 
-      if (event.key === 'ArrowLeft') {
+      if (event.key === "ArrowLeft") {
         event.preventDefault();
         prevImage();
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.key === "ArrowRight") {
         event.preventDefault();
         nextImage();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [imageList.length]); // Re-run effect when imageList changes
 
   const handleAddToCart = async () => {
@@ -100,16 +113,16 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
     try {
       setIsAdding(true);
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
       // Send selected unit to cart
       await cartService.addToCart({
         productId: String(id),
         quantity,
-        stockType: selectedUnit // Include the selected stockType
+        // stockType: selectedUnit, // Include the selected stockType
       });
-      router.push('/cart');
+      router.push("/cart");
     } finally {
       setIsAdding(false);
     }
@@ -117,7 +130,7 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
 
   const handleFavoriteClick = () => {
     // Check if user is authenticated using UserStorage
-    const { UserStorage } = require('@/services/auth/login');
+    const { UserStorage } = require("@/services/auth/login");
     const user = UserStorage.getUser();
 
     if (!user) {
@@ -137,7 +150,9 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
 
   const handleLoginConfirm = () => {
     setShowLoginAlert(false);
-    router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+    router.push(
+      "/login?redirect=" + encodeURIComponent(window.location.pathname)
+    );
   };
 
   const handleLoginCancel = () => {
@@ -194,9 +209,13 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
                     onClick={() => goToImage(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 hover:scale-125 ${
                       index === currentImageIndex
-                        ? 'bg-white scale-125 animate-pulse'
-                        : 'bg-white/50 hover:bg-white/75'
-                    } ${!isHovering && !isManualNavigation && imageList.length > 1 ? 'animate-pulse' : ''}`}
+                        ? "bg-white scale-125 animate-pulse"
+                        : "bg-white/50 hover:bg-white/75"
+                    } ${
+                      !isHovering && !isManualNavigation && imageList.length > 1
+                        ? "animate-pulse"
+                        : ""
+                    }`}
                     aria-label={`Go to image ${index + 1}`}
                   />
                 ))}
@@ -207,35 +226,57 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
 
         <div className="lg:col-span-8 w-full">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">{title}</h1>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">
+              {title}
+            </h1>
             <button
-              aria-label={loved ? 'remove from wishlist' : 'add to wishlist'}
+              aria-label={loved ? "remove from wishlist" : "add to wishlist"}
               onClick={handleFavoriteClick}
-              className={`p-2 rounded-full border hover:border-primary transition-colors ${loved ? 'text-primary border-primary' : 'text-black60'}`}
+              className={`p-2 rounded-full border hover:border-primary transition-colors ${
+                loved ? "text-primary border-primary" : "text-black60"
+              }`}
             >
-              <Heart className={`w-5 h-5 ${loved ? 'fill-current' : ''}`} />
+              <Heart className={`w-5 h-5 ${loved ? "fill-current" : ""}`} />
             </button>
           </div>
 
           <div className="flex flex-col items-start justify-between gap-4 mb-3">
-            <span className="px-3 py-1 rounded-full text-xs border text-sm hover:border-primary hover:text-primary">{category || 'غير محدد'}</span>
-            <div className="text-2xl font-extrabold text-primary">{price.toLocaleString()} ج.م</div>
+            <span className="px-3 py-1 rounded-full text-xs border text-sm hover:border-primary hover:text-primary">
+              {category || "غير محدد"}
+            </span>
+            <div className="text-2xl font-extrabold text-primary">
+              {price.toLocaleString()} ج.م
+            </div>
             <span
               className={`px-3 py-1 rounded-full text-xs border ${
-                stockQty > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'
+                stockQty > 0
+                  ? "bg-green-100 text-green-700 border-green-200"
+                  : "bg-red-100 text-red-700 border-red-200"
               }`}
             >
-              {stockQty > 0 ? 'متوفر في المخزون' : 'غير متوفر'}
+              {stockQty > 0 ? "متوفر في المخزون" : "غير متوفر"}
             </span>
           </div>
 
           {description && (
-            <p className="text-black60 text-sm sm:text-base leading-relaxed mb-3">{description}</p>
+            <p className="text-black60 text-sm sm:text-base leading-relaxed mb-3">
+              {description}
+            </p>
           )}
 
-          <div className="flex items-center gap-2 text-amber-500 mb-4" aria-label={`التقييم ${rating} من 5`}>
+          <div
+            className="flex items-center gap-2 text-amber-500 mb-4"
+            aria-label={`التقييم ${rating} من 5`}
+          >
             {Array.from({ length: 5 }).map((_, i) => (
-              <span key={i} className={i < Math.round(rating) ? 'text-amber-500' : 'text-black16'}>★</span>
+              <span
+                key={i}
+                className={
+                  i < Math.round(rating) ? "text-amber-500" : "text-black16"
+                }
+              >
+                ★
+              </span>
             ))}
             <span className="text-black60 text-sm">({ratingCount})</span>
           </div>
@@ -245,11 +286,13 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
               {Object.entries(unitOptions).map(([key, label]) => (
                 <button
                   key={key}
-                  onClick={() => handleUnitSelect(key as keyof typeof unitOptions)} // Make clickable and dynamic
+                  onClick={() =>
+                    handleUnitSelect(key as keyof typeof unitOptions)
+                  } // Make clickable and dynamic
                   className={`w-[90px] h-[35px] px-4 py-1 rounded-full border text-sm transition-colors ${
-                    selectedUnit === key 
-                      ? 'border-primary text-primary bg-primary/10' // Active style
-                      : 'hover:border-primary hover:text-primary hover:bg-gray-50' // Hover style
+                    selectedUnit === key
+                      ? "border-primary text-primary bg-primary/10" // Active style
+                      : "hover:border-primary hover:text-primary hover:bg-gray-50" // Hover style
                   }`}
                 >
                   {label}
@@ -269,7 +312,9 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
                 <span className="min-w-[1.5rem] text-center">{quantity}</span>
                 <button
                   aria-label="increase"
-                  onClick={() => setQuantity((prev) => Math.min(stockQty, prev + 1))}
+                  onClick={() =>
+                    setQuantity((prev) => Math.min(stockQty, prev + 1))
+                  }
                   className="p-1 rounded-full hover:bg-black8"
                 >
                   <Plus className="w-4 h-4" />
@@ -292,16 +337,25 @@ const Overview: React.FC<Props> = ({ id, title, description, price, imageList, r
       </div>
 
       {/* Login Alert */}
-      <Alert
-        isOpen={showLoginAlert}
-        title="تسجيل الدخول مطلوب"
-        message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
-        onConfirm={handleLoginConfirm}
-        onCancel={handleLoginCancel}
-        confirmText="تسجيل الدخول"
-        cancelText="إلغاء"
-        type="warning"
-      />
+      {showLoginAlert && (
+        <Alert
+          message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
+          setClose={handleLoginCancel}
+          buttons={[
+            {
+              label: "إلغاء",
+              onClick: handleLoginCancel,
+              variant: "ghost",
+            },
+            {
+              label: "تسجيل الدخول",
+              onClick: handleLoginConfirm,
+              variant: "primary",
+            },
+          ]}
+          type="warning"
+        />
+      )}
     </section>
   );
 };

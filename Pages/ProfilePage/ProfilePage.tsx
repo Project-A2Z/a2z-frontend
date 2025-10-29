@@ -11,12 +11,11 @@ import AccountList from "@/components/UI/Profile/RightSection/List";
 import EditProfileSection from "./sections/EditProfile/EditProfileSection";
 
 // Services
-import {
-  getCurrentUser,
-  isUserAuthenticated,
-  logoutUser,
-} from "./../../services/auth/login";
-import { ProfileService, UserProfile } from "./../../services/profile/profile";
+import { getCurrentUser } from "./../../services/auth/login";
+import { ProfileService } from "./../../services/profile/profile";
+
+// Hooks
+import { useAuthMonitor } from "./../../components/providers/useAuthMonitor";
 
 // Icons
 import Heart from "./../../public/icons/HeartProf.svg";
@@ -48,6 +47,7 @@ export interface User {
   reviewsCount?: number;
   OrderCount?: number;
 }
+
 const ProfilePage = () => {
   const router = useRouter();
   const [box, setBox] = useState("");
@@ -57,7 +57,26 @@ const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // 🔥 USE THE AUTH MONITOR HOOK - Handles all token expiration logic
+  const { 
+    isAuthenticated, 
+    warningMessage, 
+    isTokenExpiringSoon,
+    remainingMinutes 
+  } = useAuthMonitor({
+    redirectOnExpiry: true,
+    redirectUrl: '/login',
+    showWarning: true,
+    warningThresholdMinutes: 5,
+    onTokenExpired: () => {
+      console.log('🔒 Session expired, cleaning up...');
+      setError('انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
+    },
+    onTokenExpiringSoon: (minutes : number) => {
+      console.log(`⚠️ Token expiring in ${minutes} minutes`);
+    }
+  });
 
   /**
    * Fetch user profile data from API
@@ -66,13 +85,6 @@ const ProfilePage = () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Check if user is authenticated
-      if (!isUserAuthenticated()) {
-        console.log("❌ User not authenticated, redirecting to login...");
-        router.push("/login");
-        return;
-      }
 
       console.log("🔄 Fetching user profile from API...");
 
@@ -83,7 +95,7 @@ const ProfilePage = () => {
         const profileData = response.data.user;
         console.log("✅ Profile data fetched successfully:", profileData);
 
-        // Convert UserProfile to User type for component compatibility
+        // Convert UserProfile to User type
         const userData: User = {
           _id: profileData._id,
           firstName: profileData.firstName,
@@ -96,7 +108,6 @@ const ProfilePage = () => {
           role: profileData.role,
           createdAt: profileData.createdAt,
           updatedAt: profileData.updatedAt,
-
           favoriteItems: profileData?.favoriteItems || 0,
           reviewsCount: profileData.reviewsCount || 0,
           OrderCount: profileData.OrderCount || 0,
@@ -110,31 +121,26 @@ const ProfilePage = () => {
     } catch (error: any) {
       console.error("❌ Error fetching profile:", error);
 
-      // Handle specific errors
+      // Handle 401 - Token expired (will be handled by useAuthMonitor)
       if (error.statusCode === 401) {
-        // Token expired or invalid - redirect to login
-        console.log("🔒 Authentication failed, redirecting to login...");
-        setError("انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.");
-
-        // Clear auth data and redirect after a delay
-        setTimeout(() => {
-          logoutUser();
-          router.push("/login");
-        }, 2000);
-      } else if (error.isNetworkError) {
+        console.log("🔒 Authentication failed (401) - token expired");
+        setError("انتهت صلاحية الجلسة. جاري تسجيل الخروج...");
+        return; // Don't use fallback data
+      } 
+      
+      // Handle network errors
+      if (error.isNetworkError) {
         setError("خطأ في الاتصال بالإنترنت. يرجى التحقق من اتصالك.");
       } else {
         setError(error.message || "حدث خطأ أثناء جلب بيانات الملف الشخصي");
       }
 
-      // Fallback to localStorage data if API fails (not auth error)
-      if (error.statusCode !== 401) {
-        console.log("ℹ️ Falling back to localStorage data...");
-        const localUser = getCurrentUser();
-        if (localUser) {
-          setUser(localUser);
-          console.log("💾 Using cached user data from localStorage");
-        }
+      // Fallback to localStorage for non-auth errors
+      console.log("ℹ️ Falling back to localStorage data...");
+      const localUser = getCurrentUser();
+      if (localUser) {
+        setUser(localUser);
+        console.log("💾 Using cached user data from localStorage");
       }
     } finally {
       setIsLoading(false);
@@ -145,36 +151,15 @@ const ProfilePage = () => {
    * Load user data on component mount
    */
   useEffect(() => {
-    // Initial load - check localStorage first for instant display
+    // Load cached data for instant display
     const localUser = getCurrentUser();
     if (localUser) {
       setUser(localUser);
       console.log("💾 Loaded cached user data from localStorage");
     }
 
-    // Then fetch fresh data from API
+    // Fetch fresh data from API
     fetchUserProfile();
-  }, []);
-
-  /**
-   * Listen for storage changes (when user logs in/out in another tab)
-   */
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "user_data" || e.key === "auth_token") {
-        console.log("🔄 Storage changed, reloading profile...");
-
-        if (isUserAuthenticated()) {
-          fetchUserProfile();
-        } else {
-          setUser(null);
-          router.push("/login");
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   /**
@@ -241,7 +226,7 @@ const ProfilePage = () => {
     );
   }
 
-  // Show error state
+  // Show error state (only if no user data available)
   if (error && !user) {
     return (
       <div className={styles.profile_page}>
@@ -260,6 +245,14 @@ const ProfilePage = () => {
   return (
     <div className={styles.profile_page}>
       {/* <Header /> */}
+
+      {/* Session warning banner - Shows when token is expiring soon */}
+      {warningMessage && (
+        <div className={`${styles.error_banner} ${styles.warning_banner}`}>
+          <span>⚠️ {warningMessage}</span>
+          <button onClick={() => {}}>✕</button>
+        </div>
+      )}
 
       {/* Error notification banner */}
       {error && user && (
@@ -286,7 +279,6 @@ const ProfilePage = () => {
             title: "عدد الطلبات",
             className: styles.metric2,
             onClick: () => {
-              // router.push("/cart");
               setBox("طلباتك");
             },
           },
@@ -296,7 +288,6 @@ const ProfilePage = () => {
             title: "التقييمات",
             className: styles.metric3,
             onClick: () => {
-              // router.push("/");
               setBox("رسائلك");
             },
           },
@@ -316,7 +307,6 @@ const ProfilePage = () => {
             onItemClick={handleMobileNavigation}
             user={user}
             setUser={setUser}
-            // refreshProfile={refreshProfile}
           />
         </div>
 
@@ -341,7 +331,6 @@ const ProfilePage = () => {
             setBox={setBox}
             user={user}
             setUser={setUser}
-            // refreshProfile={refreshProfile}
           />
         </div>
       </div>
