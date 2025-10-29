@@ -399,7 +399,7 @@ export default function RegistrationForm() {
             { 
               label: 'حسناً', 
               onClick: handleSuccessConfirm, 
-              variant: 'success' 
+              variant: 'primary' 
             }
           ]}
           type="success"
