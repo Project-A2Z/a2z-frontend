@@ -1,26 +1,28 @@
 "use client";
 import React from 'react';
-import { Button, ButtonVariant } from './../Buttons/Button';
+import { Button } from './../Buttons/Button';
 import styles from './alert.module.css';
 
-export interface AlertButton {
-  label: string;
-  onClick: () => void;
-  variant?: ButtonVariant;
-}
-
 interface AlertProps {
+  isOpen: boolean;
+  title: string;
   message: string;
-  setClose: () => void;
-  buttons: AlertButton[];
   type?: 'warning' | 'error' | 'info' | 'success';
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 const Alert: React.FC<AlertProps> = ({
+  isOpen,
+  title,
   message,
-  setClose,
-  buttons,
-  type = 'info'
+  type = 'info',
+  onConfirm,
+  onCancel,
+  confirmText = 'OK',
+  cancelText = 'Cancel'
 }) => {
   const getTypeIcon = () => {
     switch (type) {
@@ -37,13 +39,16 @@ const Alert: React.FC<AlertProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className={styles.overlay} onClick={setClose}>
+    <div className={styles.overlay} onClick={onCancel}>
       <div 
         className={`${styles.alert} ${styles[type]}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
+          <h3 className={styles.title}>{title}</h3>
           <div className={styles.icon}>{getTypeIcon()}</div>
         </div>
 
@@ -52,16 +57,22 @@ const Alert: React.FC<AlertProps> = ({
         </div>
 
         <div className={styles.footer}>
-          {buttons.map((button, index) => (
-            <Button
-              key={index}
-              onClick={button.onClick}
-              variant={button.variant || 'primary'}
-              size="sm"
-            >
-              {button.label}
-            </Button>
-          ))}
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            size="sm"
+            className={styles.cancelButton}
+          >
+            {cancelText}
+          </Button>
+          <Button
+            onClick={onConfirm}
+            variant={type === 'error' ? 'danger' : 'primary'}
+            size="sm"
+            className={styles.confirmButton}
+          >
+            {confirmText}
+          </Button>
         </div>
       </div>
     </div>
