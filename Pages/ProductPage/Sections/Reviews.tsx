@@ -259,8 +259,8 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       setSubmitting(true);
       setError(null);
 
-      // Execute the delete
-      await reviewService.deleteReview(deleteTargetId, authToken);
+      // Execute the delete - NOW PASSING productId as second parameter
+      await reviewService.deleteReview(deleteTargetId, productId, authToken);
 
       // Immediately refresh the list after successful delete
       console.log('✅ Review deleted, refreshing list...');

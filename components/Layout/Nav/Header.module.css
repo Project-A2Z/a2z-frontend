@@ -119,6 +119,7 @@
   align-items: center;
   gap: 12px;
   height: 100%; /* Take full height of parent */
+  cursor: pointer;
 }
 
 .prof a {
@@ -133,6 +134,7 @@
   transition: all 0.2s ease;
   height: fit-content; /* Adjust to content */
   position: relative; /* Added for tooltip positioning */
+  cursor: pointer;
 }
 
 .prof a:hover {
@@ -152,6 +154,7 @@
   border: 2px solid var(--black16);
   transition: border-color 0.2s ease;
   flex-shrink: 0; /* Prevent shrinking */
+  cursor: pointer;
 }
 
 .avatar:hover {

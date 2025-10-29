@@ -171,6 +171,10 @@ class ReviewService {
         reviewData,
         { headers: this.getAuthHeaders(token) }
       );
+      
+      // Clear cache for this product after adding a review
+      this.clearProductReviewsCache(reviewData.productId);
+      
       return res.data;
     } catch (error: any) {
       const message =
@@ -301,6 +305,7 @@ class ReviewService {
   // Delete Review (DELETE /reviews/:reviewId)
   async deleteReview(
     reviewId: string,
+    productId: string,
     token?: string
   ): Promise<ApiResponse> {
     console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
@@ -312,6 +317,9 @@ class ReviewService {
       );
 
       console.log('✅ Delete API response:', res.data);
+      
+      // Clear cache for this product after deleting a review
+      this.clearProductReviewsCache(productId);
 
       return res.data;
     } catch (error: any) {
