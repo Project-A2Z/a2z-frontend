@@ -30,23 +30,19 @@ export default function LoginForm() {
     general?: string;
   }>({});
 
-  // Alert states
   const [showVerificationAlert, setShowVerificationAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
-  // ✅ FIXED: Better session handling with proper token storage including expiry
+  // ✅ MODIFIED: Better session handling with event dispatch
   useEffect(() => {
     const handleSocialAuth = async () => {
-      // Wait a bit for session to fully load
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Check localStorage first
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('user_data');
       const storedExpiry = localStorage.getItem('token_expiry');
       
-      // ✅ FIX: Only redirect if we have valid token with expiry
       if (storedToken && storedUser && storedExpiry) {
         const isValid = Date.now() < parseInt(storedExpiry, 10);
         if (isValid) {
@@ -59,15 +55,18 @@ export default function LoginForm() {
         }
       }
       
-      // Check if we have a session with backend token
       if (session?.backendToken && session?.user?.backendUser) {
         console.log('✅ Backend token found in session, saving to localStorage...');
         
-        // ✅ FIX: Use UserStorage methods to save with expiry tracking
         UserStorage.saveUser(session.user.backendUser);
-        UserStorage.saveToken(session.backendToken); // This now includes expiry
+        UserStorage.saveToken(session.backendToken);
         
-        // Start token monitoring
+        // ✅ NEW: Dispatch custom event to notify Header
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('authUpdated'));
+          console.log('📢 Auth update event dispatched');
+        }
+        
         AuthService.startTokenMonitoring(() => {
           console.log('🔒 Token expired - redirecting to login');
           router.push('/login');
@@ -79,20 +78,17 @@ export default function LoginForm() {
       }
     };
 
-    // Only run when status is not loading
     if (status !== 'loading') {
       handleSocialAuth();
     }
   }, [session, status, router]);
 
-  // Check for OAuth callback errors
   useEffect(() => {
     const error = searchParams?.get('error');
     if (error) {
       console.error('OAuth error:', error);
       let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
       
-      // Provide specific error messages
       if (error === 'OAuthCallback') {
         errorMessage = 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
       } else if (error === 'AccessDenied') {
@@ -162,11 +158,16 @@ export default function LoginForm() {
     try {
       const response = await AuthService.login(formData);
       
-      if (!response.status || response.status !== 'success') {
+      // ✅ NEW: Dispatch event after successful login
+      if (response.status === 'success') {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('authUpdated'));
+          console.log('📢 Auth update event dispatched after login');
+        }
+        router.push('/');
+      } else {
         setAlertMessage('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
         setShowVerificationAlert(true);
-      } else {
-        router.push('/');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -236,7 +237,6 @@ export default function LoginForm() {
     }
   };
 
-  // Show loading state while checking session
   if (status === 'loading') {
     return (
       <>
@@ -349,7 +349,6 @@ export default function LoginForm() {
               </div>
 
               <div className={styles.socialButtons}>
-                {/* Google Login */}
                 <button 
                   type="button"
                   className={styles.socialButton}
@@ -373,7 +372,6 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Verification Alert */}
       {showVerificationAlert && (
         <Alert
           message={alertMessage}
@@ -389,7 +387,6 @@ export default function LoginForm() {
         />
       )}
 
-      {/* Error Alert */}
       {showErrorAlert && (
         <Alert
           message={alertMessage}

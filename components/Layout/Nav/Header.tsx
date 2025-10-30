@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react"; // ✅ ADD THIS
 import Image from "next/image";
 import styles from "./Header.module.css";
 import "../../../app/globals.css";
@@ -11,6 +12,8 @@ import {
   getCurrentUser,
   isUserAuthenticated,
   logoutUser,
+  UserStorage,
+  AuthService,
 } from "../../../services/auth/login";
 
 // Import products service
@@ -74,6 +77,7 @@ function Header({
   dataSearch = [],
 }: HeaderProps) {
   const router = useRouter();
+  const { data: session, status } = useSession(); // ✅ ADD THIS
 
   // State for user data
   const [user, setUser] = useState<User | null>(null);
@@ -86,7 +90,38 @@ function Header({
   const [chat, setChat] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Load user data from localStorage when component mounts
+  // ✅ NEW: Handle session-based auth (for social login)
+  useEffect(() => {
+    const handleSocialAuth = async () => {
+      // Check if we have a session with backend token
+      if (session?.backendToken && session?.user?.backendUser) {
+        console.log('✅ Header: Backend token found in session, saving to localStorage...');
+        
+        // Save using UserStorage methods (includes expiry tracking)
+        UserStorage.saveUser(session.user.backendUser);
+        UserStorage.saveToken(session.backendToken);
+        
+        // Update local state immediately
+        setUser(session.user.backendUser);
+        setIsLoading(false);
+        
+        // Start token monitoring
+        AuthService.startTokenMonitoring(() => {
+          console.log('🔒 Token expired - user needs to login again');
+          setUser(null);
+          router.push('/login');
+        });
+        
+        console.log('✅ Header: User state updated from session');
+      }
+    };
+
+    if (status !== 'loading') {
+      handleSocialAuth();
+    }
+  }, [session, status, router]);
+
+  // ✅ MODIFIED: Load user data from localStorage when component mounts
   useEffect(() => {
     const loadUserData = () => {
       try {
@@ -108,8 +143,11 @@ function Header({
       }
     };
 
-    loadUserData();
-  }, []);
+    // Only load from localStorage if session is not loading
+    if (status !== 'loading') {
+      loadUserData();
+    }
+  }, [status]); // ✅ Add status as dependency
 
   // Fetch cached products for search
   useEffect(() => {
@@ -131,76 +169,97 @@ function Header({
   }, []);
 
   // Fetch unread notifications count
-// Fetch unread notifications count - Updated section
-useEffect(() => {
-  // Reference to track if component is mounted
-  let isMounted = true;
-  let intervalId: NodeJS.Timeout | null = null;
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId: NodeJS.Timeout | null = null;
 
-  const fetchUnreadCount = async () => {
-    // Only fetch if user is authenticated and component is mounted
-    if (!user || !isMounted) {
-      console.log("⏭️ Skipping unread count fetch - no user or unmounted");
-      return;
-    }
+    const fetchUnreadCount = async () => {
+      if (!user || !isMounted) {
+        console.log("⏭️ Skipping unread count fetch - no user or unmounted");
+        return;
+      }
 
-    try {
-      console.log("🔔 Fetching unread notification count");
-      const count = await getUnreadNotificationsCount();
+      try {
+        console.log("🔔 Fetching unread notification count");
+        const count = await getUnreadNotificationsCount();
+        
+        if (isMounted) {
+          setUnreadCount(count);
+          console.log(`✅ Unread count updated: ${count}`);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error("❌ Error fetching unread count:", error);
+        }
+      }
+    };
+
+    if (user) {
+      console.log("⏰ Setting up unread count polling (5min interval)");
       
-      if (isMounted) {
-        setUnreadCount(count);
-        console.log(`✅ Unread count updated: ${count}`);
-      }
-    } catch (error) {
-      if (isMounted) {
-        console.error("❌ Error fetching unread count:", error);
-      }
+      fetchUnreadCount();
+
+      intervalId = setInterval(() => {
+        if (isMounted) {
+          fetchUnreadCount();
+        }
+      }, 300000);
     }
-  };
 
-  // Only set up polling if user is authenticated
-  if (user) {
-    console.log("⏰ Setting up unread count polling (5min interval)");
-    
-    // Fetch immediately
-    fetchUnreadCount();
-
-    // Set up interval for polling every 5 minutes (300000ms)
-    intervalId = setInterval(() => {
-      if (isMounted) {
-        fetchUnreadCount();
+    return () => {
+      console.log("🧹 Cleaning up unread count polling");
+      isMounted = false;
+      
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
       }
-    }, 300000); // 5 minutes = 300000ms
-  }
+    };
+  }, [user]);
 
-  // Cleanup function
-  return () => {
-    console.log("🧹 Cleaning up unread count polling");
-    isMounted = false;
-    
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
-  };
-}, [user]); // Changed from [user?.id] to [user] for better stability
-  // Listen for storage changes
+  // ✅ MODIFIED: Listen for storage changes AND custom events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "user_data" || e.key === "auth_token") {
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
+          console.log("✅ Header: User updated from storage event");
         } else {
           setUser(null);
+          console.log("✅ Header: User cleared from storage event");
         }
       }
     };
 
+    // ✅ NEW: Listen for custom token expiry events
+    const handleTokenExpiry = () => {
+      console.log("🔒 Header: Token expired event received");
+      setUser(null);
+      router.push('/login');
+    };
+
+    // ✅ NEW: Listen for custom auth update events
+    const handleAuthUpdate = () => {
+      console.log("🔄 Header: Auth update event received");
+      if (isUserAuthenticated()) {
+        const userData = getCurrentUser();
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    };
+
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    window.addEventListener("tokenExpired", handleTokenExpiry);
+    window.addEventListener("authUpdated", handleAuthUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("tokenExpired", handleTokenExpiry);
+      window.removeEventListener("authUpdated", handleAuthUpdate);
+    };
+  }, [router]);
 
   const getUserInitial = (firstName: string, lastName: string): string => {
     if (firstName && lastName) {
@@ -222,7 +281,6 @@ useEffect(() => {
     router.push("/login");
   };
 
-  
   const handleChat = () => {
     setChat(!chat);
     setOpen(!open);
@@ -234,7 +292,6 @@ useEffect(() => {
 
   const handleNotificationsClose = () => {
     setIsNotificationsOpen(false);
-    // Refresh unread count after closing
     if (user) {
       getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
     }
@@ -260,9 +317,12 @@ useEffect(() => {
   const headerClasses = `${
     styles.header
   } ${getVariantClass()} ${className}`.trim();
+  
+  // ✅ MODIFIED: Also check session status
   const isAuthenticated = user !== null && !isLoading;
 
-  if (isLoading && showUserActions) {
+  // ✅ MODIFIED: Show loading while checking both localStorage and session
+  if ((isLoading || status === 'loading') && showUserActions) {
     return (
       <header className={headerClasses} style={customStyles}>
         <div className={styles.left}>
@@ -287,7 +347,6 @@ useEffect(() => {
     );
   }
 
-  // Prepare search data - use cached products if available, fallback to dataSearch prop
   const searchData = products.length > 0 ? products : dataSearch;
 
   return (
@@ -313,7 +372,6 @@ useEffect(() => {
               {isAuthenticated && user ? (
                 <>
                   <nav className={styles.navs}>
-                    {/* Notification Button with Badge */}
                     <div className={styles.notification_btn}>
                       <Button
                         variant="ghost"
@@ -324,7 +382,6 @@ useEffect(() => {
                         <span className={styles.navText}>الإشعارات</span>
                       </Button>
 
-                      {/* Unread Badge - Only shows when count > 0 */}
                       {unreadCount > 0 && (
                         <div className={styles.unreadIndicator}>
                           {unreadCount > 99
@@ -413,7 +470,6 @@ useEffect(() => {
                   <Notification className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>الإشعارات</span>
 
-                  {/* Mobile Badge */}
                   {unreadCount > 0 && (
                     <span className={styles.bottomNavBadge}>
                       {unreadCount > 99 ? "99+" : unreadCount}
@@ -421,7 +477,6 @@ useEffect(() => {
                   )}
                 </button>
 
-                {/* Notifications Component */}
                 <NotificationsComponent
                   isOpen={isNotificationsOpen}
                   onClose={handleNotificationsClose}
@@ -441,7 +496,6 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Center Floating Button */}
           <div className={styles.MessageCircle}>
             {chat ? (
               <MessIcon onClick={handleChat} />
@@ -532,14 +586,12 @@ useEffect(() => {
         </nav>
       )}
 
-      {/* Notifications Modal */}
       <NotificationsComponent
         isOpen={isNotificationsOpen}
         onClose={handleNotificationsClose}
         onUnreadCountChange={setUnreadCount}
       />
 
-      {/* Full Screen Search Modal */}
       {isSearchModalOpen && (
         <SearchComponent
           data={searchData}
