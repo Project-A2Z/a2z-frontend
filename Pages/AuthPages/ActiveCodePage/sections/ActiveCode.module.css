@@ -1,0 +1,213 @@
+/* ActiveCodePage.module.css */
+
+.container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 95%;
+  min-height: 280px;
+  border-radius: 16px;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--cardblur);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin: 0 8px;
+}
+
+@media (min-width: 475px) {
+  .container {
+    max-width: 90%;
+    min-height: 300px;
+    border-radius: 20px;
+    gap: 16px;
+    padding: 16px;
+    margin: 0 16px;
+  }
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 600px;
+    min-height: 350px;
+    border-radius: 22px;
+    gap: 24px;
+    padding: 20px;
+    margin: 0 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 700px;
+    min-height: 380px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 800px;
+    min-height: 400px;
+    border-radius: 24px;
+    gap: 32px;
+    padding: 24px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 850px;
+  }
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: transparent;
+}
+
+.loadingContent {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  background-color: var(--cardblur);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 32px;
+  width: 32px;
+  border: 2px solid transparent;
+  border-bottom-color: var(--primary);
+  border-top-color: var(--primary);
+  margin: 0 auto 8px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  color: var(--black60);
+  font-size: 14px;
+}
+
+/* Header Section */
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  min-height: 80px;
+}
+
+@media (min-width: 475px) {
+  .headerSection {
+    gap: 12px;
+    max-width: 340px;
+    min-height: 90px;
+  }
+}
+
+@media (min-width: 640px) {
+  .headerSection {
+    gap: 16px;
+    max-width: 368px;
+    min-height: 100px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .headerSection {
+    min-height: 124px;
+  }
+}
+
+/* Message Styles */
+.messageContainer {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.successMessage {
+  background-color: rgba(240, 253, 244, 0.95);
+  border: 1px solid #bbf7d0;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.successText {
+  color: #16a34a;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.errorMessage {
+  background-color: rgba(254, 242, 242, 0.95);
+  border: 1px solid #fecaca;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.errorText {
+  color: var(--error);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Email Display */
+.emailDisplay {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.emailText {
+  font-size: 14px;
+  color: var(--black60);
+}
+
+.emailValue {
+  font-weight: 500;
+  color: var(--primary);
+}
+
+/* Debug Info */
+.debugInfo {
+  font-size: 12px;
+  color: var(--black37);
+  text-align: center;
+  margin-top: 16px;
+  padding: 8px;
+  background-color: rgba(240, 240, 240, 0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 4px;
+}

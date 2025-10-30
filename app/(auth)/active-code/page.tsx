@@ -4,7 +4,7 @@ import ActiveCodePage from '@/Pages/AuthPages/ActiveCodePage/ActiveCode';
 
 export default function Page() {
   return (
-    <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden bg-white">
+    <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden ">
 
       <Background />
 

@@ -10,6 +10,8 @@ import VerifyButtonSection from './sections/VerifyButtonSection/VerifyButtonSect
 import ResendTimerSection from './sections/ResendTimerSection/ResendTimerSection';
 import { resendVerificationCode, getCurrentUser } from '../../../services/auth/register';
 import { verifyEmail } from '../../../services/auth/register';
+import Background from '@/components/UI/Background/Background';
+import styles from './sections/ActiveCode.module.css';
 
 class APIError extends Error {
   constructor(public status: number, message: string) {
@@ -29,7 +31,7 @@ const ActiveCodePage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [email, setEmail] = useState('');
-    const [emailLoaded, setEmailLoaded] = useState(false); // Track if email is loaded
+    const [emailLoaded, setEmailLoaded] = useState(false);
 
     // Get email from URL params or current user
     useEffect(() => {
@@ -53,7 +55,7 @@ const ActiveCodePage = () => {
         } else {
             // Try to get from localStorage as backup
             const storedUser = localStorage.getItem('user');
-            const storedEmail = localStorage.getItem('userEmail'); // If you store email separately
+            const storedEmail = localStorage.getItem('userEmail');
             
             console.log('💾 Stored user:', storedUser);
             console.log('💾 Stored email:', storedEmail);
@@ -79,7 +81,6 @@ const ActiveCodePage = () => {
             } else {
                 console.log('❌ No email found, redirecting to registration');
                 setEmailLoaded(true);
-                // Small delay to prevent immediate redirect during SSR
                 setTimeout(() => {
                     router.push('/register');
                 }, 100);
@@ -111,11 +112,9 @@ const ActiveCodePage = () => {
             newCode[index] = value;
             setCode(newCode);
             
-            // Clear messages when user starts typing
             if (error) setError('');
             if (success) setSuccess('');
             
-            // Auto-focus next input
             if (value && index < 5) {
                 const nextInput = document.getElementById(`code-${index + 1}`);
                 if (nextInput) {
@@ -246,11 +245,9 @@ const ActiveCodePage = () => {
         console.log('📧 Email trimmed:', email?.trim());
         console.log('📧 Email loaded:', emailLoaded);
 
-        // Double-check email availability
         let emailToUse = email?.trim();
         
         if (!emailToUse) {
-            // Try to get email again as backup
             const emailParam = searchParams?.get('email');
             const currentUser = getCurrentUser();
             const storedEmail = localStorage.getItem('userEmail');
@@ -266,19 +263,6 @@ const ActiveCodePage = () => {
                     console.error('Error parsing stored user:', e);
                 }
             }
-
-            async function example1() {
-              try {
-                const result = await resendVerificationCode('ahmed@example.com');
-                console.log('Success:', result.message);
-              } catch (error) {
-                if (error instanceof APIError) {
-                  console.error(`API Error (${error.status}):`, error.message);
-                } else {
-                  console.error('Unexpected error:', error);
-                }
-              }
-            }
             
             console.log('📧 Backup email found:', emailToUse);
         }
@@ -289,7 +273,6 @@ const ActiveCodePage = () => {
             return;
         }
 
-        // Update the email state if we found it from backup
         if (emailToUse !== email) {
             setEmail(emailToUse);
         }
@@ -305,15 +288,12 @@ const ActiveCodePage = () => {
             
             console.log('✅ Code resent successfully:', response);
             
-            // Reset form state
             setCode(['', '', '', '', '', '']);
             setTimeLeft(60);
             setCanResend(false);
             
-            // Show success message
             setSuccess('تم إرسال رمز التحقق الجديد إلى بريدك الإلكتروني');
             
-            // Focus first input after a short delay
             setTimeout(() => {
                 const firstInput = document.getElementById('code-0');
                 if (firstInput) {
@@ -356,48 +336,36 @@ const ActiveCodePage = () => {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }, []);
 
-    // Don't render until email is loaded
     if (!emailLoaded) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-2"></div>
-                    <p className="text-gray-600">جاري التحميل...</p>
+            <div className={styles.loadingContainer}>
+                <div className={styles.loadingContent}>
+                    <div className={styles.spinner}></div>
+                    <p className={styles.loadingText}>جاري التحميل...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col items-center justify-center w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] xl:max-w-[850px] min-h-[280px] xs:min-h-[300px] sm:min-h-[350px] md:min-h-[380px] lg:min-h-[400px] rounded-[16px] xs:rounded-[20px] sm:rounded-[22px] lg:rounded-[24px] gap-3 xs:gap-4 sm:gap-6 lg:gap-8 p-3 xs:p-4 sm:p-5 lg:p-6 bg-card backdrop-blur-sm shadow-lg border border-white/20 mx-2 xs:mx-4 sm:mx-6 lg:mx-auto"
-            style={{
-                backdropFilter: "blur(4px)"
-            }}
-        >
-            {/* Logo and Instruction Section */}
-            <div className="flex flex-col items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-[320px] xs:max-w-[340px] sm:max-w-[368px] min-h-[80px] xs:min-h-[90px] sm:min-h-[100px] lg:min-h-[124px]">
-                {/* Logo Section */}
+        <div className={styles.container}>
+            {/* Header Section */}
+            <div className={styles.headerSection}>
                 <LogoSection />
-
-                {/* Instruction Text */}
                 <InstructionSection email={email} />
             </div>
 
             {/* Success Message */}
             {success && (
-                <div className="w-full max-w-[400px] p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-green-600 text-center text-sm font-medium">
-                        {success}
-                    </p>
+                <div className={`${styles.messageContainer} ${styles.successMessage}`}>
+                    <p className={styles.successText}>{success}</p>
                 </div>
             )}
 
             {/* Error Message */}
             {error && (
-                <div className="w-full max-w-[400px] p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-center text-sm font-medium">
-                        {error}
-                    </p>
+                <div className={`${styles.messageContainer} ${styles.errorMessage}`}>
+                    <p className={styles.errorText}>{error}</p>
                 </div>
             )}
 
@@ -426,17 +394,10 @@ const ActiveCodePage = () => {
 
             {/* Email Display */}
             {email && (
-                <div className="text-center mt-2">
-                    <p className="text-sm text-gray-600">
-                        تم الإرسال إلى: <span className="font-medium text-primary-600">{email}</span>
+                <div className={styles.emailDisplay}>
+                    <p className={styles.emailText}>
+                        تم الإرسال إلى: <span className={styles.emailValue}>{email}</span>
                     </p>
-                </div>
-            )}
-
-            {/* Debug Info (Remove in production) */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-400 text-center mt-4 p-2 bg-gray-50 rounded">
-                    <p>Debug: Email = "{email}", Loaded = {emailLoaded.toString()}</p>
                 </div>
             )}
         </div>
