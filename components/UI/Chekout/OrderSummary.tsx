@@ -151,6 +151,7 @@ const Summary: React.FC<SummaryInter> = ({
             setIsSubmitting(false);
         }
     };
+    console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
 
     return (
         <>

@@ -153,14 +153,20 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           region: address.state || address.province || ''
         };
 
+        console.log('Location selected in MapLocationPicker:', location);
         setSelectedLocation(location);
+        
+        // IMPORTANT: Call the parent callback immediately
         onLocationSelect(location);
       }
     } catch (err) {
       console.error('Error geocoding:', err);
       // Still set location even if geocoding fails
       const location: Location = { lat, lng };
+      console.log('Location selected (no geocoding):', location);
       setSelectedLocation(location);
+      
+      // IMPORTANT: Call the parent callback even if geocoding fails
       onLocationSelect(location);
     }
   };
@@ -251,16 +257,20 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
             placeholder="ابحث عن موقع... (مثال: القاهرة، مصر)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
             className={styles.searchInput}
           />
          <Button
             onClick={handleSearch}
             variant="primary"
             size="md"
-            //   state={isSearching ? 'loading' : 'default'}
             loadingText="جاري البحث..."
-              disabled={!searchQuery || isLoading}
+            disabled={!searchQuery || isLoading}
             rounded={true}
         >
             بحث
@@ -297,9 +307,6 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           <p>{selectedLocation.address || 'جاري تحميل العنوان...'}</p>
           {selectedLocation.city && <p>المدينة: {selectedLocation.city}</p>}
           {selectedLocation.region && <p>المحافظة: {selectedLocation.region}</p>}
-          {/* <p className={styles.coordinates}>
-            الإحداثيات: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-          </p> */}
         </div>
       )}
 

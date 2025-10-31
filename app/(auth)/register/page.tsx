@@ -1,24 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
-import { Button } from './../../../components/UI/Buttons/Button'; 
-import Input from './../../../components/UI/Inputs/Input'; 
-import Logo from './../../../public/icons/logo.svg';
-import Background from './../../../components/UI/Background/Background';
-import Alert from '@/components/UI/Alert/alert';
-import styles from './../auth.module.css';
-import { registerUser, RegisterRequest } from '../../../services/auth/register';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "./../../../components/UI/Buttons/Button";
+import Input from "./../../../components/UI/Inputs/Input";
+import Logo from "./../../../public/icons/logo.svg";
+import Background from "./../../../components/UI/Background/Background";
+import Alert from "@/components/UI/Alert/alert";
+import styles from "./../auth.module.css";
+import { registerUser, RegisterRequest } from "../../../services/auth/register";
 
 export default function RegistrationForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phoneNumber: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,30 +34,28 @@ export default function RegistrationForm() {
   // Alert states
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alertMessage, setAlertMessage] = useState("");
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Clear error when user starts typing
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
-    
+
     // Clear general error when any field changes
     if (errors.general) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        general: ''
+        general: "",
       }));
     }
   };
@@ -70,37 +68,45 @@ export default function RegistrationForm() {
       password?: string;
       phoneNumber?: string;
     } = {};
-    
+
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'الاسم الأول مطلوب';
+      newErrors.firstName = "الاسم الأول مطلوب";
     }
-    
+
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'الاسم الأخير مطلوب';
+      newErrors.lastName = "الاسم الأخير مطلوب";
     }
-    
+
     if (!formData.email.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email = "البريد الإلكتروني مطلوب";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صحيح';
+      newErrors.email = "البريد الإلكتروني غير صحيح";
     }
-    
+
     if (!formData.password) {
-      newErrors.password = 'كلمة المرور مطلوبة';
+      newErrors.password = "كلمة المرور مطلوبة";
     } else if (formData.password.length < 8) {
-      newErrors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+      newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
+    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+      newErrors.password = "كلمة المرور يجب أن تحتوي على حرف صغير";
+    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+      newErrors.password = "كلمة المرور يجب أن تحتوي على حرف كبير";
+    } else if (!/(?=.*\d)/.test(formData.password)) {
+      newErrors.password = "كلمة المرور يجب أن تحتوي على رقم";
+    } else if (!/(?=.*[@$!%*?&#])/.test(formData.password)) {
+      newErrors.password = "كلمة المرور يجب أن تحتوي على رمز خاص (@$!%*?&#)";
     }
-    
+
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'رقم الهاتف مطلوب';
+      newErrors.phoneNumber = "رقم الهاتف مطلوب";
     } else {
       // Enhanced phone validation - adjust regex based on your requirements
       const phoneRegex = /^[\+]?[0-9\-\(\)\s]{8,}$/;
       if (!phoneRegex.test(formData.phoneNumber.trim())) {
-        newErrors.phoneNumber = 'رقم الهاتف غير صحيح';
+        newErrors.phoneNumber = "رقم الهاتف غير صحيح";
       }
     }
-    
+
     return newErrors;
   };
 
@@ -119,13 +125,13 @@ export default function RegistrationForm() {
   };
 
   const handleSubmit = async () => {
-    console.log('🚀 Starting registration process...');
-    
+    console.log("🚀 Starting registration process...");
+
     // Validate form first
     const newErrors = validateForm();
-    
+
     if (Object.keys(newErrors).length > 0) {
-      console.log('❌ Form validation failed:', newErrors);
+      console.log("❌ Form validation failed:", newErrors);
       setErrors(newErrors);
       return;
     }
@@ -140,50 +146,53 @@ export default function RegistrationForm() {
         lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(), // Ensure lowercase email
         password: formData.password,
-        phoneNumber: formData.phoneNumber.trim().replace(/\s+/g, ''), // Remove spaces
+        phoneNumber: formData.phoneNumber.trim().replace(/\s+/g, ""), // Remove spaces
       };
 
-      console.log('📤 Sending registration data:', {
+      console.log("📤 Sending registration data:", {
         ...registerData,
-        password: '[HIDDEN]' // Don't log password
+        password: "[HIDDEN]", // Don't log password
       });
 
       const response = await registerUser(registerData);
-      console.log('📥 Registration response:', response);
+      console.log("📥 Registration response:", response);
 
-      if (response.status === 'success') {
-        console.log('✅ Registration successful:', response.data.user);
-        
+      if (response.status === "success") {
+        console.log("✅ Registration successful:", response.data.user);
+
         // Show success message to user
-        setAlertMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب.');
+        setAlertMessage(
+          "تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب."
+        );
         setShowSuccessAlert(true);
       }
     } catch (error: any) {
-      console.error('❌ Registration failed:', error);
-      
+      console.error("❌ Registration failed:", error);
+
       // Enhanced error handling with Arabic translations
-      let errorMessage = 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.';
+      let errorMessage = "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.";
       let fieldErrors = {};
 
       // Handle network errors
-      if (error.message && error.message.includes('Network error')) {
-        errorMessage = 'لا يمكن الوصول إلى الخادم. يرجى التحقق من الاتصال بالإنترنت.';
+      if (error.message && error.message.includes("Network error")) {
+        errorMessage =
+          "لا يمكن الوصول إلى الخادم. يرجى التحقق من الاتصال بالإنترنت.";
       } else if (error.response || error.status) {
         // Server responded with an error
         const status = error.status || error.response?.status;
         const responseData = error.response?.data;
 
-        console.log('🔍 Error details:', {
+        console.log("🔍 Error details:", {
           status,
           responseData,
-          errors: error.errors
+          errors: error.errors,
         });
 
         // Handle specific status codes
         switch (status) {
           case 400:
-            errorMessage = 'البيانات المدخلة غير صحيحة. يرجى مراجعة المعلومات.';
-            if (error.message && error.message !== 'Registration failed') {
+            errorMessage = "البيانات المدخلة غير صحيحة. يرجى مراجعة المعلومات.";
+            if (error.message && error.message !== "Registration failed") {
               errorMessage = error.message;
             }
             if (error.errors) {
@@ -191,19 +200,23 @@ export default function RegistrationForm() {
             }
             break;
           case 409:
-            errorMessage = 'البريد الإلكتروني مستخدم بالفعل. يرجى استخدام بريد إلكتروني آخر.';
+            errorMessage =
+              "البريد الإلكتروني مستخدم بالفعل. يرجى استخدام بريد إلكتروني آخر.";
             break;
           case 422:
-            errorMessage = 'البيانات المدخلة لا تتوافق مع المتطلبات. يرجى مراجعة المعلومات.';
+            errorMessage =
+              "البيانات المدخلة لا تتوافق مع المتطلبات. يرجى مراجعة المعلومات.";
             if (error.errors) {
               fieldErrors = error.errors;
             }
             break;
           case 500:
-            errorMessage = 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
+            errorMessage = "خطأ في الخادم. يرجى المحاولة لاحقاً.";
             break;
           default:
-            errorMessage = error.message || `خطأ غير متوقع (${status}). يرجى المحاولة مرة أخرى.`;
+            errorMessage =
+              error.message ||
+              `خطأ غير متوقع (${status}). يرجى المحاولة مرة أخرى.`;
         }
       } else {
         // Handle other error types
@@ -212,21 +225,21 @@ export default function RegistrationForm() {
 
       // Translate common field errors to Arabic if needed
       const translatedFieldErrors: Record<string, string> = {};
-      if (fieldErrors && typeof fieldErrors === 'object') {
+      if (fieldErrors && typeof fieldErrors === "object") {
         Object.keys(fieldErrors).forEach((field: string) => {
-          translatedFieldErrors[field] = fieldErrors[field as keyof typeof fieldErrors]; // Keep original for now, can add translation logic
+          translatedFieldErrors[field] =
+            fieldErrors[field as keyof typeof fieldErrors]; // Keep original for now, can add translation logic
         });
       }
 
       // Set errors
       setErrors({
-        ...translatedFieldErrors
+        ...translatedFieldErrors,
       });
 
       // Show error alert
       setAlertMessage(errorMessage);
       setShowErrorAlert(true);
-
     } finally {
       setIsLoading(false);
     }
@@ -234,14 +247,14 @@ export default function RegistrationForm() {
 
   const handleSuccessConfirm = () => {
     setShowSuccessAlert(false);
-    router.push('/active-code');
+    router.push("/active-code");
   };
 
   return (
     <>
       {/* Background component - will be behind everything */}
       <Background />
-      
+
       <div className={styles.container}>
         <div className={styles.formWrapper}>
           {/* Logo and Title */}
@@ -329,7 +342,8 @@ export default function RegistrationForm() {
               {/* Show hint only when password is empty or doesn't meet requirements */}
               {(!formData.password || formData.password.length < 8) && (
                 <p className={styles.passwordHint}>
-                  يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف وأن تكون فريدة ومعقدة
+                  يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف وأن تكون فريدة
+                  ومعقدة
                 </p>
               )}
             </div>
@@ -359,26 +373,28 @@ export default function RegistrationForm() {
                 rounded
                 size="lg"
                 className={`${styles.submitButton} ${
-                  isFormValid() ? styles.submitButtonValid : styles.submitButtonInvalid
+                  isFormValid()
+                    ? styles.submitButtonValid
+                    : styles.submitButtonInvalid
                 }`}
                 onClick={handleSubmit}
                 disabled={!isFormValid() || isLoading}
               >
-                {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
+                {isLoading ? "جاري إنشاء الحساب..." : "إنشاء حساب"}
               </Button>
             </div>
 
             {/* Login Link */}
             <div className={styles.loginSection}>
               <p className={styles.loginText}>
-                هل لديك حساب؟{' '}
-                <button 
+                هل لديك حساب؟{" "}
+                <button
                   type="button"
                   className={styles.loginLink}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    router.push('/login');
+                    router.push("/login");
                   }}
                   disabled={isLoading}
                 >
@@ -396,11 +412,11 @@ export default function RegistrationForm() {
           message={alertMessage}
           setClose={() => setShowSuccessAlert(false)}
           buttons={[
-            { 
-              label: 'حسناً', 
-              onClick: handleSuccessConfirm, 
-              variant: 'primary' 
-            }
+            {
+              label: "حسناً",
+              onClick: handleSuccessConfirm,
+              variant: "primary",
+            },
           ]}
           type="success"
         />
@@ -412,11 +428,11 @@ export default function RegistrationForm() {
           message={alertMessage}
           setClose={() => setShowErrorAlert(false)}
           buttons={[
-            { 
-              label: 'إغلاق', 
-              onClick: () => setShowErrorAlert(false), 
-              variant: 'danger' 
-            }
+            {
+              label: "إغلاق",
+              onClick: () => setShowErrorAlert(false),
+              variant: "danger",
+            },
           ]}
           type="error"
         />

@@ -40,6 +40,11 @@
   direction: ltr;
   font-family: var(--font-primary);
 }
+.depositNote{
+  font-size: 0.6rem;
+  color: var(--black60);
+  font-weight: 300;
+}
 
 .button {
   margin-top: 16px;
@@ -621,7 +626,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--black87);
   margin-bottom: 8px;

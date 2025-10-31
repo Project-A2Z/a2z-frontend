@@ -42,7 +42,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     // Calculate price based on payment method
     useEffect(() => {
         if (way === 'cash') {
-            setPrice(Math.round(Total * 15 / 100))
+            setPrice(Math.round(Total * 10 / 100))
         } else {
             setPrice(Total)
         }
@@ -139,11 +139,14 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
             <div className={styles.formContainer}>
                 <div className={styles.priceSection}>
                     <span className={styles.priceForm}>
-                        المبلغ المطلوب: {price.toLocaleString('ar-EG')} ج
+                        المبلغ المطلوب:
+                        <br/>
+                         {price.toLocaleString('ar-EG')} ج
                     </span>
+                    
                     {way === 'cash' && (
                         <span className={styles.depositNote}>
-                            (مقدم 15% من إجمالي المبلغ)
+                            (مقدم 10% من إجمالي المبلغ)
                         </span>
                     )}
                 </div>

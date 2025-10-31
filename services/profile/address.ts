@@ -1,6 +1,7 @@
 // services/address/address.ts
 import { API_ENDPOINTS, Api } from './../api/endpoints';
 import { UserStorage } from './../auth/login';
+import AlertHandlerService from './../Utils/alertHandler';
 
 // Types
 export interface AddressData {
@@ -213,16 +214,22 @@ export const getAddresses = async (forceRefresh = false): Promise<Address[]> => 
       const cachedAddresses = AddressCache.get();
       if (cachedAddresses) {
         console.log('⚠️ Network error, returning stale cached addresses');
+        AlertHandlerService.warning('خطأ في الشبكة - يتم عرض العناوين المحفوظة');
         return cachedAddresses;
       }
-      throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
+      const errorMessage = 'خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت';
+      AlertHandlerService.error(errorMessage);
+      throw new AddressError(errorMessage, 0, true);
     }
     
     if (error instanceof AddressError) {
+      AlertHandlerService.error(error.message);
       throw error;
     }
     
-    throw new AddressError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    const errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+    AlertHandlerService.error(errorMessage);
+    throw new AddressError(errorMessage);
   }
 };
 
@@ -242,10 +249,11 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
 
     console.log('📥 Response status:', response.status);
     const data = await response.json();
+    console.log('📥 Response data:', data);
 
     if (response.status === 200) {
       console.log('✅ Address added successfully!');
-      alert(data.message || 'تم إضافة العنوان بنجاح');
+      AlertHandlerService.success(data.message || 'تم إضافة العنوان بنجاح');
       
       // Update cache with new addresses
       if (data.address) {
@@ -283,20 +291,25 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
         errorMessage = data?.message || `خطأ غير متوقع (${response.status})`;
     }
 
+    AlertHandlerService.error(errorMessage);
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
     console.error('❌ Add address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
+      const errorMessage = 'خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت';
+      AlertHandlerService.error(errorMessage);
+      throw new AddressError(errorMessage, 0, true);
     }
     
     if (error instanceof AddressError) {
       throw error;
     }
     
-    throw new AddressError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    const errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+    AlertHandlerService.error(errorMessage);
+    throw new AddressError(errorMessage);
   }
 };
 
@@ -316,10 +329,12 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
 
     console.log('📥 Response status:', response.status);
     const data = await response.json();
+    console.log('📥 Response data:', data);
+
 
     if (response.status === 200) {
       console.log('✅ Address updated successfully!');
-      alert(data.message || 'تم تحديث العنوان بنجاح');
+      AlertHandlerService.success(data.message || 'تم تحديث العنوان بنجاح');
       
       // Update cache with updated addresses
       if (data.address) {
@@ -356,20 +371,25 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
         errorMessage = data?.message || `خطأ غير متوقع (${response.status})`;
     }
 
+    AlertHandlerService.error(errorMessage);
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
     console.error('❌ Update address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
+      const errorMessage = 'خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت';
+      AlertHandlerService.error(errorMessage);
+      throw new AddressError(errorMessage, 0, true);
     }
     
     if (error instanceof AddressError) {
       throw error;
     }
     
-    throw new AddressError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    const errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+    AlertHandlerService.error(errorMessage);
+    throw new AddressError(errorMessage);
   }
 };
 
@@ -392,7 +412,7 @@ export const deleteAddress = async (deleteData: DeleteAddressData): Promise<Dele
 
     if (response.status === 200) {
       console.log('✅ Address deleted successfully!');
-      alert(data.message || 'تم حذف العنوان بنجاح');
+      AlertHandlerService.success(data.message || 'تم حذف العنوان بنجاح');
       
       // Invalidate cache after deletion
       AddressCache.invalidate();
@@ -422,20 +442,25 @@ export const deleteAddress = async (deleteData: DeleteAddressData): Promise<Dele
         errorMessage = data?.message || `خطأ غير متوقع (${response.status})`;
     }
 
+    AlertHandlerService.error(errorMessage);
     throw new AddressError(errorMessage, response.status);
 
   } catch (error: any) {
     console.error('❌ Delete address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
+      const errorMessage = 'خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت';
+      AlertHandlerService.error(errorMessage);
+      throw new AddressError(errorMessage, 0, true);
     }
     
     if (error instanceof AddressError) {
       throw error;
     }
     
-    throw new AddressError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    const errorMessage = 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+    AlertHandlerService.error(errorMessage);
+    throw new AddressError(errorMessage);
   }
 };
 

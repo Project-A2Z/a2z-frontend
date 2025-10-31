@@ -29,11 +29,12 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
 
   const handleCheckout = () => {
     const checkoutData = {
-      itemCount,
+      totalItemQuantity,
       total,
       hasItems,
       order
     };
+    console.log('Checkout Data :from cart', checkoutData);
     
     const encodedData = encodeURIComponent(JSON.stringify(checkoutData));
     router.push(`/checkout?data=${encodedData}`);

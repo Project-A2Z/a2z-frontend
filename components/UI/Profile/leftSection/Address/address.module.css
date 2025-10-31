@@ -157,6 +157,7 @@
   padding: 1.5rem;
   transition: all 0.2s ease-in-out;
   position: relative;
+  direction: ltr;
 }
 
 .addressCard:hover {
@@ -174,6 +175,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+  
 }
 
 .addressHeader {

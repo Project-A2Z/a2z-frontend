@@ -163,6 +163,7 @@ export default function NewAddressForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  // const [from, setFrom] = useState<string | null>(null);
 
   const governorateOptions = Object.keys(locationData);
   const cityOptions = formData.governorate ? locationData[formData.governorate] || [] : [];
@@ -296,7 +297,7 @@ export default function NewAddressForm() {
         
         console.log('Address updated successfully:', response);
         setIsSuccess(true);
-        setTimeout(() => router.push('/profile'), 1500);
+        setTimeout(() => router.back(), 1500);
       } else {
         console.log('Adding new address...', basePayload);
         
@@ -306,7 +307,7 @@ export default function NewAddressForm() {
         
         console.log('Address added successfully:', response);
         setIsSuccess(true);
-        setTimeout(() => router.push('/profile'), 1500);
+        setTimeout(() => router.back(), 1500);
       }
     } catch (error) {
       console.error(`Failed to ${isEditMode ? 'update' : 'add'} address:`, error);
@@ -335,7 +336,7 @@ export default function NewAddressForm() {
   };
 
   const handleCancel = () => {
-    router.push('/profile');
+    router.back();
   };
 
   const pageTitle = isEditMode ? 'تعديل العنوان' : 'أضف عنوان جديد';
