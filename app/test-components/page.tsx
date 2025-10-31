@@ -8,21 +8,21 @@ const TestComponentsPage = () => {
   const testSlides = [
     {
       id: 1,
-      image: 'https://via.placeholder.com/800x400/88BE46/FFFFFF?text=A2Z+Slide+1',
+      src: '/sliders/1.png',
       title: 'A2Z Slide 1',
       description: 'First test slide',
       alt: 'A2Z Slide 1'
     },
     {
       id: 2,
-      image: 'https://via.placeholder.com/800x400/4C9343/FFFFFF?text=A2Z+Slide+2',
+      src: '/sliders/2.png',
       title: 'A2Z Slide 2',
       description: 'Second test slide',
       alt: 'A2Z Slide 2'
     },
     {
       id: 3,
-      image: 'https://via.placeholder.com/800x400/06B590/FFFFFF?text=A2Z+Slide+3',
+      src: '/sliders/3.png',
       title: 'A2Z Slide 3',
       description: 'Third test slide',
       alt: 'A2Z Slide 3'
@@ -81,7 +81,7 @@ const TestComponentsPage = () => {
             <ImageSlider
               slides={testSlides}
               autoPlay={true}
-              autoPlayInterval={3000}
+              // autoPlayInterval={3000}
               showDots={true}
               showArrows={true}
               className="w-full h-full"

@@ -12,8 +12,8 @@ export interface AlertConfig {
   message: string;
   type: AlertType;
   buttons?: AlertButton[];
-  onConfirm?: () => void;  // ✅ NEW
-  onCancel?: () => void;   // ✅ NEW
+  onConfirm?: () => void;  
+  onCancel?: () => void;   
 }
 
 type AlertHandler = (config: AlertConfig) => void;

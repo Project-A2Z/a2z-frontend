@@ -22,7 +22,7 @@ const CartItemImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => 
       if (imgSrc.includes('/uploads/')) {
         setImgSrc(imgSrc.replace(/^\//, ''));
       } else {
-        setImgSrc('/assets/placeholder.png');
+        setImgSrc('/acessts/NoImage.jpg');
       }
     }
   };

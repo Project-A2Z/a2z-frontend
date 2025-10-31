@@ -51,7 +51,7 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
         </div>
         <div className="flex justify-between items-baseline">
           <span className="text-black60">الإجمالي</span>
-          <span className="font-bold text-primary text-xl">{(total-5000).toLocaleString()} ج</span>
+          <span className="font-bold text-primary text-xl">{(total).toLocaleString()} ج</span>
         </div>
       </div>
 

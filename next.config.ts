@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Development indicators configuration
+  devIndicators: false,
+  // Or set to false to disable: devIndicators: false,
+  
   // Image configuration for external domains using the current Next.js format
   images: {
     remotePatterns: [
@@ -44,9 +48,6 @@ const nextConfig: NextConfig = {
     return config;
   },
   
-  // Remove the invalid experimental.logging option
-  // Logging is automatically handled by Next.js
-  
   // If you're using TypeScript
   typescript: {
     // ignoreBuildErrors: false, // Set to true only if you want to ignore TS errors during build
@@ -56,9 +57,6 @@ const nextConfig: NextConfig = {
   env: {
     // Add any custom environment variables
   },
-
-  // Remove the invalid revalidate option from here
-  // Revalidation is set per page, not globally in next.config
 };
 
 export default nextConfig;

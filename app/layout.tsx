@@ -17,7 +17,7 @@ export default function RootLayout({
         <GoogleTranslate pageLanguage="ar" />
         <SessionProvider>
           <FavoritesProvider>
-            {/* 👇 Wrap the app shell with AlertProvider */}
+            
             <AlertProvider>
               <AppShell>
                 {children}

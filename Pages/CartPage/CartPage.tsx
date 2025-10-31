@@ -28,7 +28,7 @@ const CartPage = () => {
         const mapped: CartItem[] = items.map((it: any) => {
           const p = it.productId || {};
           
-          let imageUrl = '/assets/placeholder.png';
+          let imageUrl = '/acessts/NoImage.jpg';
           const imageSources = p.imageList || p.images || p.image || [];
           
           if (Array.isArray(imageSources) && imageSources.length > 0) {
@@ -41,8 +41,8 @@ const CartPage = () => {
             imageUrl = imageSources;
           }
 
-          if (imageUrl === '/assets/placeholder.png') {
-            imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/assets/placeholder.png';
+          if (imageUrl === '/acessts/NoImage.jpg') {
+            imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/acessts/NoImage.jpg';
           }
 
           const unit = p.stockType || p.unit || 'قطعة';
@@ -97,8 +97,10 @@ const CartPage = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 1000;
-  const total = subtotal + shipping;
+  // const shipping = 1000;
+  // const total = subtotal ;
+  console.log('Cart Items:', cartItems);
+  console.log('Subtotal:', subtotal);
   
   if (loading) {
     return (
@@ -119,7 +121,7 @@ const CartPage = () => {
 
           {cartItems.length > 0 && (
             <div className="lg:col-span-1">
-              <OrderSummary order={cartItems} itemCount={cartItems.length} total={total} hasItems={cartItems.length > 0} />
+              <OrderSummary order={cartItems} itemCount={cartItems.length} total={subtotal} hasItems={cartItems.length > 0} />
             </div>
           )}
         </div>

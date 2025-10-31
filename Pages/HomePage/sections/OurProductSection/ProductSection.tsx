@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'المنتجات | A2Z',
   description: 'تصفح جميع منتجاتنا المتاحة',
   keywords: ['منتجات', 'تسوق', 'A2Z'],
+  icons : '/favicon.ico',
 };
 
 // Enable ISR with revalidation

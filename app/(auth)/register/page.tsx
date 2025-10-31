@@ -35,6 +35,30 @@ export default function RegistrationForm() {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [validPass , setValidPass] = useState(false)
+
+  const handelPass = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      password: value,
+    }));
+    // Check password validity
+    const isValid =
+      value.length >= 8 &&
+      /(?=.*[a-z])/.test(value) &&
+      /(?=.*[A-Z])/.test(value) &&
+      /(?=.*\d)/.test(value) &&
+      /(?=.*[@$!%*?&#])/.test(value);
+    setValidPass(isValid);
+    console.log("Password valid:", isValid);
+    if (errors.password) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "",
+      }));
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -327,7 +351,7 @@ export default function RegistrationForm() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
-                onChange={handleInputChange}
+                onChange={handelPass}
                 placeholder="كلمة المرور"
                 error={!!errors.password}
                 icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -336,15 +360,33 @@ export default function RegistrationForm() {
                 className={styles.Input}
                 disabled={isLoading}
               />
-              {errors.password && (
-                <p className={styles.errorText}>{errors.password}</p>
-              )}
-              {/* Show hint only when password is empty or doesn't meet requirements */}
-              {(!formData.password || formData.password.length < 8) && (
-                <p className={styles.passwordHint}>
-                  يجب أن تحتوي كلمة المرور على الأقل على 8 أحرف وأن تكون فريدة
-                  ومعقدة
-                </p>
+              {/* Dynamic password requirements - always visible */}
+              {!validPass && (
+                <>
+                <div className={styles.passwordRequirements}>
+                
+                <ul className={styles.requirementsList}>
+                  <li className={formData.password.length >= 8 ? styles.valid : styles.invalid}>
+                    • 8 أحرف على الأقل
+                  </li>
+                  <li className={/(?=.*[A-Z])/.test(formData.password) ? styles.valid : styles.invalid}>
+                    • حرف كبير واحد على الأقل (A-Z)
+                  </li>
+                  <li className={/(?=.*[a-z])/.test(formData.password) ? styles.valid : styles.invalid}>
+                    • حرف صغير واحد على الأقل (a-z)
+                  </li>
+                  <li className={/(?=.*\d)/.test(formData.password) ? styles.valid : styles.invalid}>
+                    • رقم واحد على الأقل (0-9)
+                  </li>
+                  <li className={/(?=.*[@$!%*?&#])/.test(formData.password) ? styles.valid : styles.invalid}>
+                    • رمز خاص واحد على الأقل (@$!%*?&#)
+                  </li>
+                </ul>
+              </div>
+               {errors.password && (
+                 <p className={styles.errorText}>{errors.password}</p>
+               )}
+              </>
               )}
             </div>
 

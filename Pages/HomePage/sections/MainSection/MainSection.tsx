@@ -7,21 +7,28 @@ const MainSection = React.memo(() => {
   useEffect(() => {
     const data: SlideItem[] = [
       {
-        src: '/acessts/OIP.jpg',
+        src: '/sliders/main.png',
         alt: 'خدمة صيانة السيارات',
         title: 'خدمة صيانة السيارات',
         caption: 'فريق محترف متاح على مدار 24 ساعة يومياً',
         isArabic: true,
       },
       {
-        src: '/acessts/OIP (1).jpg',
+        src: '/sliders/1.png',
         alt: 'خدمة صيانة السيارات',
         title: 'خدمة صيانة السيارات',
         caption: 'فريق محترف متاح على مدار 24 ساعة يومياً',
         isArabic: true,
       },
       {
-        src: '/acessts/OIP (1).webp',
+        src: '/sliders/2.png',
+        alt: 'خدمة صيانة السيارات',
+        title: 'خدمة صيانة السيارات',
+        caption: 'فريق محترف متاح على مدار 24 ساعة يومياً',
+        isArabic: true,
+      },
+      {
+        src: '/sliders/3.png',
         alt: 'خدمة صيانة السيارات',
         title: 'خدمة صيانة السيارات',
         caption: 'فريق محترف متاح على مدار 24 ساعة يومياً',

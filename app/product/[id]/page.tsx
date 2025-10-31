@@ -9,7 +9,7 @@ function getImageList(p?: { imageList?: string[]; images?: string[]; image?: str
     : (Array.isArray(p?.images) ? p.images : []);
   if (list.length > 0) return list;
   if (p?.image) return [p.image];
-  return ['/assets/NoImage.jpg']; // Fixed placeholder path
+  return ['/acessts/NoImage.jpg']; // Fixed placeholder path
 }
 
 export default async function ProductByIdPage({ params }: { params: Promise<{ id: string }> }) {

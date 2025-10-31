@@ -207,7 +207,7 @@ export default function FloatingChat() {
   */
 
   return (
-    <div className="fixed right-4 bottom-1/2 z-50 flex flex-col-reverse gap-4">
+    <div className="fixed right-4 bottom-4 z-50 flex flex-col-reverse gap-4">
       {/* WhatsApp button */}
       <a
         href={whatsappHref}

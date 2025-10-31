@@ -144,7 +144,7 @@ const Overview: React.FC<Props> = ({
       id,
       name: title,
       price,
-      image: imageList[0] || "/assets/download (47).jpg",
+      image: imageList[0] || "/acessts/download (47).jpg",
     });
   };
 
@@ -170,12 +170,12 @@ const Overview: React.FC<Props> = ({
           >
             {/* Main Image */}
             <CustomImage
-              src={imageList[currentImageIndex] || "/assets/download (47).jpg"}
+              src={imageList[currentImageIndex] || "/acessts/download (47).jpg"}
               alt={`${title} - Image ${currentImageIndex + 1}`}
               fill
               objectFit="contain"
               priority={true}
-              fallbackSrc="/assets/download (47).jpg"
+              fallbackSrc="/acessts/download (47).jpg"
               className="w-full h-full transition-all duration-700 ease-in-out"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
