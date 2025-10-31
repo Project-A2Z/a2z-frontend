@@ -97,7 +97,7 @@ const CartPage = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5000;
+  const shipping = 1000;
   const total = subtotal + shipping;
   
   if (loading) {

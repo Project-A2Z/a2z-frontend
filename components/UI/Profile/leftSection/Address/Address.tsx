@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { Button } from './../../../Buttons/Button';
+import Alert from './../../../Alert/alert';
 import styles from './address.module.css';
 import { useRouter } from 'next/navigation';
 import { AddressService, AddressError } from './../../../../../services/profile/address';
+import AlertHandler from './../../../../../services/Utils/alertHandler';
 
 // Icons
 import Edit from './../../../../../public/icons/Pen.svg'
@@ -34,7 +36,13 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
   const [addresses, setAddresses] = useState<Address[]>(Addresses || []);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmAlert, setDeleteConfirmAlert] = useState<{
+    isOpen: boolean;
+    addressId: string | null;
+  }>({
+    isOpen: false,
+    addressId: null
+  });
 
   const getFullName = (address: Address): string => {
     if (address.name) return address.name;
@@ -70,22 +78,32 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
     }
   };
 
-  const handleDelete = async (addressId: string, event: React.MouseEvent) => {
+  const handleDeleteClick = (addressId: string, event: React.MouseEvent) => {
     // Prevent the card click event from firing
     event.stopPropagation();
     
-    if (!window.confirm('هل أنت متأكد من حذف هذا العنوان؟')) {
-      return;
-    }
+    // Open the custom alert confirmation
+    setDeleteConfirmAlert({
+      isOpen: true,
+      addressId: addressId
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const addressId = deleteConfirmAlert.addressId;
+    
+    if (!addressId) return;
+
+    // Close the alert
+    setDeleteConfirmAlert({ isOpen: false, addressId: null });
 
     if (!AddressService.isAuthenticated()) {
-      setError('يجب تسجيل الدخول للقيام بهذا الإجراء');
-      router.push('/login');
+      AlertHandler.error('يجب تسجيل الدخول للقيام بهذا الإجراء');
+      setTimeout(() => router.push('/login'), 1500);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
       await AddressService.deleteAddress(addressId);
@@ -95,12 +113,16 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       ));
       
       console.log('✅ Address deleted successfully:', addressId);
+      // Success message is already shown by AddressService
       
     } catch (err) {
       console.error('❌ Error deleting address:', err);
       
       if (err instanceof AddressError) {
-        setError(err.message);
+        // Only show error if not already shown by service
+        if (!err.message.includes('تم حذف')) {
+          AlertHandler.error(err.message);
+        }
         
         if (err.statusCode === 401) {
           setTimeout(() => {
@@ -108,17 +130,21 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
           }, 2000);
         }
       } else {
-        setError('فشل في حذف العنوان. يرجى المحاولة مرة أخرى.');
+        AlertHandler.error('فشل في حذف العنوان. يرجى المحاولة مرة أخرى.');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleDeleteCancel = () => {
+    setDeleteConfirmAlert({ isOpen: false, addressId: null });
+  };
+
   const handleAddAddress = () => {
     if (!AddressService.isAuthenticated()) {
-      setError('يجب تسجيل الدخول لإضافة عنوان');
-      router.push('/login');
+      AlertHandler.error('يجب تسجيل الدخول لإضافة عنوان');
+      setTimeout(() => router.push('/login'), 1500);
       return;
     }
 
@@ -139,13 +165,12 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
     }
 
     if (!AddressService.isAuthenticated()) {
-      setError('يجب تسجيل الدخول للقيام بهذا الإجراء');
-      router.push('/login');
+      AlertHandler.error('يجب تسجيل الدخول للقيام بهذا الإجراء');
+      setTimeout(() => router.push('/login'), 1500);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const addressToUpdate = addresses.find(addr => 
@@ -171,12 +196,16 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       );
       
       console.log('✅ Default address set:', addressId);
+      // Success message is already shown by AddressService
       
     } catch (err) {
       console.error('❌ Error setting default address:', err);
       
       if (err instanceof AddressError) {
-        setError(err.message);
+        // Only show error if not already shown by service
+        if (!err.message.includes('تم تحديث')) {
+          AlertHandler.error(err.message);
+        }
         
         if (err.statusCode === 401) {
           setTimeout(() => {
@@ -184,7 +213,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
           }, 2000);
         }
       } else {
-        setError('فشل في تعيين العنوان الافتراضي. يرجى المحاولة مرة أخرى.');
+        AlertHandler.error('فشل في تعيين العنوان الافتراضي. يرجى المحاولة مرة أخرى.');
       }
     } finally {
       setIsLoading(false);
@@ -195,20 +224,6 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
     <div className={styles.container_form}>
       <div className={styles.formCard}>
         <h1 className={styles.title}>عناوينك</h1>
-        
-        {error && (
-          <div className={styles.errorMessage} style={{
-            padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '8px',
-            color: '#c33',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
         
         <div className={styles.addressList}>
           {addresses.length === 0 ? (
@@ -272,7 +287,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                     
                     <button
                       className={`${styles.actionButton} ${styles.deleteButton}`}
-                      onClick={(e) => handleDelete(address._id || address.id!.toString(), e)}
+                      onClick={(e) => handleDeleteClick(address._id || address.id!.toString(), e)}
                       disabled={isLoading || addresses.length <= 1}
                       aria-label="حذف"
                       title={addresses.length <= 1 ? 'يجب الاحتفاظ بعنوان واحد على الأقل' : ''}
@@ -305,6 +320,19 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation Alert */}
+      <Alert
+        isOpen={deleteConfirmAlert.isOpen}
+        type="warning"
+        title="تأكيد الحذف"
+        message="هل أنت متأكد من حذف هذا العنوان؟"
+        confirmText="حذف"
+        cancelText="إلغاء"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        setClose={handleDeleteCancel}
+      />
     </div>
   );
 };
