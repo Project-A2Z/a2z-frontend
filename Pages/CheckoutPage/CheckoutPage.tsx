@@ -92,7 +92,7 @@ const Checkout: React.FC = () => {
     endDate.setDate(startDate.getDate() + 7);
 
     return {
-      price: 1000,
+      price: 0,
       start: formatDateInArabic(startDate),
       ends: formatDateInArabic(endDate),
     };
