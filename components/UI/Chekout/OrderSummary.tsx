@@ -30,7 +30,7 @@ interface SummaryInter {
 
 const Summary: React.FC<SummaryInter> = ({ 
     Total, 
-    delivery = 1000, 
+    delivery = 0, 
     numberItems, 
     disabled,
     addressData,
@@ -179,7 +179,7 @@ const Summary: React.FC<SummaryInter> = ({
                 {/* Row 2: Delivery */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
                     <span className={styles.details}>التوصيل</span>
-                    <span className={`${styles.price} notranslate`}>ج{delivery}</span>
+                    <span className={`${styles.price} notranslate`}>يتم التحديد من قبل أحد المسؤولين لاحقا</span>
                 </div>
 
                 {/* Row 3: Total */}

@@ -124,13 +124,13 @@ const Address: React.FC<AddressProp> = ({
                         </span>
                         {defaultAdd ? (
                             <>
-                                <span className={styles.detailsAdress}>
+                                <span className={styles.addressName}>
                                     {defaultAdd.name}
                                 </span>
-                                <span className={styles.detailsAdress}>
+                                <span className={styles.addressPhone}>
                                     {defaultAdd.phone}
                                 </span>
-                                <span className={styles.detailsAdress}>
+                                <span className={styles.addressText}>
                                     {defaultAdd.address}
                                 </span>
                             </>
