@@ -126,15 +126,9 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
   //console.log('🔧 Register endpoint:', API_ENDPOINTS.AUTH.REGISTER);
   //console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
   //console.log('📤 User data:', {
-<<<<<<< HEAD
   //   ...userData,
   //   password: '[HIDDEN]'
   // });
-=======
-    ...userData,
-    password: '[HIDDEN]'
-  });
->>>>>>> 1f23203 (f1 commit)
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
@@ -169,7 +163,7 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       }
       //console.log('📄 Parsed response data:', data);
     } catch (parseError) {
-      //console.error('❌ Failed to parse response:', parseError);
+      console.error('❌ Failed to parse response:', parseError);
       throw new Error('Server returned invalid response format');
     }
 
@@ -251,7 +245,7 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
     return data;
 
   } catch (error: any) {
-    //console.error('❌ Registration error:', error);
+    console.error('❌ Registration error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       const networkError = new Error('Network error - please check your internet connection') as any;
@@ -278,17 +272,10 @@ export const debugApiConnection = async (): Promise<any> => {
     });
     
     //console.log('🏥 Health check response:', {
-<<<<<<< HEAD
     //   status: response.status,
     //   ok: response.ok,
     //   headers: Object.fromEntries(response.headers.entries()),
     // });
-=======
-      status: response.status,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries()),
-    });
->>>>>>> 1f23203 (f1 commit)
     
     let data;
     try {
@@ -301,7 +288,7 @@ export const debugApiConnection = async (): Promise<any> => {
     
     return { status: response.status, ok: response.ok, data };
   } catch (error) {
-    //console.error('❌ Health check failed:', error);
+    console.error('❌ Health check failed:', error);
     return { error: error};
   }
 };
@@ -349,7 +336,7 @@ export const debugRegistrationEndpoint = async (): Promise<any> => {
       headers: Object.fromEntries(response.headers.entries())
     };
   } catch (error) {
-    //console.error('❌ Registration endpoint test failed:', error);
+    console.error('❌ Registration endpoint test failed:', error);
     return { error: error };
   }
 };
@@ -393,14 +380,14 @@ export const verifyEmail = async (
     try {
       data = await response.json();
     } catch (parseError) {
-      //console.error('❌ Failed to parse verification response:', parseError);
+      console.error('❌ Failed to parse verification response:', parseError);
       throw new Error('Invalid response format from server');
     }
 
     //console.log('data : ' , data);
 
     if (!response.ok) {
-      //console.error('❌ Verification request failed with status:', response.status);
+      console.error('❌ Verification request failed with status:', response.status);
       
       if (data && (data.success === true || data.status === 'success')) {
         //console.log('✅ Email verification successful despite HTTP status!');
@@ -435,12 +422,12 @@ export const verifyEmail = async (
       
       return data;
     } else {
-      //console.error('❌ Email verification failed:', data.message);
+      console.error('❌ Email verification failed:', data.message);
       throw new Error(data.message || 'Email verification failed');
     }
 
   } catch (error) {
-    //console.error('❌ Email verification failed:', error);
+    console.error('❌ Email verification failed:', error);
     throw error;
   }
 };
@@ -519,7 +506,7 @@ export async function resendVerificationCode(
       throw error;
     }
     
-    //console.error(`🚨 Network error:`, error);
+    console.error(`🚨 Network error:`, error);
     throw new APIError(
       0,
       `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./search.module.css";
-import SearchIcon from "./../../../public/icons/search.svg";
+import SearchIcon from "./../../../public/icons/Search.svg";
 
 interface Product {
   id: string;
