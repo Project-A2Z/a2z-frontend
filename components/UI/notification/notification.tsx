@@ -92,7 +92,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
         //console.log(`✅ Fetched ${response.data.length} notifications`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "فشل في تحميل الإشعارات");
-        console.error("❌ Error fetching notifications:", err);
+        //console.error("❌ Error fetching notifications:", err);
       } finally {
         if (!append) {
           setIsLoading(false);
@@ -192,7 +192,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
         window.location.href = notification.actionUrl;
       }
     } catch (err) {
-      console.error("Error marking notification as read:", err);
+      //console.error("Error marking notification as read:", err);
     }
   };
 
@@ -208,7 +208,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       setUnreadCount(0);
       onUnreadCountChange(0);
     } catch (err) {
-      console.error("Error marking all as read:", err);
+      //console.error("Error marking all as read:", err);
     }
   };
 
@@ -235,7 +235,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       // Remove from local state
       setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
     } catch (err) {
-      console.error("Error deleting notification:", err);
+      //console.error("Error deleting notification:", err);
     }
   };
 
@@ -271,7 +271,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       const errorMessage =
         err instanceof Error ? err.message : "فشل في حذف الإشعارات";
       setError(errorMessage);
-      console.error("Error deleting all notifications:", err);
+      //console.error("Error deleting all notifications:", err);
     } finally {
       setIsLoading(false);
     }

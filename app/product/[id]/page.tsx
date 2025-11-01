@@ -31,12 +31,12 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       }
 
       if (res.message?.includes('Connection timeout') || res.message?.includes('socket hang up')) {
-        console.error(`🌐 Network error loading product ${decodedId}:`, res.message);
+        //console.error(`🌐 Network error loading product ${decodedId}:`, res.message);
         throw new Error('Connection timeout. Please check your internet connection and try again.');
       }
 
       if (res.message?.includes('temporarily unavailable')) {
-        console.error(`⏱️ Product temporarily unavailable: ${decodedId}`);
+        //console.error(`⏱️ Product temporarily unavailable: ${decodedId}`);
         throw new Error('Product temporarily unavailable. Please try again in a few minutes.');
       }
     }
@@ -63,7 +63,7 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       }));
       //console.log(`📝 Loaded ${reviews.length} reviews`);
     } catch (err: any) {
-      console.warn("⚠️ No reviews found or failed to load reviews:", err.message);
+      //console.warn("⚠️ No reviews found or failed to load reviews:", err.message);
       reviews = [];
     }
 
@@ -99,7 +99,7 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     //console.log(`✅ Product page data prepared successfully`);
     return <ProductPage data={data} />;
   } catch (e: any) {
-    console.error("❌ Error fetching product:", e.message);
+    //console.error("❌ Error fetching product:", e.message);
 
     // Enhanced error handling for different types of errors
     if (e.message?.includes("Connection timeout") || e.message?.includes("socket hang up")) {

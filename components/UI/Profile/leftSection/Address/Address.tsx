@@ -116,7 +116,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       // Success message is already shown by AddressService
       
     } catch (err) {
-      console.error('❌ Error deleting address:', err);
+      //console.error('❌ Error deleting address:', err);
       
       if (err instanceof AddressError) {
         // Only show error if not already shown by service
@@ -199,7 +199,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       // Success message is already shown by AddressService
       
     } catch (err) {
-      console.error('❌ Error setting default address:', err);
+      //console.error('❌ Error setting default address:', err);
       
       if (err instanceof AddressError) {
         // Only show error if not already shown by service

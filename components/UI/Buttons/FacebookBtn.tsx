@@ -51,7 +51,7 @@ const FacebookBtn = ({
       }, 500);
 
     } catch (error: any) {
-      console.error('❌ Backend social login failed:', error);
+      //console.error('❌ Backend social login failed:', error);
       
       let errorMessage = 'فشل تسجيل الدخول عبر Facebook';
       
@@ -73,7 +73,7 @@ const FacebookBtn = ({
   };
 
   const handleFail = (error: any) => {
-    console.error('❌ Facebook Login Failed!', error);
+    //console.error('❌ Facebook Login Failed!', error);
     setMessage({ text: "فشل تسجيل الدخول عبر Facebook", severity: "error" });
     
     // Call parent callback if provided
@@ -85,10 +85,12 @@ const FacebookBtn = ({
   const handleProfileSuccess = (response: any) => {
     //console.log('✅ Facebook Get Profile Success!', response);
     //console.log('👤 User Profile:', {
+
     //   name: response.name,
     //   email: response.email,
     //   id: response.id
     // });
+
   };
 
   return (

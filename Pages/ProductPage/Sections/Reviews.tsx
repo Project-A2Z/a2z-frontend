@@ -51,7 +51,7 @@ const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Adde
             const payload = JSON.parse(atob(storedToken.split('.')[1]));
             setUserId(payload.userId || payload.id || null);
           } catch (error) {
-            console.error('Error decoding token:', error);
+            //console.error('Error decoding token:', error);
             setUserId(null);
             setAuthToken(null);
           }
@@ -92,11 +92,11 @@ const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Adde
       
       // Show message if there was an issue but we got empty results
       if (response.message && fetchedReviews.length === 0 && response.message !== 'success') {
-        console.warn('⚠️ Reviews loaded with warning:', response.message);
+        //console.warn('⚠️ Reviews loaded with warning:', response.message);
         // Don't set error, just log it - the app will show "no reviews" message
       }
     } catch (err: any) {
-      // console.error('❌ Get reviews error:', err);
+      // //console.error('❌ Get reviews error:', err);
       // This should rarely happen now since API returns empty data instead of throwing
       setReviews([]);
       setError(null); // Don't show error, just show empty state
@@ -139,7 +139,7 @@ const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Adde
         await onReviewAdded();
       }
     } catch (err: any) {
-      // console.error('❌ Add review error:', err);
+      // //console.error('❌ Add review error:', err);
       const errorMessage = err.message || 'فشل في إضافة التعليق';
 
       // Handle specific error cases
@@ -209,7 +209,7 @@ const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Adde
         await onReviewAdded();
       }
     } catch (err: any) {
-      // console.error('Update review error:', err);
+      // //console.error('Update review error:', err);
       const errorMessage = err.message || 'فشل في تحديث التعليق';
 
       // Handle specific error cases

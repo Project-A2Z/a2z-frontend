@@ -52,7 +52,7 @@ const LanguageSelector = () => {
         }, 2000);
       }
     } catch (error) {
-      console.error('Translation error:', error);
+      //console.error('Translation error:', error);
       setIsTranslating(false);
       document.body.classList.remove('translating');
     }

@@ -116,11 +116,19 @@ export default function OrderStatusStepper({
 
           // Debug logging for each step
           //console.log(`Step ${index} (${step.key}):`, {
+<<<<<<< HEAD
           //   stepState,
           //   shouldShowCheckIcon,
           //   isClickable,
           //   connectorActive
           // });
+=======
+            stepState,
+            shouldShowCheckIcon,
+            isClickable,
+            connectorActive
+          });
+>>>>>>> 1f23203 (f1 commit)
 
           return (
             <React.Fragment key={step.key}>

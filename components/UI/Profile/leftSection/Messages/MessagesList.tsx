@@ -38,7 +38,7 @@ const MessagesList = () => {
       } else {
         setError('حدث خطأ أثناء تحميل الرسائل. يرجى المحاولة مرة أخرى.');
       }
-      console.error('Error loading messages:', err);
+      //console.error('Error loading messages:', err);
     } finally {
       setLoading(false);
     }

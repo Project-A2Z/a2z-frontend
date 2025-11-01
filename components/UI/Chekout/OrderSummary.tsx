@@ -141,7 +141,7 @@ const Summary: React.FC<SummaryInter> = ({
             );
 
         } catch (error: any) {
-            console.error('❌ Error creating order:', error);
+            //console.error('❌ Error creating order:', error);
             const errorMessage = error.message || 'حدث خطأ أثناء إنشاء الطلب';
             setError(errorMessage);
             

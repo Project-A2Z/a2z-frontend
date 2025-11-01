@@ -46,7 +46,7 @@ const RelatedProducts: React.FC = () => {
         const data = await response.json();
         setProducts(data.slice(0, 8));
       } catch (error) {
-        console.error('Error fetching products:', error);
+        //console.error('Error fetching products:', error);
       } finally {
         setLoading(false);
       }

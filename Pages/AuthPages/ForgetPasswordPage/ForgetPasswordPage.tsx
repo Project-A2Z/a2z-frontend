@@ -147,7 +147,7 @@ export default function ForgetPasswordPage() {
           body: JSON.stringify(body)
         });
         if (res.ok) { success = true; break; }
-        try { const data = await res.json(); if (data?.message) lastErrorMessage = data.message as string; console.warn('[OTPVerification] attempt failed with body:', body, 'response:', data); } catch (e) { console.warn('[OTPVerification] attempt failed and response not JSON. Body:', body); }
+        try { const data = await res.json(); if (data?.message) lastErrorMessage = data.message as string; //console.warn('[OTPVerification] attempt failed with body:', body, 'response:', data); } catch (e) { //console.warn('[OTPVerification] attempt failed and response not JSON. Body:', body); }
       }
       if (!success) throw new Error(lastErrorMessage);
       setStep(3);
@@ -171,7 +171,7 @@ export default function ForgetPasswordPage() {
       });
       if (!res.ok) {
         let message = 'فشل إرسال الرمز. حاول مرة أخرى.';
-        try { const data = await res.json(); if (data?.message) message = data.message as string; console.warn('OTPResend error:', data); } catch {}
+        try { const data = await res.json(); if (data?.message) message = data.message as string; //console.warn('OTPResend error:', data); } catch {}
         throw new Error(message);
       }
       setCode(['', '', '', '', '', '']);
@@ -233,7 +233,7 @@ export default function ForgetPasswordPage() {
       });
       if (!res.ok) {
         let message = 'تعذر إعادة تعيين كلمة المرور';
-        try { const data = await res.json(); if (data?.message) message = data.message as string; console.warn('ResetPassword error:', data); } catch {}
+        try { const data = await res.json(); if (data?.message) message = data.message as string; //console.warn('ResetPassword error:', data); } catch {}
         throw new Error(message);
       }
       router.push('/login');

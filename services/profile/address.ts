@@ -87,7 +87,7 @@ export class AddressCache {
       localStorage.setItem(STORAGE_KEYS.CACHE_TIMESTAMP, Date.now().toString());
       //console.log('💾 Addresses saved to cache:', addresses.length);
     } catch (error) {
-      console.error('❌ Error saving addresses to cache:', error);
+      //console.error('❌ Error saving addresses to cache:', error);
     }
   }
 
@@ -106,7 +106,7 @@ export class AddressCache {
       //console.log('📬 Retrieved cached addresses:', addresses.length);
       return addresses;
     } catch (error) {
-      console.error('❌ Error reading addresses from cache:', error);
+      //console.error('❌ Error reading addresses from cache:', error);
       return null;
     }
   }
@@ -125,7 +125,7 @@ export class AddressCache {
       //console.log(`🕐 Cache age: ${Math.round(cacheAge / 1000)}s, Valid: ${isValid}`);
       return isValid;
     } catch (error) {
-      console.error('❌ Error checking cache validity:', error);
+      //console.error('❌ Error checking cache validity:', error);
       return false;
     }
   }
@@ -139,7 +139,7 @@ export class AddressCache {
       localStorage.removeItem(STORAGE_KEYS.CACHE_TIMESTAMP);
       //console.log('🗑️ Address cache cleared');
     } catch (error) {
-      console.error('❌ Error clearing cache:', error);
+      //console.error('❌ Error clearing cache:', error);
     }
   }
 
@@ -151,7 +151,7 @@ export class AddressCache {
       localStorage.removeItem(STORAGE_KEYS.CACHE_TIMESTAMP);
       //console.log('⚠️ Address cache invalidated');
     } catch (error) {
-      console.error('❌ Error invalidating cache:', error);
+      //console.error('❌ Error invalidating cache:', error);
     }
   }
 }
@@ -208,7 +208,7 @@ export const getAddresses = async (forceRefresh = false): Promise<Address[]> => 
       response.status
     );
   } catch (error: any) {
-    console.error('❌ Get addresses error:', error);
+    //console.error('❌ Get addresses error:', error);
     
     // If network error, try to return cached data even if expired
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -288,7 +288,7 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
-    console.error('❌ Add address error:', error);
+    //console.error('❌ Add address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -361,7 +361,7 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
-    console.error('❌ Update address error:', error);
+    //console.error('❌ Update address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -427,7 +427,7 @@ export const deleteAddress = async (deleteData: DeleteAddressData): Promise<Dele
     throw new AddressError(errorMessage, response.status);
 
   } catch (error: any) {
-    console.error('❌ Delete address error:', error);
+    //console.error('❌ Delete address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);

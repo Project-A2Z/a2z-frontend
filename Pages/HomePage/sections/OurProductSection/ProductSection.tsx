@@ -30,7 +30,7 @@ async function getProducts(): Promise<{
     //console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
     
     if (!productsData.data || productsData.data.length === 0) {
-      console.warn('⚠️  No products found');
+      //console.warn('⚠️  No products found');
       
       return {
         data: {
@@ -56,7 +56,7 @@ async function getProducts(): Promise<{
     };
   } catch (error) {
     const loadTime = Date.now() - startTime;
-    console.error(`❌ Error fetching products (after ${loadTime}ms):`, error);
+    //console.error(`❌ Error fetching products (after ${loadTime}ms):`, error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     

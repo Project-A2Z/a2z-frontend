@@ -204,7 +204,7 @@ const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
         'تم تغيير كلمة المرور بنجاح. يمكنك الآن استخدام كلمة المرور الجديدة لتسجيل الدخول.'
       );
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      //console.error('Error changing password:', error);
       
       // Extract error message
       let errorMessage = 'فشل في تغيير كلمة المرور. يرجى التأكد من صحة كلمة المرور الحالية والمحاولة مرة أخرى.';

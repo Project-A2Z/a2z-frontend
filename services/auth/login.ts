@@ -360,7 +360,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
       }
       //console.log('📄 Parsed response data:', data);
     } catch (parseError) {
-      console.error('❌ Failed to parse response:', parseError);
+      //console.error('❌ Failed to parse response:', parseError);
       throw new AuthError('Server returned invalid response format');
     }
 
@@ -457,7 +457,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
     return data;
 
   } catch (error: any) {
-    console.error('❌ Login error:', error);
+    //console.error('❌ Login error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AuthError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -503,7 +503,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
         }
       }
     } catch (parseError) {
-      console.error('❌ Failed to parse social login response:', parseError);
+      //console.error('❌ Failed to parse social login response:', parseError);
       throw new AuthError('Server returned invalid response format');
     }
 
@@ -560,7 +560,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
     return data;
 
   } catch (error: any) {
-    console.error('❌ Social login error:', error);
+    //console.error('❌ Social login error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AuthError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -588,7 +588,7 @@ export const logoutUser = async (): Promise<void> => {
     //console.log('✅ User logged out successfully');
     
   } catch (error) {
-    console.error('❌ Error during logout:', error);
+    //console.error('❌ Error during logout:', error);
     UserStorage.removeUser();
     throw new Error('حدث خطأ أثناء تسجيل الخروج');
   }

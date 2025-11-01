@@ -96,15 +96,30 @@ function Header({
   useEffect(() => {
     const handleSocialAuth = async () => {
       if (session?.backendToken && session?.user?.backendUser) {
+<<<<<<< HEAD
+=======
+        //console.log('✅ Header: Backend token found in session, saving to localStorage...');
+        
+        // Save using UserStorage methods (includes expiry tracking)
+>>>>>>> 1f23203 (f1 commit)
         UserStorage.saveUser(session.user.backendUser);
         UserStorage.saveToken(session.backendToken);
         setUser(session.user.backendUser);
         setIsLoading(false);
 
         AuthService.startTokenMonitoring(() => {
+<<<<<<< HEAD
+=======
+          //console.log('🔒 Token expired - user needs to login again');
+>>>>>>> 1f23203 (f1 commit)
           setUser(null);
           router.push("/login");
         });
+<<<<<<< HEAD
+=======
+        
+        //console.log('✅ Header: User state updated from session');
+>>>>>>> 1f23203 (f1 commit)
       }
     };
 
@@ -122,11 +137,18 @@ function Header({
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
+<<<<<<< HEAD
         } else {
           setUser(null);
+=======
+          //console.log("✅ User data loaded:", userData);
+        } else {
+          setUser(null);
+          //console.log("ℹ️ No user found or not authenticated");
+>>>>>>> 1f23203 (f1 commit)
         }
       } catch (error) {
-        console.error("❌ Error loading user data:", error);
+        //console.error("❌ Error loading user data:", error);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -145,8 +167,12 @@ function Header({
         setIsProductsLoading(true);
         const cachedProducts = await getProductsWithState();
         setProducts(cachedProducts);
+<<<<<<< HEAD
+=======
+        //console.log(`✅ Loaded ${cachedProducts.length} products for search`);
+>>>>>>> 1f23203 (f1 commit)
       } catch (error) {
-        console.error("❌ Error loading cached products:", error);
+        //console.error("❌ Error loading cached products:", error);
         setProducts([]);
       } finally {
         setIsProductsLoading(false);
@@ -163,23 +189,40 @@ function Header({
 
     const fetchUnreadCount = async () => {
       if (!user || !isMounted) {
+<<<<<<< HEAD
+=======
+        //console.log("⏭️ Skipping unread count fetch - no user or unmounted");
+>>>>>>> 1f23203 (f1 commit)
         return;
       }
 
       try {
+<<<<<<< HEAD
+=======
+        //console.log("🔔 Fetching unread notification count");
+>>>>>>> 1f23203 (f1 commit)
         const count = await getUnreadNotificationsCount();
 
         if (isMounted) {
           setUnreadCount(count);
+<<<<<<< HEAD
+=======
+          //console.log(`✅ Unread count updated: ${count}`);
+>>>>>>> 1f23203 (f1 commit)
         }
       } catch (error) {
         if (isMounted) {
-          console.error("❌ Error fetching unread count:", error);
+          //console.error("❌ Error fetching unread count:", error);
         }
       }
     };
 
     if (user) {
+<<<<<<< HEAD
+=======
+      //console.log("⏰ Setting up unread count polling (5min interval)");
+      
+>>>>>>> 1f23203 (f1 commit)
       fetchUnreadCount();
 
       intervalId = setInterval(() => {
@@ -190,6 +233,10 @@ function Header({
     }
 
     return () => {
+<<<<<<< HEAD
+=======
+      //console.log("🧹 Cleaning up unread count polling");
+>>>>>>> 1f23203 (f1 commit)
       isMounted = false;
 
       if (intervalId) {
@@ -206,18 +253,33 @@ function Header({
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
+<<<<<<< HEAD
         } else {
           setUser(null);
+=======
+          //console.log("✅ Header: User updated from storage event");
+        } else {
+          setUser(null);
+          //console.log("✅ Header: User cleared from storage event");
+>>>>>>> 1f23203 (f1 commit)
         }
       }
     };
 
     const handleTokenExpiry = () => {
+<<<<<<< HEAD
+=======
+      //console.log("🔒 Header: Token expired event received");
+>>>>>>> 1f23203 (f1 commit)
       setUser(null);
       router.push("/login");
     };
 
     const handleAuthUpdate = () => {
+<<<<<<< HEAD
+=======
+      //console.log("🔄 Header: Auth update event received");
+>>>>>>> 1f23203 (f1 commit)
       if (isUserAuthenticated()) {
         const userData = getCurrentUser();
         setUser(userData);
@@ -253,6 +315,10 @@ function Header({
   };
 
   const handleLogin = (): void => {
+<<<<<<< HEAD
+=======
+    //console.log("Redirecting to login...");
+>>>>>>> 1f23203 (f1 commit)
     router.push("/login");
   };
 
@@ -270,6 +336,7 @@ function Header({
     if (user) {
       getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
     }
+
   };
 
   const handleSearchClick = (): void => {

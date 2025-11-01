@@ -158,17 +158,17 @@ async function fetchWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3): P
         // Rate limiting - use longer delays
         const retryAfter = error.response?.headers?.['retry-after'];
         const delay = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(30000, Math.pow(2, i) * 2000);
-        console.warn(`Rate limited - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
+        //console.warn(`Rate limited - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else if (error.message?.includes('socket hang up') || error.message?.includes('fetch failed')) {
         // Network errors - use shorter delays with exponential backoff
         const delay = Math.min(10000, Math.pow(2, i) * 1000);
-        console.warn(`Network error - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
+        //console.warn(`Network error - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else if (error.response?.status >= 500) {
         // Server errors - retry with medium delays
         const delay = Math.min(15000, Math.pow(2, i) * 1500);
-        console.warn(`Server error - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
+        //console.warn(`Server error - retrying in ${delay}ms (attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
         // Client errors (4xx) - don't retry
@@ -195,7 +195,7 @@ const getProductsClient = async (filters: ProductFilters) => {
     const request = () => apiClient.get('/products', { params: filters });
     return await fetchWithRetry(() => request().then(res => res.data));
   } catch (error: any) {
-    console.error('API fetch failed:', error.message);
+    //console.error('API fetch failed:', error.message);
     // For rate limiting, provide graceful fallback
     if (error.message?.includes('temporarily unavailable')) {
       return {
@@ -261,7 +261,7 @@ export const productService = {
 
       return result;
     } catch (error: any) {
-      console.error(`❌ Error fetching product ${id}:`, error.message);
+      //console.error(`❌ Error fetching product ${id}:`, error.message);
 
       // For rate limiting, provide a more graceful error message
       if (error.message?.includes('temporarily unavailable')) {

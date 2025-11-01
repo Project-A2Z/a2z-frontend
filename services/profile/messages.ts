@@ -41,7 +41,7 @@ const getEmail = (): string | null => {
     const userData = UserStorage.getUser();
     return userData?.email || null;
   } catch (error) {
-    console.error('Error retrieving user email:', error);
+    //console.error('Error retrieving user email:', error);
     return null;
   }
 };
