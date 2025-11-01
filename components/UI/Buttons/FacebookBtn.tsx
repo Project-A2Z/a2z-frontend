@@ -86,10 +86,12 @@ const FacebookBtn = ({
     //console.log('✅ Facebook Get Profile Success!', response);
     //console.log('👤 User Profile:', {
 
+
     //   name: response.name,
     //   email: response.email,
     //   id: response.id
     // });
+
 
   };
 

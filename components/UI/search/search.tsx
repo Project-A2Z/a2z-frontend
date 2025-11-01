@@ -55,6 +55,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     []
   );
 
+  // console.log("Search Component Data:", data);
+
   // Filter results based on search term
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -159,7 +161,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                         {!product.inStock && (
                           <span className={styles.outOfStockBadge}>
                             {" "}
-                            - غير متوفر
+                            {product.inStock}
                           </span>
                         )}
                       </div>

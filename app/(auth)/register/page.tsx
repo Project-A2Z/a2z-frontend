@@ -174,15 +174,9 @@ export default function RegistrationForm() {
       };
 
       //console.log("📤 Sending registration data:", {
-<<<<<<< HEAD
       //   ...registerData,
       //   password: "[HIDDEN]", // Don't log password
       // });
-=======
-        ...registerData,
-        password: "[HIDDEN]", // Don't log password
-      });
->>>>>>> 1f23203 (f1 commit)
 
       const response = await registerUser(registerData);
       //console.log("📥 Registration response:", response);
@@ -213,17 +207,10 @@ export default function RegistrationForm() {
         const responseData = error.response?.data;
 
         //console.log("🔍 Error details:", {
-<<<<<<< HEAD
         //   status,
         //   responseData,
         //   errors: error.errors,
         // });
-=======
-          status,
-          responseData,
-          errors: error.errors,
-        });
->>>>>>> 1f23203 (f1 commit)
 
         // Handle specific status codes
         switch (status) {
