@@ -58,18 +58,8 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
     const isUserAuthenticated = user !== null && token !== null;
     
     if (!isUserAuthenticated) {
-<<<<<<< HEAD
-=======
-      // User is not authenticated, redirect to login
-      //console.log('❌ User not authenticated, redirecting to login...');
->>>>>>> 1f23203 (f1 commit)
       router.push('/login?redirect=/favorites');
     }
-<<<<<<< HEAD
-=======
-
-    //console.log('✅ User authenticated:', user?.firstName, user?.lastName);
->>>>>>> 1f23203 (f1 commit)
   }, [router]);
   
   // Don't render anything during SSR or if not mounted yet

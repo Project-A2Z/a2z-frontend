@@ -1,3 +1,4 @@
+// pages/index.tsx (for homepage at "/")
 import React from "react";
 import Footer from "./sections/FooterSection/Footer";
 import MainSection from "./sections/MainSection/MainSection";

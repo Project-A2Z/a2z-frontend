@@ -122,10 +122,6 @@ const CheckoutContent: React.FC = () => {
 
     try {
       if (!AddressService.isAuthenticated()) {
-<<<<<<< HEAD
-=======
-        //console.warn('⚠️ User not authenticated, using empty addresses');
->>>>>>> 1f23203 (f1 commit)
         setAddresses([]);
         setDef(null);
         return;
@@ -150,10 +146,6 @@ const CheckoutContent: React.FC = () => {
       }
 
     } catch (err: any) {
-<<<<<<< HEAD
-=======
-      //console.error('❌ Error loading addresses:', err);
->>>>>>> 1f23203 (f1 commit)
       setAddressError(err.message || 'فشل تحميل العناوين');
     } finally {
       setIsLoadingAddresses(false);
@@ -171,11 +163,7 @@ const CheckoutContent: React.FC = () => {
         const parsed: CheckoutData = JSON.parse(decoded);
         setCheckoutData(parsed);
       } catch (err) {
-<<<<<<< HEAD
         console.error('Failed to parse checkout data:', err);
-=======
-        //console.error('❌ Failed to parse checkout data:', err);
->>>>>>> 1f23203 (f1 commit)
       }
     }
   }, [searchParams]);
@@ -213,10 +201,6 @@ const CheckoutContent: React.FC = () => {
   }
 
   const { totalItemQuantity: itemCount, total, order } = checkoutData;
-<<<<<<< HEAD
-=======
-  //console.log('Checkout Data:', checkoutData);
->>>>>>> 1f23203 (f1 commit)
 
   // -------------------------
   // UI: Main Checkout Layout

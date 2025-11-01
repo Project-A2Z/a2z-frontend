@@ -47,51 +47,26 @@ function LoginFormContent() {
       if (storedToken && storedUser && storedExpiry) {
         const isValid = Date.now() < parseInt(storedExpiry, 10);
         if (isValid) {
-<<<<<<< HEAD
           router.push('/');
           return;
         } else {
-=======
-          //console.log('✅ Valid auth data in localStorage, redirecting...');
-          router.push('/');
-          return;
-        } else {
-          //console.log('⚠️ Token expired in localStorage, clearing...');
->>>>>>> 1f23203 (f1 commit)
           UserStorage.removeUser();
         }
       }
       
       if (session?.backendToken && session?.user?.backendUser) {
-<<<<<<< HEAD
-=======
-        //console.log('✅ Backend token found in session, saving to localStorage...');
-        
->>>>>>> 1f23203 (f1 commit)
         UserStorage.saveUser(session.user.backendUser);
         UserStorage.saveToken(session.backendToken);
         
         // Dispatch custom event to notify Header
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authUpdated'));
-<<<<<<< HEAD
         }
         
         AuthService.startTokenMonitoring(() => {
           router.push('/login');
         });
         
-=======
-          //console.log('📢 Auth update event dispatched');
-        }
-        
-        AuthService.startTokenMonitoring(() => {
-          //console.log('🔒 Token expired - redirecting to login');
-          router.push('/login');
-        });
-        
-        //console.log('✅ Token saved with expiry, redirecting to home...');
->>>>>>> 1f23203 (f1 commit)
         router.push('/');
         return;
       }
@@ -105,10 +80,6 @@ function LoginFormContent() {
   useEffect(() => {
     const error = searchParams?.get('error');
     if (error) {
-<<<<<<< HEAD
-=======
-      //console.error('OAuth error:', error);
->>>>>>> 1f23203 (f1 commit)
       let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
       
       if (error === 'OAuthCallback') {
@@ -184,10 +155,6 @@ function LoginFormContent() {
       if (response.status === 'success') {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authUpdated'));
-<<<<<<< HEAD
-=======
-          //console.log('📢 Auth update event dispatched after login');
->>>>>>> 1f23203 (f1 commit)
         }
         router.push('/');
       } else {
@@ -195,11 +162,6 @@ function LoginFormContent() {
         setShowVerificationAlert(true);
       }
     } catch (error) {
-<<<<<<< HEAD
-=======
-      //console.error('Login error:', error);
-      
->>>>>>> 1f23203 (f1 commit)
       if (error instanceof AuthError) {
         setAlertMessage(error.message);
       } else {
@@ -216,31 +178,18 @@ function LoginFormContent() {
       setIsLoading(true);
       setErrors({});
       
-<<<<<<< HEAD
-=======
-      //console.log('🔵 Starting Google Sign-In...');
-      
->>>>>>> 1f23203 (f1 commit)
       const result = await signIn('google', { 
         redirect: true,
         callbackUrl: '/'  
       });
       
       if (result?.error) {
-<<<<<<< HEAD
-=======
-        //console.error('Google sign-in error:', result.error);
->>>>>>> 1f23203 (f1 commit)
         setAlertMessage('فشل تسجيل الدخول عبر Google');
         setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
-<<<<<<< HEAD
-=======
-      //console.error('Google login error:', error);
->>>>>>> 1f23203 (f1 commit)
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
       setShowErrorAlert(true);
       setIsLoading(false);
@@ -252,31 +201,18 @@ function LoginFormContent() {
       setIsLoading(true);
       setErrors({});
       
-<<<<<<< HEAD
-=======
-      //console.log('🔵 Starting Facebook Sign-In...');
-      
->>>>>>> 1f23203 (f1 commit)
       const result = await signIn('facebook', { 
         redirect: true,
         callbackUrl: '/'  
       });
       
       if (result?.error) {
-<<<<<<< HEAD
-=======
-        //console.error('Facebook sign-in error:', result.error);
->>>>>>> 1f23203 (f1 commit)
         setAlertMessage('فشل تسجيل الدخول عبر Facebook');
         setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
-<<<<<<< HEAD
-=======
-      //console.error('Facebook login error:', error);
->>>>>>> 1f23203 (f1 commit)
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
       setShowErrorAlert(true);
       setIsLoading(false);
