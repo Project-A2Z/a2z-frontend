@@ -453,7 +453,7 @@ const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Adde
                           <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                           <span className="text-xs sm:text-sm font-medium text-primary">رد من الإدارة</span>
                         </div>
-                        <p className="text-xs sm:text-sm text-primary/80 break-words">{review.reply}</p>
+                        <p className="text-sm sm:text-base text-primary/80 break-words">{review.reply}</p>
                       </div>
                     )}
                   </div>

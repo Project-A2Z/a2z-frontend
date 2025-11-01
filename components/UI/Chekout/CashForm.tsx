@@ -104,7 +104,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         setIsConfirmed(true)
         
         //console.log('✅ Form confirmed:', {
-<<<<<<< HEAD
         //     id: transactionId,
         //     date: transactionDate,
         //     price: price,
@@ -113,16 +112,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         //     way: way,
         //     image: receiptFile
         // })
-=======
-            id: transactionId,
-            date: transactionDate,
-            price: price,
-            file: receiptFile.name,
-            paymentWith: paymentWith || 'N/A',
-            way: way,
-            image: receiptFile
-        })
->>>>>>> 1f23203 (f1 commit)
     }
 
     const handleEdit = () => {

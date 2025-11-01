@@ -96,19 +96,11 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
       };
 
       //console.log('🚀 Uploading image with user data...', {
-<<<<<<< HEAD
       //   firstName: updateData.firstName,
       //   lastName: updateData.lastName,
       //   phoneNumber: updateData.phoneNumber,
       //   hasImage: !!updateData.image
       // });
-=======
-        firstName: updateData.firstName,
-        lastName: updateData.lastName,
-        phoneNumber: updateData.phoneNumber,
-        hasImage: !!updateData.image
-      });
->>>>>>> 1f23203 (f1 commit)
 
       // Call the API to update profile with new image
       const response = await updateUserProfile(updateData, token);
@@ -148,7 +140,7 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
       //console.log('✅ تم تحديث الصورة الشخصية بنجاح');
 
     } catch (error: any) {
-      //console.error('❌ Image upload error:', error);
+      console.error('❌ Image upload error:', error);
       
       // Revert avatar preview on error
       setAvatar(user.image || null);

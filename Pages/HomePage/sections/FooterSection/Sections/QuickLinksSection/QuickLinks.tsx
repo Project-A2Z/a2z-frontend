@@ -6,8 +6,8 @@ import Link from "next/link";
 const QuickLinks = ()=> {
   const [links] = useState([
     { href: "/", label: "الرئيسية" },
-    { href: "/services", label: "الخدمات" },
-    { href: "/products", label: "المنتجات" },
+    // { href: "/services", label: "الخدمات" },
+    { href: "/", label: "المنتجات" },
     { href: "/about", label: "من نحن" },
     { href: "/contact", label: "تواصل معنا" },
   ]);

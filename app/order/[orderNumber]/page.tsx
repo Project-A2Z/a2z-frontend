@@ -175,9 +175,7 @@ const OrderDetails: React.FC = () => {
             id: order._id,
             name: "منتج من الطلب",
             image: img,
-
-            price: `${order.paymentDetails?.totalPrice || 0}  ج.م`,
-
+            price: `${order.paymentDetails?.totalPrice || 0}  ج `,
             quantity: 1,
           },
         ];
@@ -213,9 +211,7 @@ const OrderDetails: React.FC = () => {
                   key={item._id}
                   image={item.productId.imageList}
                   name={item.productId.name}
-
-                  price={`${item.productId.price} ج.م`}
-
+                  price={`${item.productId.price} ج `}
                 />
               ))}
             </div>
