@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import productService from "./products";
 
 export interface ReviewUser {
   _id: string;
@@ -55,6 +56,13 @@ export interface ReviewResponse {
   data: { review: Review };
 }
 
+// Response when review mutation returns updated product
+export interface ReviewWithProductResponse {
+  status: string;
+  message: string;
+  data: any; // Can be product object with reviews
+}
+
 // Client-side cache for reviews
 interface CacheEntry<T> {
   data: T;
@@ -65,7 +73,7 @@ interface CacheEntry<T> {
 class ClientCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
 
-  set(key: string, data: T, ttlMs: number = 3 * 60 * 1000) { // 3 minutes default for reviews
+  set(key: string, data: T, ttlMs: number = 3 * 60 * 1000) {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -93,12 +101,10 @@ class ClientCache<T> {
     this.cache.delete(key);
   }
 
-  // Get all cache keys for filtering
   getKeys(): string[] {
     return Array.from(this.cache.keys());
   }
 
-  // Clean expired entries - public method
   public cleanup() {
     const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
@@ -112,14 +118,9 @@ class ClientCache<T> {
 // Global cleanup - run every 3 minutes for reviews
 if (typeof window !== 'undefined') {
   setInterval(() => {
-    // Clean expired entries from reviews cache
     reviewsCache.cleanup();
-
-    // Clean expired entries from review detail cache
     reviewDetailCache.cleanup();
-
-    //console.log('🧹 Reviews cache cleanup completed');
-  }, 3 * 60 * 1000); // 3 minutes
+  }, 3 * 60 * 1000);
 }
 
 // Global cache instances
@@ -162,20 +163,42 @@ class ReviewService {
     return headers;
   }
 
+  /**
+   * Update product cache with new data from review mutation response
+   * This directly updates the product cache so the page can use cached data
+   */
+  private updateProductCacheFromReview(productId: string, updatedProduct: any) {
+    if (!updatedProduct || !updatedProduct._id) {
+      return;
+    }
+
+    // Call the productService method directly to update its cache
+    productService.updateProductCache(productId, {
+      status: 'success',
+      data: updatedProduct,
+      message: 'Product updated from review'
+    });
+  }
+
   // Add Review (POST /reviews)
   async addReview(
     reviewData: CreateReviewRequest,
     token?: string
-  ): Promise<ReviewResponse> {
+  ): Promise<ReviewWithProductResponse> {
     try {
-      const res = await apiClient.post<ReviewResponse>(
+      const res = await apiClient.post<ReviewWithProductResponse>(
         `${this.baseUrl}/reviews`,
         reviewData,
         { headers: this.getAuthHeaders(token) }
       );
       
-      // Clear cache for this product after adding a review
+      // Clear old reviews cache for this product
       this.clearProductReviewsCache(reviewData.productId);
+      
+      // Update product cache with new data from response
+      if (res.data.data) {
+        this.updateProductCacheFromReview(reviewData.productId, res.data.data);
+      }
       
       return res.data;
     } catch (error: any) {
@@ -199,12 +222,10 @@ class ReviewService {
       description?: { regex?: string };
     }
   ): Promise<ReviewsResponse> {
-    // Client-side cache check first
     const cacheKey = getReviewsCacheKey(productId, options);
     const cachedData = reviewsCache.get(cacheKey);
 
     if (cachedData) {
-      //console.log(`✅ Using cached reviews data for product ${productId}`);
       return cachedData;
     }
 
@@ -225,23 +246,19 @@ class ReviewService {
 
       const res = await apiClient.get<ReviewsResponse>(url);
 
-      // Store in client cache for future requests
       reviewsCache.set(cacheKey, res.data);
 
       return res.data;
     } catch (error: any) {
-      //console.error('❌ Error fetching reviews:', error);
-      
-      // Handle rate limiting
-      if (error.response?.status === 429) {
-        //console.warn('⚠️ Rate limit exceeded, returning empty reviews');
-      } else if (error.response?.status === 404) {
-        //console.warn('⚠️ Reviews endpoint not found, returning empty reviews');
-      } else if (!error.response) {
-        //console.warn('⚠️ Network error fetching reviews, returning empty reviews');
+      if (error.response?.status === 429 || error.response?.status === 404 || !error.response) {
+        return {
+          status: 'success',
+          results: 0,
+          data: { reviews: [] },
+          message: error.response?.data?.message || 'تعذر تحميل التعليقات'
+        };
       }
       
-      // Return empty reviews instead of throwing error to prevent app crashes
       return {
         status: 'success',
         results: 0,
@@ -256,20 +273,24 @@ class ReviewService {
     productId: string,
     data: UpdateReviewRequest,
     token?: string
-  ): Promise<ReviewResponse> {
+  ): Promise<ReviewWithProductResponse> {
     try {
-      const res = await apiClient.put<ReviewResponse>(
+      const res = await apiClient.put<ReviewWithProductResponse>(
         `${this.baseUrl}/reviews/${productId}`,
         data,
         { headers: this.getAuthHeaders(token) }
       );
 
-      // Clear cache for this review and related product reviews
+      // Clear old reviews cache for this product
       this.clearProductReviewsCache(productId);
+      
+      // Update product cache with new data from response
+      if (res.data.data) {
+        this.updateProductCacheFromReview(productId, res.data.data);
+      }
 
       return res.data;
     } catch (error: any) {
-      // Handle specific error cases
       if (error.response?.status === 404) {
         throw new Error("لم يتم العثور على تقييمك لهذا المنتج");
       } else if (error.response?.status === 403) {
@@ -309,25 +330,23 @@ class ReviewService {
     reviewId: string,
     productId: string,
     token?: string
-  ): Promise<ApiResponse> {
-    //console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
-    
+  ): Promise<ReviewWithProductResponse> {
     try {
-      const res = await apiClient.delete<ApiResponse>(
+      const res = await apiClient.delete<ReviewWithProductResponse>(
         `${this.baseUrl}/reviews/${reviewId}`,
         { headers: this.getAuthHeaders(token) }
       );
-
-      //console.log('✅ Delete API response:', res.data);
       
-      // Clear cache for this product after deleting a review
+      // Clear old reviews cache for this product
       this.clearProductReviewsCache(productId);
+      
+      // Update product cache with new data from response
+      if (res.data.data) {
+        this.updateProductCacheFromReview(productId, res.data.data);
+      }
 
       return res.data;
     } catch (error: any) {
-      //console.error('❌ Delete API error:', error.response?.status, error.response?.data);
-      
-      // Handle specific error cases
       if (error.response?.status === 404) {
         throw new Error("التعليق غير موجود أو تم حذفه بالفعل");
       } else if (error.response?.status === 403) {
@@ -342,7 +361,7 @@ class ReviewService {
     }
   }
 
-  // Reply to Review (PUT /reviews/reply/:reviewId) - Operation Only
+  // Reply to Review (PUT /reviews/reply/:reviewId)
   async replyToReview(
     reviewId: string,
     replyData: ReplyRequest,
@@ -355,7 +374,6 @@ class ReviewService {
         { headers: this.getAuthHeaders(token) }
       );
 
-      // Clear cache for this review since it was updated with a reply
       reviewDetailCache.delete(getReviewCacheKey(reviewId));
 
       return res.data;
@@ -368,52 +386,49 @@ class ReviewService {
 
   // Helper method to clear product reviews cache
   private clearProductReviewsCache(productId: string) {
-    // Clear all cached entries for this product
     const keys = reviewsCache.getKeys();
     for (const key of keys) {
       if (key.startsWith(`reviews:${productId}`)) {
         reviewsCache.delete(key);
       }
     }
-    //console.log(`🧹 Reviews cache cleared for product ${productId}`);
   }
 
   // Public method to clear all reviews cache
   clearCache() {
     reviewsCache.clear();
     reviewDetailCache.clear();
-    //console.log('🧹 Reviews cache cleared');
   }
 
   calculateRatingsDistribution(reviews: Review[]): RatingsDistribution {
-  const distribution: RatingsDistribution = [
-    { stars: 5, count: 0 },
-    { stars: 4, count: 0 },
-    { stars: 3, count: 0 },
-    { stars: 2, count: 0 },
-    { stars: 1, count: 0 }
-  ];
+    const distribution: RatingsDistribution = [
+      { stars: 5, count: 0 },
+      { stars: 4, count: 0 },
+      { stars: 3, count: 0 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 }
+    ];
 
-  reviews.forEach(review => {
-    if (review.rateNum >= 1 && review.rateNum <= 5) {
-      const index = 5 - review.rateNum; // 5 stars -> index 0, 1 star -> index 4
-      distribution[index].count++;
-    }
-  });
+    reviews.forEach(review => {
+      if (review.rateNum >= 1 && review.rateNum <= 5) {
+        const index = 5 - review.rateNum;
+        distribution[index].count++;
+      }
+    });
 
-  return distribution;
-}
+    return distribution;
+  }
 
-calculateAverageRating(reviews: Review[]): number {
-  if (reviews.length === 0) return 0;
-  
-  const sum = reviews.reduce((acc, review) => acc + review.rateNum, 0);
-  return Number((sum / reviews.length).toFixed(1));
-}
+  calculateAverageRating(reviews: Review[]): number {
+    if (reviews.length === 0) return 0;
+    
+    const sum = reviews.reduce((acc, review) => acc + review.rateNum, 0);
+    return Number((sum / reviews.length).toFixed(1));
+  }
 
-getTotalReviewCount(reviews: Review[]): number {
-  return reviews.length;
-}
+  getTotalReviewCount(reviews: Review[]): number {
+    return reviews.length;
+  }
 }
 
 export const reviewService = new ReviewService();
