@@ -3,19 +3,19 @@ import LogoSection from "@/Pages/AuthPages/ActiveCodePage/sections/LogoSection/L
 
 const AboutUsSection = () => {
     return (
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[16%] min-h-[180px] sm:min-h-[160px] md:min-h-[140px] lg:h-[18vh] flex flex-col justify-end items-end ">
-        <div className="w-full sm:w-[95%] md:w-[90%] lg:w-[85%] min-h-[7vh] sm:min-h-[6vh] md:min-h-[5vh] flex flex-row  items-center gap-1 sm:gap-2 md:gap-3 mx-auto px-1 sm:px-2">
-          {/* company name - positioned on the left */}
-          <div className="w-[45%] sm:w-[40%] md:w-[50%] lg:w-[55%] min-h-[5vh] sm:min-h-[4.5vh] flex justify-start items-center ">
-            <span className="font-beiruti font-semibold text-base sm:text-lg md:text-xl lg:text-2xl text-black87">شركة A2Z</span>
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[16%] min-h-[180px] sm:min-h-[160px] md:min-h-[140px] lg:h-[18vh] flex flex-col justify-end">
+        <div className="w-full flex items-center gap-2 sm:gap-3 md:gap-4">
+          {/* company name */}
+          <div className="flex items-center">
+            <span className="font-beiruti font-semibold text-lg sm:text-xl md:text-2xl text-black87">شركة A2Z</span>
           </div>
           
-          {/* logo - positioned on the right */}
-          <div className="w-[40%] sm:w-[30%] md:w-[40%]   lg:w-[40%] h-[4vh] sm:h-[4.5vh] md:h-[5vh] lg:h-[90%] flex  ">
+          {/* logo */}
+          <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0">
             <img
-            src="/acessts/Logo-picsart.png"
-            alt="A2Z Logo"
-            className="w-full h-full object-contain "
+              src="/acessts/Logo-picsart.png"
+              alt="A2Z Logo"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
