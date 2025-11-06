@@ -28,9 +28,25 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
 
   return (
     <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[23%] min-h-0">
-      <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none tracking-normal text-secondary1 text-right">
-        تواصل معنا
-      </h3>
+      <div className="w-full">
+        <h3 
+          className="text-secondary1 text-right"
+          style={{
+            fontFamily: 'Beiruti',
+            fontWeight: 600,
+            fontStyle: 'SemiBold',
+            fontSize: '16px',
+            lineHeight: '100%',
+            letterSpacing: '0%',
+            width: '63px',
+            height: '19px',
+            opacity: 1,
+            transform: 'rotate(0deg)'
+          }}
+        >
+          تواصل معنا
+        </h3>
+      </div>
       <div className="text-left w-full mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:flex md:flex-col md:gap-y-3">
         {finalContacts.map((item, index) => (
             <div
