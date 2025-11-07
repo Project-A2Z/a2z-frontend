@@ -117,7 +117,7 @@ const Summary: React.FC<SummaryInter> = ({
                 image: paymentData.image
             };
 
-            // console.log('📦 Creating order:', orderData);
+            //console.log('📦 Creating order:', orderData);
 
             // Create order
             const response = await orderService.createOrder(orderData);
@@ -141,7 +141,7 @@ const Summary: React.FC<SummaryInter> = ({
             );
 
         } catch (error: any) {
-            //console.error('❌ Error creating order:', error);
+            console.error('❌ Error creating order:', error);
             const errorMessage = error.message || 'حدث خطأ أثناء إنشاء الطلب';
             setError(errorMessage);
             

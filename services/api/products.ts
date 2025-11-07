@@ -112,6 +112,7 @@ if (typeof window !== 'undefined') {
     productsCache.cleanup();
     productDetailCache.cleanup();
   }, 5 * 60 * 1000);
+
 }
 
 // Global cache instances
@@ -208,6 +209,7 @@ export const productService = {
     const cachedData = productsCache.get(cacheKey);
 
     if (cachedData) {
+
       return cachedData;
     }
 
@@ -226,10 +228,12 @@ export const productService = {
     // Check regular cache
     const cachedData = productDetailCache.get(cacheKey);
     if (cachedData) {
+
       return cachedData;
     }
 
     try {
+
       const request = () => apiClient.get<ApiResponse<Product>>(`/products/${id}`);
       const result = await fetchWithRetry(() => request().then(res => res.data));
 
@@ -280,10 +284,12 @@ export const productService = {
   clearCache() {
     productsCache.clear();
     productDetailCache.clear();
+
   },
 
   clearProductCache(id: string) {
     productDetailCache.delete(getProductCacheKey(id));
+
   }
 };
 
