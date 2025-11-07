@@ -110,21 +110,21 @@ const CartItemsList: React.FC<Props> = React.memo(({
                   </Button>
                 </div>
 
-                <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center sm:justify-between gap-4">
-                  <div className="text-left w-[100%]">
+                <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center pr-[10px] sm:pr-3 justify-between gap-4">
+                  <div className="text-left w-[100%] pl-2 sm:pl-3 ">
                     <div className="text-xl font-bold text-black60">
                       {(item.price * item.quantity).toLocaleString()} ج.م
                     </div>
                   </div>
                   
-                  <div className="flex items-start justify-start gap-3 w-full" dir="ltr">
+                  {/* <div className="flex items-start justify-start gap-3 w-full sm:pr-[10px]" dir="ltr">
                     <IconButton
                       aria-label="increase quantity"
                       title="زيادة الكمية"
                       onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary"
-                      icon={<Plus className="w-4 h-4" />}
+                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
+                      icon={<Plus className="w-4 h-4 sm:w-6 sm:h-6" />}
                     />
                     <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
                       {item.quantity}
@@ -134,10 +134,34 @@ const CartItemsList: React.FC<Props> = React.memo(({
                       title="إنقاص الكمية"
                       onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                       size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary"
-                      icon={<Minus className="w-4 h-4" />}
+                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
+                      icon={<Minus className="w-4 h-4 sm:w-6 sm:h-6" />}
                     />
-                  </div>
+                  </div> */}
+
+  <div className="w-full flex justify-end  pr-2 sm:pr-4">
+                    <div className="flex items-center justify-end gap-3" dir="ltr">
+                      <IconButton
+                        aria-label="decrease quantity"
+                        title="إنقاص الكمية"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        size="sm"
+                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        icon={<Minus className="w-4 h-4" />}
+                      />
+                      <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
+                        {item.quantity}
+                      </span>
+                      <IconButton
+                        aria-label="increase quantity"
+                        title="زيادة الكمية"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        size="sm"
+                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        icon={<Plus className="w-4 h-4" />}
+                      />
+                    </div>
+</div>
                 </div>
               </div>
             </div>
@@ -150,4 +174,4 @@ const CartItemsList: React.FC<Props> = React.memo(({
 
 CartItemsList.displayName = 'CartItemsList';
 
-export default CartItemsList;
+export default React.memo(CartItemsList);
