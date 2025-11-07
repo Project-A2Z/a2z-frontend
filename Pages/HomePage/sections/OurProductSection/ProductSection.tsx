@@ -1,6 +1,6 @@
 // app/products/page.tsx (For Next.js 13+ App Router)
 import { Metadata } from 'next';
-import OptimizedProductSection from '@/Pages/HomePage/sections/OurProductSection/optimizer';
+import OptimizedProductSection from '@/pages/HomePage/sections/OurProductSection/optimizer';
 import { fetchAllProducts, ProductsResponse } from '@/services/product/products';
 
 // Metadata for SEO

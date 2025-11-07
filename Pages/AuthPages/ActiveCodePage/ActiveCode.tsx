@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import LogoSection from "@/Pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
-import { Button } from '@/components/UI/Buttons';
+import LogoSection from "./sections/LogoSection/Logo";
+// import { Button } from '@/components/UI/Buttons';
 import InstructionSection from './sections/InstructionSection/InstructionSection';
 import CodeInputSection from './sections/CodeInputSection/CodeInputSection';
 import VerifyButtonSection from './sections/VerifyButtonSection/VerifyButtonSection';
 import ResendTimerSection from './sections/ResendTimerSection/ResendTimerSection';
 import { resendVerificationCode, getCurrentUser } from '../../../services/auth/register';
 import { verifyEmail } from '../../../services/auth/register';
-import Background from '@/components/UI/Background/Background';
+// import Background from '@/components/UI/Background/Background';
 import styles from './sections/ActiveCode.module.css';
 
 class APIError extends Error {

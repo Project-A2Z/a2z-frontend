@@ -1,6 +1,6 @@
 import React from 'react';
-import HeroSection from '@/Pages/AboutPage/Sections/HeroSection/HeroSection';
-import ServicesSection from '@/Pages/AboutPage/Sections/ServicesSection/ServicesSection';
+import HeroSection from '@/pages/AboutPage/Sections/HeroSection/HeroSection';
+import ServicesSection from '@/pages/AboutPage/Sections/ServicesSection/ServicesSection';
 
 export default function AboutPage() {
   return (
