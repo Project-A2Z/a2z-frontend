@@ -24,6 +24,11 @@
   /* Font family variables */
   --font-primary: 'Beiruti', 'Cairo', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
+.goog-te-banner-frame,
+.skiptranslate,
+#google_translate_element {
+  display: none !important;
+}
 
 @layer base {
   * {
