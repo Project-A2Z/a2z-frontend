@@ -1,19 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { User } from '@/services/auth/login';
 import { FaWhatsapp } from 'react-icons/fa';
 import { MessageCircle } from 'lucide-react';
 import { inquiryService, checkBackendHealth } from '@/services/api/inquiry';
-
 import { UserStorage } from '@/services/auth/login';
 
 /**
  * Get auth token from localStorage (optional)
  */
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('authToken'); // Optional; sends if available
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('authToken'); // Optional; sends if available
+  }
+  return null;
 };
 
 export default function FloatingChat() {
+  const [isMounted, setIsMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -24,8 +28,23 @@ export default function FloatingChat() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{ success?: boolean; message: string } | null>(null);
   const whatsappHref = 'https://wa.me/2010957676137';
-  const user = UserStorage.getUser();
-  
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const storedUser = UserStorage.getUser();
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Format user's name from first and last name
+    const formatUserName = (user: User | null): string => {
+      if (!user) return '';
+      return `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -129,20 +148,22 @@ export default function FloatingChat() {
 
   return (
     <div className="fixed right-4 bottom-24 md:bottom-4 z-50 flex flex-col-reverse gap-4">
-      {/* Chat button - Always show on desktop, show on mobile only if NO user */}
-      <button
-        onClick={() => setOpen(true)}
-        className={`${
-          user ? 'hidden md:flex' : 'flex'
-        } relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all`}
-        aria-label="الدردشة"
-        type="button"
-      >
-        <MessageCircle className="w-6 h-6 text-primary" />
-        <span className="absolute right-full mr-2 bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          تواصل معنا
-        </span>
-      </button>
+      {/* Chat button - Only render after component mounts to prevent hydration mismatch */}
+      {isMounted && (
+        <button
+          onClick={() => setOpen(true)}
+          className={`${
+            user ? 'hidden md:flex' : 'flex'
+          } relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all`}
+          aria-label="الدردشة"
+          type="button"
+        >
+          <MessageCircle className="w-6 h-6 text-primary" />
+          <span className="absolute right-full mr-2 bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            تواصل معنا
+          </span>
+        </button>
+      )}
 
       {/* WhatsApp button - Always show on all screen sizes */}
       <a
