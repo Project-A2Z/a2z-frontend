@@ -124,81 +124,141 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [items]);
 
-  const add = useCallback((item: FavoriteItem) => {
-    // optimistic update
-    setItems(prev => (prev.some(p => p.id === item.id) ? prev : [item, ...prev]));
+  const add = useCallback(async (item: FavoriteItem) => {
+    // Check if already in favorites to avoid duplicate API calls
+    const alreadyInFavorites = items.some(p => p.id === item.id);
+    if (alreadyInFavorites) {
+      return; // Already in favorites, no need to add again
+    }
+
+    // Optimistic update
+    setItems(prev => [item, ...prev]);
     setError(null);
 
-    // sync with backend if authenticated
+    // Sync with backend if authenticated
     if (wishlistService.isAuthenticated()) {
-      void wishlistService
-        .add(String(item.id))
-        .then((res: any) => {
-          // If backend says conflict (already exists), keep optimistic state and do nothing
-          if (res?.status === 'error' && res?.message?.includes('موجود بالفعل')) {
-            //console.log('ℹ️ Item already exists in wishlist - keeping optimistic state');
+      try {
+        const res = await wishlistService.add(String(item.id));
+        
+        // Success or already exists (treated as success)
+        if (res.status === 'success' || res.wasAlreadyAdded) {
+          // Refresh the list to ensure consistency
+          const freshList = await wishlistService.getAll();
+          const mapped = (freshList.data?.wishItems || []).map((w: any) => ({
+            id: String(w.productId?._id || w.productId || w._id),
+            name: w.productId?.name || 'منتج',
+            price: w.productId?.price || 0,
+            image: Array.isArray(w.productId?.imageList) 
+              ? (w.productId.imageList[0] || '/acessts/NoImage.jpg')
+              : (w.productId?.imageList || '/acessts/NoImage.jpg')
+          }));
+          setItems(mapped);
+        }
+      } catch (e: any) {
+        // For 409 (already exists) or 404 (not found) errors, just refresh the list
+        if (e?.response?.status === 409 || e?.response?.status === 404) {
+          try {
+            const freshList = await wishlistService.getAll();
+            const mapped = (freshList.data?.wishItems || []).map((w: any) => ({
+              id: String(w.productId?._id || w.productId || w._id),
+              name: w.productId?.name || 'منتج',
+              price: w.productId?.price || 0,
+              image: Array.isArray(w.productId?.imageList) 
+                ? (w.productId.imageList[0] || '/acessts/NoImage.jpg')
+                : (w.productId?.imageList || '/acessts/NoImage.jpg')
+            }));
+            setItems(mapped);
             return;
+          } catch (refreshError) {
+            console.error('Failed to refresh wishlist:', refreshError);
           }
-          if (res?.status === 'conflict') {
-            //console.log('ℹ️ Item already exists in wishlist (conflict) - keeping optimistic state');
-            return;
-          }
-          //console.log('✅ Item added to wishlist successfully');
-        })
-        .catch((e: any) => {
-          // If 409 bubbled as an error, also ignore and keep optimistic state
-          if (e?.response?.status === 409) {
-            //console.log('ℹ️ Item already exists in wishlist (409) - keeping optimistic state');
-            return;
-          }
+        }
 
-          console.error('Failed to add to wishlist:', e);
-          if (e instanceof AuthenticationError) {
-            setError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
-          } else if (e?.name === 'AuthenticationError') {
-            setError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
-          } else if (e?.message?.includes('تسجيل الدخول')) {
-            setError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
-          } else {
-            setError('فشل في إضافة المنتج للمفضلة');
-          }
-          // revert on real failure
-          setItems(prev => prev.filter(p => p.id !== item.id));
-        });
+        // For other errors, show appropriate message
+        console.error('Failed to add to wishlist:', e);
+        setItems(prev => prev.filter(p => p.id !== item.id)); // Revert optimistic update
+        
+        if (e?.response?.status === 401) {
+          setError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
+        } else {
+          setError('فشل في إضافة المنتج للمفضلة: ' + (e?.message || 'حدث خطأ غير متوقع'));
+        }
+      }
     } else {
-      // User not authenticated, show error message
+      // User not authenticated, show error message and revert optimistic update
       setError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
-      // revert optimistic update
       setItems(prev => prev.filter(p => p.id !== item.id));
     }
   }, []);
 
-  const remove = useCallback((id: number | string) => {
-    // optimistic update
+  const remove = useCallback(async (id: number | string) => {
+    // Store the item being removed for potential rollback
+    const itemToRemove = items.find(item => item.id === id);
+    
+    // Optimistic update
     setItems(prev => prev.filter(p => p.id !== id));
     setError(null);
 
-    if (wishlistService.isAuthenticated()) {
-      void wishlistService.remove(String(id)).catch((e) => {
-        console.error('Failed to remove from wishlist:', e);
-        if (e?.response?.status === 404) {
-          //console.log('ℹ️ Item not found in wishlist (404) - this is expected if already removed');
-          return; // Don't show error for 404 (item not found)
-        }
-        if (e instanceof AuthenticationError) {
-          setError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
-        } else if (e?.name === 'AuthenticationError') {
-          setError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
-        } else if (e?.message?.includes('تسجيل الدخول')) {
-          setError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
-        } else {
-          setError('فشل في حذف المنتج من المفضلة');
-        }
-        // revert on failure - add back to list
-        // Note: This would require the original item data, so we skip this for now
-      });
+    if (!wishlistService.isAuthenticated()) {
+      setError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
+      if (itemToRemove) {
+        setItems(prev => [...prev, itemToRemove].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        ));
+      }
+      return;
     }
-  }, []);
+
+    try {
+      await wishlistService.remove(String(id));
+      
+      // On success, refresh the list to ensure consistency
+      const freshList = await wishlistService.getAll();
+      const mapped = (freshList.data?.wishItems || []).map((w: any) => ({
+        id: String(w.productId?._id || w.productId || w._id),
+        name: w.productId?.name || 'منتج',
+        price: w.productId?.price || 0,
+        image: Array.isArray(w.productId?.imageList) 
+          ? (w.productId.imageList[0] || '/acessts/NoImage.jpg')
+          : (w.productId?.imageList || '/acessts/NoImage.jpg')
+      }));
+      setItems(mapped);
+    } catch (e: any) {
+      console.error('Failed to remove from wishlist:', e);
+      
+      // For 404 (not found) or 409 (conflict) errors, just refresh the list
+      if (e?.response?.status === 404 || e?.response?.status === 409) {
+        try {
+          const freshList = await wishlistService.getAll();
+          const mapped = (freshList.data?.wishItems || []).map((w: any) => ({
+            id: String(w.productId?._id || w.productId || w._id),
+            name: w.productId?.name || 'منتج',
+            price: w.productId?.price || 0,
+            image: Array.isArray(w.productId?.imageList) 
+              ? (w.productId.imageList[0] || '/acessts/NoImage.jpg')
+              : (w.productId?.imageList || '/acessts/NoImage.jpg')
+          }));
+          setItems(mapped);
+          return;
+        } catch (refreshError) {
+          console.error('Failed to refresh wishlist:', refreshError);
+        }
+      }
+      
+      // Re-add the item if it exists
+      if (itemToRemove) {
+        setItems(prev => [...prev, itemToRemove].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        ));
+      }
+      
+      if (e?.response?.status === 401) {
+        setError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
+      } else {
+        setError('فشل في حذف المنتج من المفضلة: ' + (e?.message || 'حدث خطأ غير متوقع'));
+      }
+    }
+  }, [items]);
 
   const toggle = useCallback((item: FavoriteItem) => {
     setItems(prev => {
