@@ -42,9 +42,11 @@ const CartPage = () => {
           let imageUrl = '/acessts/NoImage.jpg';
           const imageSources = p.imageList || p.images || p.image || [];
           
+          // Handle different image source formats
           if (Array.isArray(imageSources) && imageSources.length > 0) {
             const firstImage = imageSources[0];
             if (typeof firstImage === 'string') {
+              imageUrl = firstImage;
             } else if (firstImage?.url) {
               imageUrl = firstImage.url;
             }
@@ -52,8 +54,25 @@ const CartPage = () => {
             imageUrl = imageSources;
           }
 
-          if (imageUrl === '/acessts/NoImage.jpg') {
-            imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/acessts/NoImage.jpg';
+          // If still no valid image, try other possible image fields
+          if (!imageUrl || imageUrl === '/acessts/NoImage.jpg') {
+            imageUrl = p.thumbnail || p.mainImage || p.coverImage || p.imageUrl || '/acessts/NoImage.jpg';
+          }
+
+          // Ensure the image URL is properly formatted
+          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:')) {
+            // Remove any leading slashes to prevent double slashes
+            const cleanPath = imageUrl.replace(/^\/+/, '');
+            // Check if it's a local path that should be served from the public folder
+            if (cleanPath.startsWith('public/') || cleanPath.startsWith('uploads/') || cleanPath.startsWith('acessts/')) {
+              imageUrl = `/${cleanPath}`;
+            } else if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+              // For API paths, use the API base URL
+              imageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${cleanPath}`;
+            } else {
+              // Fallback to absolute path
+              imageUrl = `/${cleanPath}`;
+            }
           }
 
           const unit = p.stockType || p.unit || 'قطعة';

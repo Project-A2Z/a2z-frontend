@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Minus, Plus, Trash } from 'lucide-react';
 import { Button, IconButton } from '@/components/UI/Buttons/Button';
 import { useRouter } from 'next/navigation';
@@ -22,27 +22,60 @@ type Props = {
 };
 
 const CartItemImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
-  const [imgError, setImgError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src);
+  const [imageSource, setImageSource] = React.useState('');
+  const [hasError, setHasError] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (!src) {
+      setImageSource('/acessts/NoImage.jpg');
+      return;
+    }
+
+    // If it's already a full URL or data URL, use it directly
+    if (src.startsWith('http') || src.startsWith('blob:') || src.startsWith('data:')) {
+      setImageSource(src);
+      return;
+    }
+
+    // Handle local paths (remove any leading slashes)
+    const cleanPath = src.replace(/^\/+/, '');
+    
+    // Check if it's a local path that should be served from the public folder
+    if (cleanPath.startsWith('public/') || cleanPath.startsWith('uploads/')) {
+      setImageSource(`/${cleanPath}`);
+    } else {
+      // For API paths, use the API base URL
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+      setImageSource(baseUrl ? `${baseUrl}/${cleanPath}` : `/${cleanPath}`);
+    }
+  }, [src]);
 
   const handleError = () => {
-    if (!imgError) {
-      setImgError(true);
-      if (imgSrc.includes('/uploads/')) {
-        setImgSrc(imgSrc.replace(/^\//, ''));
-      } else {
-        setImgSrc('/acessts/NoImage.jpg');
-      }
+    if (!hasError) {
+      setHasError(true);
+      // Use absolute path for the fallback image
+      setImageSource('/acessts/NoImage.jpg');
     }
   };
 
+  // Show loading state while image is being processed
+  if (!imageSource) {
+    return (
+      <div className="w-16 h-16 sm:w-18 sm:h-18 bg-gray-100 rounded-lg animate-pulse" />
+    );
+  }
+
   return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      onError={handleError}
-      className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-lg bg-white"
-    />
+    <div className="w-16 h-16 sm:w-18 sm:h-18 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+      <img
+        src={imageSource}
+        alt={alt}
+        onError={handleError}
+        className="w-full h-full object-contain p-1"
+        loading="lazy"
+        crossOrigin="anonymous"
+      />
+    </div>
   );
 };
 
