@@ -148,7 +148,6 @@ export default function FloatingChat() {
 
   return (
     <div className="fixed right-4 bottom-24 md:bottom-4 z-50 flex flex-col-reverse gap-4">
-<<<<<<< HEAD
       {/* Chat button - Only render after component mounts to prevent hydration mismatch */}
       {isMounted && (
         <button
@@ -167,22 +166,6 @@ export default function FloatingChat() {
       )}
 
       {/* WhatsApp button - Always show on all screen sizes */}
-=======
-      {/* Chat button - Hidden on mobile (below md breakpoint) */}
-      <button
-        onClick={() => setOpen(true)}
-        className="hidden md:flex relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all"
-        aria-label="الدردشة"
-        type="button"
-      >
-        <MessageCircle className="w-6 h-6 text-primary" />
-        <span className="absolute right-full mr-2 bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          تواصل معنا
-        </span>
-      </button>
-
-      {/* WhatsApp button - Now visible on all screen sizes */}
->>>>>>> e355b88 (whatsApp button "and build well")
       <a
         href={whatsappHref}
         target="_blank"
@@ -288,11 +271,11 @@ export default function FloatingChat() {
               {/* Status Message */}
               {submitStatus && (
                 <div className={`p-3 rounded-lg text-sm ${
-                  submitStatus?.success 
+                  submitStatus.success 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {submitStatus?.message.split('\n').map((line, index) => (
+                  {submitStatus.message.split('\n').map((line, index) => (
                     <p key={index} className={index > 0 ? 'mt-1' : ''}>{line}</p>
                   ))}
                 </div>

@@ -148,26 +148,7 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
     return () => {};
   }, [pageLanguage]);
 
-<<<<<<< HEAD
   return null;
-=======
-  return (
-    // <div 
-    //   ref={containerRef}
-    //   id="google_translate_element" 
-    //   className="notranslate"
-    //   translate="no"
-    //   style={{ 
-    //     display: 'none',
-    //     position: 'absolute',
-    //     top: '-9999px',
-    //     left: '-9999px',
-    //     isolation: 'isolate'
-    //   }}
-    // />
-    <div></div>
-  );
->>>>>>> fefb347 (edition V0.3)
 };
 
 export default GoogleTranslate;
