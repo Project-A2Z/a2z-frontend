@@ -123,92 +123,22 @@ export default function FloatingChat() {
     }
   };
 
-  // Function to test backend connection (uncomment if needed)
-  /*
-  const testBackendConnection = async () => {
-    setIsSubmitting(true);
-    setSubmitStatus(null);
-    
-    //console.log('Testing backend connection...');
-    
-    try {
-      const healthCheck = await checkBackendHealth();
-      
-      if (healthCheck.status === 'success') {
-        let message = '✅ تم الاتصال بالخادم بنجاح!\n';
-        message += `- الحالة: ${healthCheck.statusText || 'غير معروفة'}\n`;
-        message += `- الكود: ${healthCheck.statusCode || 'N/A'}\n';
-        
-        if (healthCheck.warning) {
-          message += `\n⚠️ ملاحظة: ${healthCheck.warning}`;
-        }
-        
-        setSubmitStatus({
-          success: true,
-          message: message
-        });
-      } else {
-        let errorMessage = '❌ فشل الاتصال بالخادم\n';
-        errorMessage += `- الخطأ: ${healthCheck.message || 'غير معروف'}\n';
-        errorMessage += `- الكود: ${healthCheck.statusCode || 'N/A'}\n';
-        
-        if (healthCheck.code) {
-          errorMessage += `- رمز الخطأ: ${healthCheck.code}\n';
-        }
-        
-        if (healthCheck.data) {
-          try {
-            const errorDetails = typeof healthCheck.data === 'string' 
-              ? healthCheck.data 
-              : JSON.stringify(healthCheck.data, null, 2);
-            errorMessage += `\nالتفاصيل: ${errorDetails}`;
-          } catch (e) {
-            console.error('Error parsing error details:', e);
-          }
-        }
-        
-        setSubmitStatus({
-          success: false,
-          message: errorMessage
-        });
-      }
-    } catch (error: any) {
-      console.error('Connection test failed with unexpected error:', error);
-      
-      let errorMessage = '❌ فشل غير متوقع في اختبار الاتصال\n';
-      errorMessage += `- الخطأ: ${error.message || 'غير معروف'}\n';
-      
-      if (error.code) {
-        errorMessage += `- الكود: ${error.code}\n';
-      }
-      
-      if (error.response) {
-        errorMessage += `- حالة الخادم: ${error.response.status} ${error.response.statusText}\n';
-        if (error.response.data) {
-          try {
-            const errorDetails = typeof error.response.data === 'string' 
-              ? error.response.data 
-              : JSON.stringify(error.response.data, null, 2);
-            errorMessage += `\nاستجابة الخادم: ${errorDetails}`;
-          } catch (e) {
-            console.error('Error parsing error response:', e);
-          }
-        }
-      }
-      
-      setSubmitStatus({
-        success: false,
-        message: errorMessage
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  */
-
   return (
-    <div className="fixed right-4 bottom-4 z-50 flex flex-col-reverse gap-4">
-      {/* WhatsApp button */}
+    <div className="fixed right-4 bottom-24 md:bottom-4 z-50 flex flex-col-reverse gap-4">
+      {/* Chat button - Hidden on mobile (below md breakpoint) */}
+      <button
+        onClick={() => setOpen(true)}
+        className="hidden md:flex relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all"
+        aria-label="الدردشة"
+        type="button"
+      >
+        <MessageCircle className="w-6 h-6 text-primary" />
+        <span className="absolute right-full mr-2 bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          تواصل معنا
+        </span>
+      </button>
+
+      {/* WhatsApp button - Now visible on all screen sizes */}
       <a
         href={whatsappHref}
         target="_blank"
@@ -222,18 +152,7 @@ export default function FloatingChat() {
         </span>
       </a>
 
-      {/* Chat button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg flex items-center justify-center hover:shadow-xl transition-all"
-        aria-label="الدردشة"
-        type="button"
-      >
-        <MessageCircle className="w-6 h-6 text-primary" />
-        <span className="absolute right-full mr-2 bg-gray-800 text-white text-xs font-medium px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          تواصل معنا
-        </span>
-      </button>
+      
 
       {/* Modal */}
       {open && (
