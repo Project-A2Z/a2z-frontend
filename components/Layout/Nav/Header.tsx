@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react"; // ✅ ADD THIS
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import styles from "./Header.module.css";
 import "../../../app/globals.css";
@@ -11,13 +11,16 @@ import "../../../app/globals.css";
 import {
   getCurrentUser,
   isUserAuthenticated,
-  logoutUser,
+  // logoutUser,
   UserStorage,
   AuthService,
 } from "../../../services/auth/login";
 
 // Import products service
-import { getProductsWithState, Product } from "../../../services/product/products";
+import {
+  getProductsWithState,
+  Product,
+} from "../../../services/product/products";
 
 // Components
 import SearchComponent from "./../../UI/search/search";
@@ -77,7 +80,7 @@ function Header({
   dataSearch = [],
 }: HeaderProps) {
   const router = useRouter();
-  const { data: session, status } = useSession(); // ✅ ADD THIS
+  const { data: session, status } = useSession();
 
   // State for user data
   const [user, setUser] = useState<User | null>(null);
@@ -90,38 +93,28 @@ function Header({
   const [chat, setChat] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // ✅ NEW: Handle session-based auth (for social login)
+  // Handle session-based auth (for social login)
   useEffect(() => {
     const handleSocialAuth = async () => {
-      // Check if we have a session with backend token
       if (session?.backendToken && session?.user?.backendUser) {
-        //console.log('✅ Header: Backend token found in session, saving to localStorage...');
-        
-        // Save using UserStorage methods (includes expiry tracking)
         UserStorage.saveUser(session.user.backendUser);
         UserStorage.saveToken(session.backendToken);
-        
-        // Update local state immediately
         setUser(session.user.backendUser);
         setIsLoading(false);
-        
-        // Start token monitoring
+
         AuthService.startTokenMonitoring(() => {
-          //console.log('🔒 Token expired - user needs to login again');
           setUser(null);
-          router.push('/login');
+          router.push("/login");
         });
-        
-        //console.log('✅ Header: User state updated from session');
       }
     };
 
-    if (status !== 'loading') {
+    if (status !== "loading") {
       handleSocialAuth();
     }
   }, [session, status, router]);
 
-  // ✅ MODIFIED: Load user data from localStorage when component mounts
+  // Load user data from localStorage when component mounts
   useEffect(() => {
     const loadUserData = () => {
       try {
@@ -130,10 +123,8 @@ function Header({
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
-          //console.log("✅ User data loaded:", userData);
         } else {
           setUser(null);
-          //console.log("ℹ️ No user found or not authenticated");
         }
       } catch (error) {
         console.error("❌ Error loading user data:", error);
@@ -143,11 +134,10 @@ function Header({
       }
     };
 
-    // Only load from localStorage if session is not loading
-    if (status !== 'loading') {
+    if (status !== "loading") {
       loadUserData();
     }
-  }, [status]); // ✅ Add status as dependency
+  }, [status]);
 
   // Fetch cached products for search
   useEffect(() => {
@@ -156,7 +146,6 @@ function Header({
         setIsProductsLoading(true);
         const cachedProducts = await getProductsWithState();
         setProducts(cachedProducts);
-        //console.log(`✅ Loaded ${cachedProducts.length} products for search`);
       } catch (error) {
         console.error("❌ Error loading cached products:", error);
         setProducts([]);
@@ -175,17 +164,14 @@ function Header({
 
     const fetchUnreadCount = async () => {
       if (!user || !isMounted) {
-        //console.log("⏭️ Skipping unread count fetch - no user or unmounted");
         return;
       }
 
       try {
-        //console.log("🔔 Fetching unread notification count");
         const count = await getUnreadNotificationsCount();
-        
+
         if (isMounted) {
           setUnreadCount(count);
-          //console.log(`✅ Unread count updated: ${count}`);
         }
       } catch (error) {
         if (isMounted) {
@@ -195,8 +181,6 @@ function Header({
     };
 
     if (user) {
-      //console.log("⏰ Setting up unread count polling (5min interval)");
-      
       fetchUnreadCount();
 
       intervalId = setInterval(() => {
@@ -207,9 +191,8 @@ function Header({
     }
 
     return () => {
-      //console.log("🧹 Cleaning up unread count polling");
       isMounted = false;
-      
+
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
@@ -217,31 +200,25 @@ function Header({
     };
   }, [user]);
 
-  // ✅ MODIFIED: Listen for storage changes AND custom events
+  // Listen for storage changes AND custom events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "user_data" || e.key === "auth_token") {
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
-          //console.log("✅ Header: User updated from storage event");
         } else {
           setUser(null);
-          //console.log("✅ Header: User cleared from storage event");
         }
       }
     };
 
-    // ✅ NEW: Listen for custom token expiry events
     const handleTokenExpiry = () => {
-      //console.log("🔒 Header: Token expired event received");
       setUser(null);
-      router.push('/login');
+      router.push("/login");
     };
 
-    // ✅ NEW: Listen for custom auth update events
     const handleAuthUpdate = () => {
-      //console.log("🔄 Header: Auth update event received");
       if (isUserAuthenticated()) {
         const userData = getCurrentUser();
         setUser(userData);
@@ -277,7 +254,6 @@ function Header({
   };
 
   const handleLogin = (): void => {
-    //console.log("Redirecting to login...");
     router.push("/login");
   };
 
@@ -317,17 +293,15 @@ function Header({
   const headerClasses = `${
     styles.header
   } ${getVariantClass()} ${className}`.trim();
-  
-  // ✅ MODIFIED: Also check session status
+
   const isAuthenticated = user !== null && !isLoading;
 
-  // ✅ MODIFIED: Show loading while checking both localStorage and session
-  if ((isLoading || status === 'loading') && showUserActions) {
+  if ((isLoading || status === "loading") && showUserActions) {
     return (
       <header className={headerClasses} style={customStyles}>
         <div className={styles.left}>
           <Link href="/" className={styles.logoLink}>
-            <Logo className={styles.logo} />
+            <img src="/icons/logo.svg" alt="Logo" className={styles.logo} />
           </Link>
           <LanguageSelector />
         </div>
@@ -360,6 +334,7 @@ function Header({
           <LanguageSelector />
         </div>
 
+        {/* Desktop Search - Hidden on Mobile */}
         {showSearch && (
           <div className={styles.mid}>
             <SearchComponent data={searchData} />
@@ -367,6 +342,19 @@ function Header({
         )}
 
         <div className={styles.right}>
+          {/* Mobile Search Button - Shown only on Mobile when user is NOT logged in */}
+          {showSearch && !isAuthenticated && (
+            <div className={styles.mobileSearchBtn}>
+              <button
+                onClick={handleSearchClick}
+                className={styles.searchIconBtn}
+                aria-label="البحث"
+              >
+                <SearchIcon className={styles.searchIcon} />
+              </button>
+            </div>
+          )}
+
           {showUserActions && (
             <>
               {isAuthenticated && user ? (
@@ -432,15 +420,17 @@ function Header({
                   </div>
                 </>
               ) : (
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleLogin}
-                  className={styles.loginButton}
-                  rounded={true}
-                >
-                  تسجيل الدخول
-                </Button>
+                <>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleLogin}
+                    className={styles.loginButton}
+                    rounded={true}
+                  >
+                    تسجيل الدخول
+                  </Button>
+                </>
               )}
             </>
           )}
@@ -448,21 +438,20 @@ function Header({
       </header>
 
       {/* Bottom Navigation for Mobile */}
-      {showUserActions && (
+      {showUserActions && user && (
         <nav className={styles.bottomNav}>
           <div className={styles.bottomNavContent}>
-            {showSearch && (
-              <button
-                onClick={handleSearchClick}
-                className={styles.bottomNavItem}
-              >
-                <SearchIcon className={styles.bottomNavIcon} />
-                <span className={styles.bottomNavText}>البحث</span>
-              </button>
-            )}
-
             {isAuthenticated && user && (
               <>
+                {showSearch && (
+                  <button
+                    onClick={handleSearchClick}
+                    className={styles.bottomNavItem}
+                  >
+                    <SearchIcon className={styles.bottomNavIcon} />
+                    <span className={styles.bottomNavText}>البحث</span>
+                  </button>
+                )}
                 <button
                   onClick={handleNotificationClick}
                   className={styles.bottomNavItem}

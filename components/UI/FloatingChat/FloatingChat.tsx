@@ -4,6 +4,8 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { MessageCircle } from 'lucide-react';
 import { inquiryService, checkBackendHealth } from '@/services/api/inquiry';
 
+import { UserStorage } from '@/services/auth/login';
+
 /**
  * Get auth token from localStorage (optional)
  */
@@ -22,6 +24,8 @@ export default function FloatingChat() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{ success?: boolean; message: string } | null>(null);
   const whatsappHref = 'https://wa.me/2010957676137';
+  const user = UserStorage.getUser();
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -125,10 +129,12 @@ export default function FloatingChat() {
 
   return (
     <div className="fixed right-4 bottom-24 md:bottom-4 z-50 flex flex-col-reverse gap-4">
-      {/* Chat button - Hidden on mobile (below md breakpoint) */}
+      {/* Chat button - Always show on desktop, show on mobile only if NO user */}
       <button
         onClick={() => setOpen(true)}
-        className="hidden md:flex relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all"
+        className={`${
+          user ? 'hidden md:flex' : 'flex'
+        } relative group w-14 h-14 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center hover:shadow-xl transition-all`}
         aria-label="الدردشة"
         type="button"
       >
@@ -138,7 +144,7 @@ export default function FloatingChat() {
         </span>
       </button>
 
-      {/* WhatsApp button - Now visible on all screen sizes */}
+      {/* WhatsApp button - Always show on all screen sizes */}
       <a
         href={whatsappHref}
         target="_blank"
