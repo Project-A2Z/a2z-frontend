@@ -113,7 +113,7 @@ if (typeof window !== 'undefined') {
   setInterval(() => {
     productsCache.cleanup();
     productDetailCache.cleanup();
-    console.log('🧹 Products cache cleanup completed');
+    //console.log('🧹 Products cache cleanup completed');
   }, 5 * 60 * 1000); // 5 minutes
 }
 
@@ -225,7 +225,7 @@ export const productService = {
     const cachedData = productsCache.get(cacheKey);
 
     if (cachedData) {
-      console.log(`✅ Using cached products data (${filters.page || 1})`);
+      //console.log(`✅ Using cached products data (${filters.page || 1})`);
       return cachedData;
     }
 
@@ -247,12 +247,12 @@ export const productService = {
     const cachedData = productDetailCache.get(cacheKey);
 
     if (cachedData) {
-      console.log(`✅ Using cached product data for ${id}`);
+      //console.log(`✅ Using cached product data for ${id}`);
       return cachedData;
     }
 
     try {
-      console.log(`🔄 Fetching product ${id}...`);
+      //console.log(`🔄 Fetching product ${id}...`);
       const request = () => apiClient.get<ApiResponse<Product>>(`/products/${id}`);
       const result = await fetchWithRetry(() => request().then(res => res.data));
 
@@ -298,13 +298,13 @@ export const productService = {
   clearCache() {
     productsCache.clear();
     productDetailCache.clear();
-    console.log('🧹 Products cache cleared');
+    //console.log('🧹 Products cache cleared');
   },
 
   // Method to clear specific cache entry
   clearProductCache(id: string) {
     productDetailCache.delete(getProductCacheKey(id));
-    console.log(`🧹 Product cache cleared for ${id}`);
+    //console.log(`🧹 Product cache cleared for ${id}`);
   }
 };
 

@@ -7,6 +7,8 @@ export interface ReviewUser {
   email?: string;
 }
 
+type RatingsDistribution = { stars: number; count: number }[];
+
 export interface Review {
   _id: string;
   userId: ReviewUser;
@@ -116,7 +118,7 @@ if (typeof window !== 'undefined') {
     // Clean expired entries from review detail cache
     reviewDetailCache.cleanup();
 
-    console.log('🧹 Reviews cache cleanup completed');
+    //console.log('🧹 Reviews cache cleanup completed');
   }, 3 * 60 * 1000); // 3 minutes
 }
 
@@ -202,7 +204,7 @@ class ReviewService {
     const cachedData = reviewsCache.get(cacheKey);
 
     if (cachedData) {
-      console.log(`✅ Using cached reviews data for product ${productId}`);
+      //console.log(`✅ Using cached reviews data for product ${productId}`);
       return cachedData;
     }
 
@@ -228,15 +230,15 @@ class ReviewService {
 
       return res.data;
     } catch (error: any) {
-      console.error('❌ Error fetching reviews:', error);
+      //console.error('❌ Error fetching reviews:', error);
       
       // Handle rate limiting
       if (error.response?.status === 429) {
-        console.warn('⚠️ Rate limit exceeded, returning empty reviews');
+        //console.warn('⚠️ Rate limit exceeded, returning empty reviews');
       } else if (error.response?.status === 404) {
-        console.warn('⚠️ Reviews endpoint not found, returning empty reviews');
+        //console.warn('⚠️ Reviews endpoint not found, returning empty reviews');
       } else if (!error.response) {
-        console.warn('⚠️ Network error fetching reviews, returning empty reviews');
+        //console.warn('⚠️ Network error fetching reviews, returning empty reviews');
       }
       
       // Return empty reviews instead of throwing error to prevent app crashes
@@ -308,7 +310,7 @@ class ReviewService {
     productId: string,
     token?: string
   ): Promise<ApiResponse> {
-    console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
+    //console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
     
     try {
       const res = await apiClient.delete<ApiResponse>(
@@ -316,14 +318,14 @@ class ReviewService {
         { headers: this.getAuthHeaders(token) }
       );
 
-      console.log('✅ Delete API response:', res.data);
+      //console.log('✅ Delete API response:', res.data);
       
       // Clear cache for this product after deleting a review
       this.clearProductReviewsCache(productId);
 
       return res.data;
     } catch (error: any) {
-      console.error('❌ Delete API error:', error.response?.status, error.response?.data);
+      //console.error('❌ Delete API error:', error.response?.status, error.response?.data);
       
       // Handle specific error cases
       if (error.response?.status === 404) {
@@ -373,15 +375,45 @@ class ReviewService {
         reviewsCache.delete(key);
       }
     }
-    console.log(`🧹 Reviews cache cleared for product ${productId}`);
+    //console.log(`🧹 Reviews cache cleared for product ${productId}`);
   }
 
   // Public method to clear all reviews cache
   clearCache() {
     reviewsCache.clear();
     reviewDetailCache.clear();
-    console.log('🧹 Reviews cache cleared');
+    //console.log('🧹 Reviews cache cleared');
   }
+
+  calculateRatingsDistribution(reviews: Review[]): RatingsDistribution {
+  const distribution: RatingsDistribution = [
+    { stars: 5, count: 0 },
+    { stars: 4, count: 0 },
+    { stars: 3, count: 0 },
+    { stars: 2, count: 0 },
+    { stars: 1, count: 0 }
+  ];
+
+  reviews.forEach(review => {
+    if (review.rateNum >= 1 && review.rateNum <= 5) {
+      const index = 5 - review.rateNum; // 5 stars -> index 0, 1 star -> index 4
+      distribution[index].count++;
+    }
+  });
+
+  return distribution;
+}
+
+calculateAverageRating(reviews: Review[]): number {
+  if (reviews.length === 0) return 0;
+  
+  const sum = reviews.reduce((acc, review) => acc + review.rateNum, 0);
+  return Number((sum / reviews.length).toFixed(1));
+}
+
+getTotalReviewCount(reviews: Review[]): number {
+  return reviews.length;
+}
 }
 
 export const reviewService = new ReviewService();

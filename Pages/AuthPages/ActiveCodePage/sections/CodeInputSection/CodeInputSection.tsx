@@ -1,23 +1,28 @@
 import React from 'react';
 
 interface CodeInputSectionProps {
-    code: string[];
-    onCodeChange: (index: number, value: string) => void; // Function to handle when a digit changes
-    onKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void; // Function to handle keyboard events
+    code?: string[];
+    onCodeChange?: (index: number, value: string) => void;
+    onKeyDown?: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-const CodeInputSection: React.FC<CodeInputSectionProps> = ({ 
-
-    code, 
-    onCodeChange, 
-    onKeyDown 
+const CodeInputSection: React.FC<CodeInputSectionProps> = React.memo(({ 
+    code = ['', '', '', '', '', ''], // Default to 6 empty digits
+    onCodeChange = () => {}, 
+    onKeyDown = () => {} 
 }) => {
+    // Safely handle the code array
+    const codeArray = Array.isArray(code) ? code : ['', '', '', '', '', ''];
+
     return (
-        <div className="flex justify-center items-center flex-wrap gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" dir="ltr">
+        <div 
+            className="flex justify-center items-center flex-wrap gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" 
+            dir="ltr"
+        >
             <label htmlFor="code-0" className="sr-only">
                 Verification Code - First Digit
             </label>
-            {code.map((digit, index) => (
+            {codeArray.map((digit, index) => (
                 <input
                     key={index}
                     id={`code-${index}`}
@@ -31,8 +36,7 @@ const CodeInputSection: React.FC<CodeInputSectionProps> = ({
                                 text-center font-semibold border-2 border-gray-200 rounded-lg xs:rounded-xl 
                                 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 
                                 transition-all duration-200 
-                                [font-family:Beiruti] font-[600] leading-[100%] tracking-[0%] 
-                                "
+                                [font-family:Beiruti] font-[600] leading-[100%] tracking-[0%]"
                     placeholder=""
                     aria-label={`Verification Code - Digit ${index + 1}`}
                     inputMode="numeric"
@@ -41,6 +45,8 @@ const CodeInputSection: React.FC<CodeInputSectionProps> = ({
             ))}
         </div>
     );
-};
+});
 
-export default React.memo(CodeInputSection);
+CodeInputSection.displayName = 'CodeInputSection';
+
+export default CodeInputSection;

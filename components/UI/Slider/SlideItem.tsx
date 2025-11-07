@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { SlideData } from './Slider';
+import type { SlideItem } from './Slider';
 import { CustomImage } from '@/components/UI/Image/Images';
 import styles from './slider.module.css';
 
 interface SlideItemProps {
-  slide: SlideData;
+  slide: SlideItem;
   index: number;
   totalSlides: number;
   isCurrent: boolean;
@@ -21,8 +21,8 @@ const SlideItem = React.memo(({ slide, index, totalSlides, isCurrent }: SlideIte
       aria-label={`Slide ${index + 1} of ${totalSlides}`}
     >
       <CustomImage
-        src={slide.image}
-        alt={slide.alt || slide.title}
+        src={slide.src}
+        alt={slide.alt || slide.title || ''}
         className={styles.slideImage}
         priority={index === 0 || isCurrent}
         width={1920}
@@ -36,9 +36,9 @@ const SlideItem = React.memo(({ slide, index, totalSlides, isCurrent }: SlideIte
             <h2 className={styles.title}>
               {slide.title}
             </h2>
-            {slide.description && (
+            {slide.caption && (
               <p className={styles.description}>
-                {slide.description}
+                {slide.caption}
               </p>
             )}
           </div>

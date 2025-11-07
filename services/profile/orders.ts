@@ -136,7 +136,7 @@ class OrderService {
                   localStorage.getItem('token') ||
                   localStorage.getItem('accessToken');
     
-    console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
+    //console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
     
     return token;
   }
@@ -151,11 +151,11 @@ class OrderService {
       const userData = localStorage.getItem('user_data');
       if (userData) {
         const parsed = JSON.parse(userData);
-        console.log('👤 User data found:', {
-          hasToken: !!parsed.token,
-          hasAccessToken: !!parsed.accessToken,
-          keys: Object.keys(parsed)
-        });
+        //console.log('👤 User data found:', {
+        //   hasToken: !!parsed.token,
+        //   hasAccessToken: !!parsed.accessToken,
+        //   keys: Object.keys(parsed)
+        // });
         return parsed;
       }
     } catch (error) {
@@ -176,7 +176,7 @@ class OrderService {
       token = userData?.token || userData?.accessToken || userData?.auth_token;
     }
     
-    console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
+    //console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
     
     return token;
   }
@@ -191,7 +191,7 @@ class OrderService {
       timestamp: now,
       expiresAt: now + duration,
     });
-    console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
+    //console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
   }
 
   /**
@@ -201,18 +201,18 @@ class OrderService {
     const entry = this.cache.get(key);
     
     if (!entry) {
-      console.log(`❌ Cache miss for key: ${key}`);
+      //console.log(`❌ Cache miss for key: ${key}`);
       return null;
     }
 
     const now = Date.now();
     if (now > entry.expiresAt) {
-      console.log(`⏰ Cache expired for key: ${key}`);
+      //console.log(`⏰ Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
     }
 
-    console.log(`✅ Cache hit for key: ${key}`);
+    //console.log(`✅ Cache hit for key: ${key}`);
     return entry.data as T;
   }
 
@@ -222,7 +222,7 @@ class OrderService {
   clearCache(pattern?: string): void {
     if (!pattern) {
       this.cache.clear();
-      console.log('🗑️ All cache cleared');
+      //console.log('🗑️ All cache cleared');
       return;
     }
 
@@ -233,7 +233,7 @@ class OrderService {
         cleared++;
       }
     }
-    console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
+    //console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
   }
 
   /**
@@ -260,18 +260,18 @@ class OrderService {
     try {
       const token = this.getBestToken();
       
-      console.log('📡 Fetching orders...');
-      console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
-      console.log('🔑 Using token:', token ? 'Found' : 'Not found');
+      //console.log('📡 Fetching orders...');
+      //console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
+      //console.log('🔑 Using token:', token ? 'Found' : 'Not found');
       
       if (!token) {
         console.error('❌ No authentication token found in localStorage');
-        console.log('📦 LocalStorage contents:', {
-          auth_token: localStorage.getItem('auth_token'),
-          token: localStorage.getItem('token'),
-          user_data: localStorage.getItem('user_data'),
-          refresh_token: localStorage.getItem('refresh_token'),
-        });
+        //console.log('📦 LocalStorage contents:', {
+        //   auth_token: localStorage.getItem('auth_token'),
+        //   token: localStorage.getItem('token'),
+        //   user_data: localStorage.getItem('user_data'),
+        //   refresh_token: localStorage.getItem('refresh_token'),
+        // });
         throw new Error('Authentication token not found. Please login again.');
       }
 
@@ -280,18 +280,18 @@ class OrderService {
         'Content-Type': 'application/json',
       };
       
-      console.log('📤 Request headers:', {
-        Authorization: `Bearer ${token.substring(0, 20)}...`,
-        'Content-Type': 'application/json'
-      });
+      //console.log('📤 Request headers:', {
+      //   Authorization: `Bearer ${token.substring(0, 20)}...`,
+      //   'Content-Type': 'application/json'
+      // });
 
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`, {
         method: 'GET',
         headers,
       });
 
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      //console.log('📥 Response status:', response.status);
+      //console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -316,7 +316,7 @@ class OrderService {
       }
 
       const data: OrdersResponse = await response.json();
-      console.log('✅ Orders fetched successfully:', data.length, 'orders');
+      //console.log('✅ Orders fetched successfully:', data.length, 'orders');
       
       const orders = data.data || [];
       
@@ -515,26 +515,26 @@ class OrderService {
    * Debug helper - log all auth-related localStorage items
    */
   debugAuth(): void {
-    console.log('🔍 Authentication Debug Info:');
-    console.log('📦 LocalStorage:', {
-      auth_token: localStorage.getItem('auth_token'),
-      token: localStorage.getItem('token'),
-      accessToken: localStorage.getItem('accessToken'),
-      refresh_token: localStorage.getItem('refresh_token'),
-      user_data: localStorage.getItem('user_data'),
-    });
+    //console.log('🔍 Authentication Debug Info:');
+    //console.log('📦 LocalStorage:', {
+    //   auth_token: localStorage.getItem('auth_token'),
+    //   token: localStorage.getItem('token'),
+    //   accessToken: localStorage.getItem('accessToken'),
+    //   refresh_token: localStorage.getItem('refresh_token'),
+    //   user_data: localStorage.getItem('user_data'),
+    // });
     
     const userData = this.getUserData();
     if (userData) {
-      console.log('👤 User data keys:', Object.keys(userData));
+      //console.log('👤 User data keys:', Object.keys(userData));
     }
     
     const bestToken = this.getBestToken();
-    console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
+    //console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
     
     // Cache stats
     const stats = this.getCacheStats();
-    console.log('💾 Cache stats:', stats);
+    //console.log('💾 Cache stats:', stats);
   }
 }
 

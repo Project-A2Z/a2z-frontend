@@ -188,7 +188,7 @@ const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
         newPassword: formData.newPassword
       });
       
-      console.log('Password changed successfully');
+      //console.log('Password changed successfully');
       
       // Reset form
       setFormData({

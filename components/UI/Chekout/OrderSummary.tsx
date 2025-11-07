@@ -117,12 +117,12 @@ const Summary: React.FC<SummaryInter> = ({
                 image: paymentData.image
             };
 
-            console.log('📦 Creating order:', orderData);
+            //console.log('📦 Creating order:', orderData);
 
             // Create order
             const response = await orderService.createOrder(orderData);
             
-            console.log('✅ Order created successfully:', response);
+            //console.log('✅ Order created successfully:', response);
 
             // Show success message with redirect
             showAlert(
@@ -151,7 +151,7 @@ const Summary: React.FC<SummaryInter> = ({
             setIsSubmitting(false);
         }
     };
-    console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
+    //console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
 
     return (
         <>

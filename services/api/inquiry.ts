@@ -41,7 +41,7 @@ const getAuthToken = (): string | null => {
  */
 export const checkBackendHealth = async () => {
   try {
-    console.log('Initiating health check...');
+    //console.log('Initiating health check...');
     
     // Test root endpoint directly
     try {
@@ -55,7 +55,7 @@ export const checkBackendHealth = async () => {
         headers,
       });
       const data = await response.json();
-      console.log('Root endpoint check successful:', response.status, response.statusText);
+      //console.log('Root endpoint check successful:', response.status, response.statusText);
       return {
         status: 'success',
         data,
@@ -63,7 +63,7 @@ export const checkBackendHealth = async () => {
         statusText: response.statusText
       };
     } catch (error: any) {
-      console.warn('Root endpoint failed, trying /health...', error);
+      //console.warn('Root endpoint failed, trying /health...', error);
       
       const headers: { [key: string]: string } = {};
       const token = getAuthToken();
@@ -75,7 +75,7 @@ export const checkBackendHealth = async () => {
         headers,
       });
       const healthData = await healthResponse.json();
-      console.log('Health endpoint check successful:', healthResponse.status, healthResponse.statusText);
+      //console.log('Health endpoint check successful:', healthResponse.status, healthResponse.statusText);
       
       return {
         status: 'success',
@@ -119,7 +119,7 @@ export const inquiryService = {
       description: data.description.trim()
     };
 
-    console.log('Sending inquiry data to https://a2z-backend.fly.dev/app/v1/inquiries:', JSON.stringify(requestData, null, 2));
+    //console.log('Sending inquiry data to https://a2z-backend.fly.dev/app/v1/inquiries:', JSON.stringify(requestData, null, 2));
     
     try {
       const headers: { [key: string]: string } = {
@@ -135,22 +135,22 @@ export const inquiryService = {
         method: 'POST',
         headers,
         body: JSON.stringify(requestData),
-        timeout: 10000,
+        // timeout: 10000,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: errorData,
-          fullResponse: JSON.stringify(errorData, null, 2)
-        });
+        // console.error('API Error Response:', {
+        //   status: response.status,
+        //   statusText: response.statusText,
+        //   data: errorData,
+        //   fullResponse: JSON.stringify(errorData, null, 2)
+        // });
         throw new Error(errorData.message || `خطأ في الخادم (${response.status})`);
       }
 
       const responseData = await response.json();
-      console.log('Inquiry created successfully:', responseData);
+      //console.log('Inquiry created successfully:', responseData);
       return responseData;
     } catch (error: any) {
       console.error('Error in createInquiry:', {
@@ -160,7 +160,8 @@ export const inquiryService = {
         statusText: error.response?.statusText,
         data: error.response?.data,
         fullError: JSON.stringify(error, null, 2)
-      });
+      }
+    );
 
       if (error.message.includes("Can't find /app/v1/")) {
         throw new Error('المسار /app/v1/inquiries غير متوفر على الخادم. تأكد من أن الخادم يدعم هذا المسار.');
@@ -195,7 +196,7 @@ export const inquiryService = {
       const response = await apiClient.get<InquiryData>(`/app/v1/inquiries/${id}`, { headers });
       return response.data;
     } catch (error) {
-      console.error(`Error fetching inquiry ${id}:`, error);
+      //console.error(`Error fetching inquiry ${id}:`, error);
       throw this.handleApiError(error);
     }
   },
@@ -213,7 +214,7 @@ export const inquiryService = {
       const response = await apiClient.get<PaginatedResponse<InquiryData>>('/app/v1/inquiries', { params, headers });
       return response.data;
     } catch (error) {
-      console.error('Error fetching inquiries:', error);
+      //console.error('Error fetching inquiries:', error);
       throw this.handleApiError(error);
     }
   },
@@ -224,11 +225,11 @@ export const inquiryService = {
   handleApiError(error: any): Error {
     if (error.response) {
       const { status, data } = error.response;
-      console.error('API Error Response:', {
-        status,
-        data,
-        fullResponse: JSON.stringify(data, null, 2)
-      });
+      // console.error('API Error Response:', {
+      //   status,
+      //   data,
+      //   fullResponse: JSON.stringify(data, null, 2)
+      // });
       
       if (status === 401) {
         return new Error('غير مصرح. يرجى تسجيل الدخول مرة أخرى.');
@@ -244,10 +245,10 @@ export const inquiryService = {
       
       return new Error(data?.message || `خطأ في الخادم (${status})`);
     } else if (error.request) {
-      console.error('No response received:', error.request);
+      //console.error('No response received:', error.request);
       return new Error('تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.');
     } else {
-      console.error('Request setup error:', error.message);
+      //console.error('Request setup error:', error.message);
       return new Error(error.message || 'حدث خطأ غير متوقع');
     }
   }

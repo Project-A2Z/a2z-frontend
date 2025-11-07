@@ -19,12 +19,12 @@ export default function Logout({ onCancel, onLogout }: LogoutProps) {
       }
       
       // Sign out from NextAuth (clears Google/Facebook session)
-      console.log('🚪 Signing out from NextAuth...');
+      //console.log('🚪 Signing out from NextAuth...');
       await signOut({ 
         redirect: false // Don't redirect automatically
       });
       
-      console.log('✅ NextAuth signout complete');
+      //console.log('✅ NextAuth signout complete');
       
       // Redirect to login page
       router.push('/login');

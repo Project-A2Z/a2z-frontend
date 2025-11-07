@@ -66,7 +66,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         
         try {
           // Debug authentication
-          console.log('🔍 Starting orders fetch...');
+          //console.log('🔍 Starting orders fetch...');
           orderService.debugAuth();
           
           const apiOrders = await orderService.getUserOrders();
@@ -83,41 +83,41 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
     };
 
     fetchOrders();
-    console.log('user in EditProfileSection', user);
+    //console.log('user in EditProfileSection', user);
   }, [box, user]);
 
   const handleLogout = async () => {
   try {
     setIsLoggingOut(true);
-    console.log('🚪 Starting logout process...');
-    console.log('📦 Before logout - localStorage:', {
-      user: localStorage.getItem('user_data'),
-      token: localStorage.getItem('auth_token'),
-      refreshToken: localStorage.getItem('refresh_token')
-    });
+    //console.log('🚪 Starting logout process...');
+    //console.log('📦 Before logout - localStorage:', {
+    //   user: localStorage.getItem('user_data'),
+    //   token: localStorage.getItem('auth_token'),
+    //   refreshToken: localStorage.getItem('refresh_token')
+    // });
     
     // Step 1: Clear your backend authentication
     await logoutUser();
     
-    console.log('📦 After logoutUser - localStorage:', {
-      user: localStorage.getItem('user_data'),
-      token: localStorage.getItem('auth_token'),
-      refreshToken: localStorage.getItem('refresh_token')
-    });
+    //console.log('📦 After logoutUser - localStorage:', {
+    //   user: localStorage.getItem('user_data'),
+    //   token: localStorage.getItem('auth_token'),
+    //   refreshToken: localStorage.getItem('refresh_token')
+    // });
     
     // Step 2: Sign out from NextAuth (Google/Facebook session)
-    console.log('🚪 Signing out from NextAuth...');
+    //console.log('🚪 Signing out from NextAuth...');
     await signOut({ 
       redirect: false // Don't redirect automatically, we'll do it manually
     });
-    console.log('✅ NextAuth signout complete');
+    //console.log('✅ NextAuth signout complete');
     
     // Step 3: Clear user state
     if (setUser) {
       setUser(null);
     }
     
-    console.log('✅ Logout successful!');
+    //console.log('✅ Logout successful!');
     
     // Step 4: Redirect to login
     window.location.href = '/login';
@@ -126,7 +126,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
     console.error('❌ Logout failed:', error);
     
     // If logout fails, force clear everything
-    console.log('🧹 Force clearing all auth data...');
+    //console.log('🧹 Force clearing all auth data...');
     try {
       localStorage.removeItem('user_data');
       localStorage.removeItem('auth_token');
@@ -144,11 +144,11 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         setUser(null);
       }
       
-      console.log('📦 After force cleanup - localStorage:', {
-        user: localStorage.getItem('user_data'),
-        token: localStorage.getItem('auth_token'),
-        refreshToken: localStorage.getItem('refresh_token')
-      });
+      //console.log('📦 After force cleanup - localStorage:', {
+      //   user: localStorage.getItem('user_data'),
+      //   token: localStorage.getItem('auth_token'),
+      //   refreshToken: localStorage.getItem('refresh_token')
+      // });
       
       window.location.href = '/login';
       
@@ -165,7 +165,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
   // Handle password change
   const handlePasswordChange = async (passwordData: { currentPassword: string; newPassword: string }) => {
     try {
-      console.log('🔐 Changing password...');
+      //console.log('🔐 Changing password...');
       
       // Call the updatePassword service with all required fields
       await updatePassword({
@@ -174,7 +174,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         confirmPassword: passwordData.newPassword // confirmPassword same as newPassword
       });
       
-      console.log('✅ Password changed successfully');
+      //console.log('✅ Password changed successfully');
     } catch (error) {
       console.error('❌ Password change failed:', error);
       throw error; // Re-throw to let PassChange component handle the error

@@ -71,7 +71,7 @@ export default function FloatingChat() {
         description: formData.description.trim()
       };
 
-      console.log('Submitting inquiry:', inquiryData);
+      //console.log('Submitting inquiry:', inquiryData);
 
       // Call the API to create inquiry
       await inquiryService.createInquiry(inquiryData);
@@ -129,7 +129,7 @@ export default function FloatingChat() {
     setIsSubmitting(true);
     setSubmitStatus(null);
     
-    console.log('Testing backend connection...');
+    //console.log('Testing backend connection...');
     
     try {
       const healthCheck = await checkBackendHealth();

@@ -9,7 +9,7 @@ interface WelcomeProps {
 }
 
 const handleAnimationComplete = () => {
-  console.log('All letters have animated!');
+  //console.log('All letters have animated!');
 };
 
 

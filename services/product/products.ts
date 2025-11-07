@@ -141,13 +141,13 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
   // Return cached data if available and not expired
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    console.log('✅ Using cached products');
+    //console.log('✅ Using cached products');
     return globalProductsCache;
   }
 
   // If already loading, wait for the existing request
   if (isLoadingProducts) {
-    console.log('⏳ Waiting for existing products request...');
+    //console.log('⏳ Waiting for existing products request...');
     return new Promise((resolve, reject) => {
       pendingPromises.push({ resolve, reject });
     });
@@ -156,7 +156,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   // Rate limiting: don't make requests too frequently
   if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
-    console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
+    //console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 
@@ -165,7 +165,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   lastRequestTime = now;
 
   try {
-    console.log('🔄 Fetching fresh products from API...');
+    //console.log('🔄 Fetching fresh products from API...');
 
     const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
       method: 'GET',
@@ -184,7 +184,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
       // Try again with exponential backoff
       const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000); // Max 30 seconds
-      console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
+      //console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
       await new Promise(resolve => setTimeout(resolve, retryAfter));
 
       // Retry the request once
@@ -216,7 +216,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       globalProductsCache = products;
       cacheTimestamp = now;
 
-      console.log(`✅ Successfully fetched ${products.length} products on retry`);
+      //console.log(`✅ Successfully fetched ${products.length} products on retry`);
 
       // Resolve all pending promises
       isLoadingProducts = false;
@@ -237,7 +237,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     globalProductsCache = products;
     cacheTimestamp = now;
 
-    console.log(`✅ Successfully fetched ${products.length} products`);
+    //console.log(`✅ Successfully fetched ${products.length} products`);
 
     // Resolve all pending promises
     isLoadingProducts = false;
@@ -251,7 +251,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
     // Return cached data as fallback, even if expired or partially loaded
     if (globalProductsCache) {
-      console.log('🔄 Using cached products as fallback');
+      //console.log('🔄 Using cached products as fallback');
       isLoadingProducts = false;
       pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
       pendingPromises = [];
@@ -319,7 +319,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 
     // Return cached data if available, even if it's expired
     if (globalProductsCache) {
-      console.log('🔄 Using cached products as fallback in fetchAllProducts');
+      //console.log('🔄 Using cached products as fallback in fetchAllProducts');
       return {
         data: globalProductsCache,
         pagination: {
@@ -422,7 +422,7 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
 
     // Return cached data if available, even if it's expired
     if (globalProductsCache) {
-      console.log('🔄 Using cached products as fallback in fetchProducts');
+      //console.log('🔄 Using cached products as fallback in fetchProducts');
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const startIndex = (page - 1) * limit;
@@ -596,7 +596,7 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 export const clearProductsCache = () => {
   globalProductsCache = null;
   cacheTimestamp = 0;
-  console.log('🗑️ Products cache cleared');
+  //console.log('🗑️ Products cache cleared');
 };
 
 export const getCacheInfo = () => {

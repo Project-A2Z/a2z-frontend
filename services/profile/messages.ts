@@ -71,7 +71,7 @@ export const fetchProfileMessages = async (): Promise<ProfileMessages[]> => {
       },
     });
 
-    console.log('Fetch profile messages response status:', response.status);
+    //console.log('Fetch profile messages response status:', response.status);
 
     if (!response.ok) {
       let errorMessage = 'Failed to fetch profile messages';
@@ -92,7 +92,7 @@ export const fetchProfileMessages = async (): Promise<ProfileMessages[]> => {
 
     const data: ProfileMessagesResponse = await response.json();
     
-    console.log('Fetch profile messages response body:', data);
+    //console.log('Fetch profile messages response body:', data);
     
     // Handle new response structure
     if (data.status === 'success' && Array.isArray(data.inquiries)) {

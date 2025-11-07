@@ -113,7 +113,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   const handleAddReview = async () => {
     if (!newReview.description?.trim() || submitting || hasUserReview || !authToken) {
       if (!authToken) {
-        // console.log('❌ No auth token found');
+        // //console.log('❌ No auth token found');
         setError('يرجى تسجيل الدخول أولاً لإضافة تقييم');
       } else if (hasUserReview) {
         setError('لقد قمت بإضافة تقييم لهذا المنتج بالفعل');
@@ -121,15 +121,15 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       return;
     }
 
-    // console.log('🚀 Attempting to add review...');
-    // console.log('📦 Review data:', newReview);
-    // console.log('🔑 Auth token:', authToken.substring(0, 20) + '...');
+    // //console.log('🚀 Attempting to add review...');
+    // //console.log('📦 Review data:', newReview);
+    // //console.log('🔑 Auth token:', authToken.substring(0, 20) + '...');
 
     try {
       setSubmitting(true);
       setError(null); // Clear any previous errors
       await reviewService.addReview(newReview, authToken);
-      // console.log('✅ Review added successfully');
+      // //console.log('✅ Review added successfully');
       setNewReview({ productId, description: '', rateNum: 5 });
       await refreshReviews();
     } catch (err: any) {
@@ -263,14 +263,14 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       await reviewService.deleteReview(deleteTargetId, productId, authToken);
 
       // Immediately refresh the list after successful delete
-      console.log('✅ Review deleted, refreshing list...');
+      //console.log('✅ Review deleted, refreshing list...');
       await refreshReviews();
 
       // Clear all states
       setError(null);
       setConfirmDeleteOpen(false);
       setDeleteTargetId(null);
-      console.log('✅ Delete completed successfully');
+      //console.log('✅ Delete completed successfully');
 
     } catch (err: any) {
       const errorMessage = err.message || 'فشل في حذف التعليق';
@@ -288,7 +288,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       }
 
       // Always refresh the list even on error to sync with backend state
-      console.log('⚠️ Delete failed, but refreshing list to sync state...');
+      //console.log('⚠️ Delete failed, but refreshing list to sync state...');
       await refreshReviews();
 
     } finally {

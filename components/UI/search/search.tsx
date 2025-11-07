@@ -65,7 +65,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
       );
       setFilteredResults(filtered);
       setShowResults(true);
-      console.log("Filtered results:", filtered);
+      //console.log("Filtered results:", filtered);
     } else {
       setFilteredResults([]);
       setShowResults(false);
@@ -81,12 +81,12 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Searching for:", searchTerm);
+    //console.log("Searching for:", searchTerm);
     // Add your search logic here
   };
 
   const handleResultClick = (product: Product) => {
-    console.log("Selected product:", product);
+    //console.log("Selected product:", product);
     setSearchTerm(product.name);
     setShowResults(false);
 
@@ -149,7 +149,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                     onClick={() =>
                       {
                         handleResultClick(product)
-                        console.log("Clicked product:", product);
+                        //console.log("Clicked product:", product);
                       }
                     }
                   >

@@ -5,11 +5,22 @@ import CartItemsList from './Sections/CartItemsList';
 import OrderSummary from './Sections/OrderSummary';
 import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import type { CartItem } from './Sections/types';
+// import type { CartItem } from './Sections/types';
 import { div } from 'motion/react-client';
 import { cartService } from '@/services/api/cart';
 import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
+
+export  type CartItem = {
+  id: string;            // Cart item ID
+  name: string;          // Name of the product
+  price: number;         // Price of the individual item
+  quantity: number;      // Quantity in cart
+  image: string;         // URL or path to the product image
+  unit: string;          // Unit of measurement (e.g., 'قطعة')
+  availability: string;  // Availability status (e.g., 'متوفر', 'غير متوفر')
+  category?: string;     // Optional category of the product
+};
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -61,7 +72,7 @@ const CartPage = () => {
         });
         setCartItems(mapped);
       } catch (error: any) {
-        console.error('Error fetching cart items:', error);
+        //console.error('Error fetching cart items:', error);
         if (error?.response?.status === 401) {
           return;
         }
@@ -83,7 +94,7 @@ const CartPage = () => {
       await cartService.updateCartItem(id, newQuantity);
       setCartItems(items => items.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
     } catch (e) {
-      console.error('Failed to update cart item quantity', e);
+      //console.error('Failed to update cart item quantity', e);
     }
   };
 
@@ -92,15 +103,15 @@ const CartPage = () => {
       await cartService.removeFromCart(id);
       setCartItems(items => items.filter(item => item.id !== id));
     } catch (e) {
-      console.error('Failed to remove cart item', e);
+      //console.error('Failed to remove cart item', e);
     }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   // const shipping = 1000;
   // const total = subtotal ;
-  console.log('Cart Items:', cartItems);
-  console.log('Subtotal:', subtotal);
+  //console.log('Cart Items:', cartItems);
+  //console.log('Subtotal:', subtotal);
   
   if (loading) {
     return (

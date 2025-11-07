@@ -112,7 +112,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
         address._id !== addressId && address.id?.toString() !== addressId
       ));
       
-      console.log('✅ Address deleted successfully:', addressId);
+      //console.log('✅ Address deleted successfully:', addressId);
       // Success message is already shown by AddressService
       
     } catch (err) {
@@ -148,7 +148,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       return;
     }
 
-    console.log('Add new address');
+    //console.log('Add new address');
     router.push('/addAddress');
   };
 
@@ -160,7 +160,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
 
     // If already default, don't do anything
     if (clickedAddress?.isDefault) {
-      console.log('Address is already default');
+      //console.log('Address is already default');
       return;
     }
 
@@ -195,7 +195,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
         }))
       );
       
-      console.log('✅ Default address set:', addressId);
+      //console.log('✅ Default address set:', addressId);
       // Success message is already shown by AddressService
       
     } catch (err) {

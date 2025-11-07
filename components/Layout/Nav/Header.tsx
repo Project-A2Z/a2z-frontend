@@ -95,7 +95,7 @@ function Header({
     const handleSocialAuth = async () => {
       // Check if we have a session with backend token
       if (session?.backendToken && session?.user?.backendUser) {
-        console.log('✅ Header: Backend token found in session, saving to localStorage...');
+        //console.log('✅ Header: Backend token found in session, saving to localStorage...');
         
         // Save using UserStorage methods (includes expiry tracking)
         UserStorage.saveUser(session.user.backendUser);
@@ -107,12 +107,12 @@ function Header({
         
         // Start token monitoring
         AuthService.startTokenMonitoring(() => {
-          console.log('🔒 Token expired - user needs to login again');
+          //console.log('🔒 Token expired - user needs to login again');
           setUser(null);
           router.push('/login');
         });
         
-        console.log('✅ Header: User state updated from session');
+        //console.log('✅ Header: User state updated from session');
       }
     };
 
@@ -130,10 +130,10 @@ function Header({
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
-          console.log("✅ User data loaded:", userData);
+          //console.log("✅ User data loaded:", userData);
         } else {
           setUser(null);
-          console.log("ℹ️ No user found or not authenticated");
+          //console.log("ℹ️ No user found or not authenticated");
         }
       } catch (error) {
         console.error("❌ Error loading user data:", error);
@@ -156,7 +156,7 @@ function Header({
         setIsProductsLoading(true);
         const cachedProducts = await getProductsWithState();
         setProducts(cachedProducts);
-        console.log(`✅ Loaded ${cachedProducts.length} products for search`);
+        //console.log(`✅ Loaded ${cachedProducts.length} products for search`);
       } catch (error) {
         console.error("❌ Error loading cached products:", error);
         setProducts([]);
@@ -175,17 +175,17 @@ function Header({
 
     const fetchUnreadCount = async () => {
       if (!user || !isMounted) {
-        console.log("⏭️ Skipping unread count fetch - no user or unmounted");
+        //console.log("⏭️ Skipping unread count fetch - no user or unmounted");
         return;
       }
 
       try {
-        console.log("🔔 Fetching unread notification count");
+        //console.log("🔔 Fetching unread notification count");
         const count = await getUnreadNotificationsCount();
         
         if (isMounted) {
           setUnreadCount(count);
-          console.log(`✅ Unread count updated: ${count}`);
+          //console.log(`✅ Unread count updated: ${count}`);
         }
       } catch (error) {
         if (isMounted) {
@@ -195,7 +195,7 @@ function Header({
     };
 
     if (user) {
-      console.log("⏰ Setting up unread count polling (5min interval)");
+      //console.log("⏰ Setting up unread count polling (5min interval)");
       
       fetchUnreadCount();
 
@@ -207,7 +207,7 @@ function Header({
     }
 
     return () => {
-      console.log("🧹 Cleaning up unread count polling");
+      //console.log("🧹 Cleaning up unread count polling");
       isMounted = false;
       
       if (intervalId) {
@@ -224,24 +224,24 @@ function Header({
         if (isUserAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
-          console.log("✅ Header: User updated from storage event");
+          //console.log("✅ Header: User updated from storage event");
         } else {
           setUser(null);
-          console.log("✅ Header: User cleared from storage event");
+          //console.log("✅ Header: User cleared from storage event");
         }
       }
     };
 
     // ✅ NEW: Listen for custom token expiry events
     const handleTokenExpiry = () => {
-      console.log("🔒 Header: Token expired event received");
+      //console.log("🔒 Header: Token expired event received");
       setUser(null);
       router.push('/login');
     };
 
     // ✅ NEW: Listen for custom auth update events
     const handleAuthUpdate = () => {
-      console.log("🔄 Header: Auth update event received");
+      //console.log("🔄 Header: Auth update event received");
       if (isUserAuthenticated()) {
         const userData = getCurrentUser();
         setUser(userData);
@@ -277,7 +277,7 @@ function Header({
   };
 
   const handleLogin = (): void => {
-    console.log("Redirecting to login...");
+    //console.log("Redirecting to login...");
     router.push("/login");
   };
 

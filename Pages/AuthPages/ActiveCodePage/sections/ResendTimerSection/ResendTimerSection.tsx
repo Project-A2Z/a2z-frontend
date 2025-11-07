@@ -9,20 +9,27 @@ interface ResendTimerSectionProps {
   formatTime: (seconds: number) => string;
 }
 
-const ResendTimerSection: React.FC<ResendTimerSectionProps> = ({ 
+const ResendTimerSection: React.FC<ResendTimerSectionProps> = React.memo(({ 
   timeLeft, 
   onResend, 
   canResend, 
   isLoading = false,
   formatTime 
 }) => {
+  // Ensure formatTime is always a function
+  const safeFormatTime = React.useCallback((seconds: number): string => {
+    if (typeof formatTime === 'function') {
+      return formatTime(seconds);
+    }
+    // Fallback formatting if formatTime is not provided
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, [formatTime]);
+
   return (
     <div className="text-center space-y-2">
-      {!canResend ? (
-        <p className="text-gray-600 text-sm">
-          إعادة الإرسال متاحة خلال: <span className="font-mono font-bold text-primary-600">{formatTime(timeLeft)}</span>
-        </p>
-      ) : (
+      {canResend ? (
         <div className="space-y-2">
           <p className="text-gray-600 text-sm">
             لم تتلق الرمز؟
@@ -37,9 +44,18 @@ const ResendTimerSection: React.FC<ResendTimerSectionProps> = ({
             {isLoading ? 'جاري الإرسال...' : 'إعادة الإرسال'}
           </Button>
         </div>
+      ) : (
+        <p className="text-gray-600 text-sm">
+          إعادة الإرسال متاحة خلال:{' '}
+          <span className="font-mono font-bold text-primary-600">
+            {safeFormatTime(timeLeft)}
+          </span>
+        </p>
       )}
     </div>
   );
-};
+});
 
-export default React.memo(ResendTimerSection);
+ResendTimerSection.displayName = 'ResendTimerSection';
+
+export default ResendTimerSection;

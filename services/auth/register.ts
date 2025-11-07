@@ -121,14 +121,14 @@ class UserStorage {
 const API_BASE_URL = Api;
 
 export const registerUser = async (userData: RegisterRequest): Promise<RegisterResponse> => {
-  console.log('🚀 Starting registration...');
-  console.log('🔧 API Base URL:', API_BASE_URL);
-  console.log('🔧 Register endpoint:', API_ENDPOINTS.AUTH.REGISTER);
-  console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
-  console.log('📤 User data:', {
-    ...userData,
-    password: '[HIDDEN]'
-  });
+  //console.log('🚀 Starting registration...');
+  //console.log('🔧 API Base URL:', API_BASE_URL);
+  //console.log('🔧 Register endpoint:', API_ENDPOINTS.AUTH.REGISTER);
+  //console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
+  //console.log('📤 User data:', {
+  //   ...userData,
+  //   password: '[HIDDEN]'
+  // });
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
@@ -140,42 +140,42 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       body: JSON.stringify(userData),
     });
 
-    console.log('📥 Raw response:', response);
-    console.log('📊 Response status:', response.status);
-    console.log('📊 Response ok:', response.ok);
-    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+    //console.log('📥 Raw response:', response);
+    //console.log('📊 Response status:', response.status);
+    //console.log('📊 Response ok:', response.ok);
+    //console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
 
     let data;
     const contentType = response.headers.get('content-type');
-    console.log('📋 Content-Type:', contentType);
+    //console.log('📋 Content-Type:', contentType);
 
     try {
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
         const textData = await response.text();
-        console.log('📄 Non-JSON response:', textData);
+        //console.log('📄 Non-JSON response:', textData);
         try {
           data = JSON.parse(textData);
         } catch {
           data = { message: textData };
         }
       }
-      console.log('📄 Parsed response data:', data);
+      //console.log('📄 Parsed response data:', data);
     } catch (parseError) {
       console.error('❌ Failed to parse response:', parseError);
       throw new Error('Server returned invalid response format');
     }
 
     if (!response.ok) {
-      console.log('❌ Registration failed with status:', response.status);
+      //console.log('❌ Registration failed with status:', response.status);
       
       let errorMessage = 'Registration failed';
       let errorDetails = {};
 
       switch (response.status) {
         case 400:
-          console.log('🔍 400 Bad Request - analyzing response...');
+          //console.log('🔍 400 Bad Request - analyzing response...');
           if (data) {
             errorMessage = data.message || data.error || 'Invalid request data';
             errorDetails = data.errors || data.validationErrors || data.data || {};
@@ -209,8 +209,8 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
           errorMessage = data?.message || `Unexpected error (${response.status})`;
       }
 
-      console.log('🔍 Final error message:', errorMessage);
-      console.log('🔍 Error details:', errorDetails);
+      //console.log('🔍 Final error message:', errorMessage);
+      //console.log('🔍 Error details:', errorDetails);
 
       const error = new Error(errorMessage) as any;
       error.status = response.status;
@@ -225,19 +225,19 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
       throw error;
     }
 
-    console.log('✅ Registration successful!');
-    console.log('🎉 Response data:', data);
+    //console.log('✅ Registration successful!');
+    //console.log('🎉 Response data:', data);
 
     if (data.status === 'success' && data.data?.user) {
-      console.log('💾 Saving user data to localStorage...');
+      //console.log('💾 Saving user data to localStorage...');
       UserStorage.saveUser(data.data.user);
       
       if (data.data.token) {
-        console.log('🔑 Saving auth token...');
+        //console.log('🔑 Saving auth token...');
         UserStorage.saveToken(data.data.token);
       }
       if (data.data.refreshToken) {
-        console.log('🔄 Saving refresh token...');
+        //console.log('🔄 Saving refresh token...');
         UserStorage.saveRefreshToken(data.data.refreshToken);
       }
     }
@@ -258,11 +258,11 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
 };
 
 export const debugApiConnection = async (): Promise<any> => {
-  console.log('🔍 Testing API connection...');
+  //console.log('🔍 Testing API connection...');
   
   try {
     const healthUrl = `${API_BASE_URL}/health`;
-    console.log('🏥 Testing health endpoint:', healthUrl);
+    //console.log('🏥 Testing health endpoint:', healthUrl);
     
     const response = await fetch(healthUrl, {
       method: 'GET',
@@ -271,11 +271,11 @@ export const debugApiConnection = async (): Promise<any> => {
       },
     });
     
-    console.log('🏥 Health check response:', {
-      status: response.status,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries()),
-    });
+    //console.log('🏥 Health check response:', {
+    //   status: response.status,
+    //   ok: response.ok,
+    //   headers: Object.fromEntries(response.headers.entries()),
+    // });
     
     let data;
     try {
@@ -284,7 +284,7 @@ export const debugApiConnection = async (): Promise<any> => {
       data = await response.text();
     }
     
-    console.log('🏥 Health check data:', data);
+    //console.log('🏥 Health check data:', data);
     
     return { status: response.status, ok: response.ok, data };
   } catch (error) {
@@ -294,7 +294,7 @@ export const debugApiConnection = async (): Promise<any> => {
 };
 
 export const debugRegistrationEndpoint = async (): Promise<any> => {
-  console.log('🔍 Testing registration endpoint...');
+  //console.log('🔍 Testing registration endpoint...');
   
   const testData = {
     firstName: 'Test',
@@ -304,8 +304,8 @@ export const debugRegistrationEndpoint = async (): Promise<any> => {
     phoneNumber: '+1234567890'
   };
   
-  console.log('🧪 Test data:', { ...testData, password: '[HIDDEN]' });
-  console.log('🌐 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
+  //console.log('🧪 Test data:', { ...testData, password: '[HIDDEN]' });
+  //console.log('🌐 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`);
   
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
@@ -317,8 +317,8 @@ export const debugRegistrationEndpoint = async (): Promise<any> => {
       body: JSON.stringify(testData),
     });
     
-    console.log('🧪 Test response status:', response.status);
-    console.log('🧪 Test response headers:', Object.fromEntries(response.headers.entries()));
+    //console.log('🧪 Test response status:', response.status);
+    //console.log('🧪 Test response headers:', Object.fromEntries(response.headers.entries()));
     
     let data;
     try {
@@ -327,7 +327,7 @@ export const debugRegistrationEndpoint = async (): Promise<any> => {
       data = await response.text();
     }
     
-    console.log('🧪 Test response data:', data);
+    //console.log('🧪 Test response data:', data);
     
     return {
       status: response.status,
@@ -359,14 +359,14 @@ export const verifyEmail = async (
 ): Promise<VerifyEmailResponse> => {
   try {
     const url = `${Api}${API_ENDPOINTS.AUTH.VERIFY_EMAIL}`;
-    console.log('url : ' , url)
+    //console.log('url : ' , url)
     
     const requestBody: VerifyEmailRequest = {
       email,
       OTP: code,
       type: "EmailVerification"
     };
-    console.log('requestBody : ' , requestBody)
+    //console.log('requestBody : ' , requestBody)
 
     const response = await fetch(url, {
       method: 'PATCH',
@@ -384,13 +384,13 @@ export const verifyEmail = async (
       throw new Error('Invalid response format from server');
     }
 
-    console.log('data : ' , data);
+    //console.log('data : ' , data);
 
     if (!response.ok) {
       console.error('❌ Verification request failed with status:', response.status);
       
       if (data && (data.success === true || data.status === 'success')) {
-        console.log('✅ Email verification successful despite HTTP status!');
+        //console.log('✅ Email verification successful despite HTTP status!');
         return data;
       }
       
@@ -414,7 +414,7 @@ export const verifyEmail = async (
     }
 
     if (data.success === true || data.status === 'success') {
-      console.log('✅ Email verification successful!');
+      //console.log('✅ Email verification successful!');
       
       if (data.data?.user) {
         UserStorage.updateUser({ isVerified: true });
@@ -469,8 +469,8 @@ export async function resendVerificationCode(
   const primaryUrl = `${baseUrl}${API_CONFIG.endpoints.primary}`;
   
   try {
-    console.log(`🔄 Attempting to call: ${primaryUrl}`);
-    console.log(`📧 Request body:`, requestBody);
+    //console.log(`🔄 Attempting to call: ${primaryUrl}`);
+    //console.log(`📧 Request body:`, requestBody);
     
     const response = await fetch(primaryUrl, {
       method: 'POST',
@@ -480,15 +480,15 @@ export async function resendVerificationCode(
       body: JSON.stringify(requestBody)
     });
 
-    console.log(`📡 Response status: ${response.status}`);
+    //console.log(`📡 Response status: ${response.status}`);
     
     if (!response.ok) {
       let errorText = '';
       try {
         errorText = await response.text();
-        console.log(`❌ Error response:`, errorText);
+        //console.log(`❌ Error response:`, errorText);
       } catch (e) {
-        console.log(`❌ Could not read error response`);
+        //console.log(`❌ Could not read error response`);
       }
       
       throw new APIError(
@@ -498,7 +498,7 @@ export async function resendVerificationCode(
     }
 
     const data: ResendOTPResponse = await response.json();
-    console.log(`✅ Success response:`, data);
+    //console.log(`✅ Success response:`, data);
     return data;
 
   } catch (error) {
@@ -521,13 +521,13 @@ export async function debugEndpoints(
 ): Promise<void> {
   const requestBody: ResendOTPRequest = { email, type };
   
-  console.log(`🔍 Testing different endpoint variations for: ${email}`);
+  //console.log(`🔍 Testing different endpoint variations for: ${email}`);
   
   const allEndpoints = [API_CONFIG.endpoints.primary, '/users/OTPResend', '/auth/OTPResend', '/users/OTPResendCode'];
   
   for (const endpoint of allEndpoints) {
     const url = `${baseUrl}${endpoint}`;
-    console.log(`\n🧪 Testing: ${url}`);
+    //console.log(`\n🧪 Testing: ${url}`);
     
     try {
       const response = await fetch(url, {
@@ -536,23 +536,23 @@ export async function debugEndpoints(
         body: JSON.stringify(requestBody)
       });
       
-      console.log(`   Status: ${response.status}`);
+      //console.log(`   Status: ${response.status}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`   ✅ SUCCESS! This endpoint works:`, data);
-        console.log(`   Use this URL: ${url}`);
+        //console.log(`   ✅ SUCCESS! This endpoint works:`, data);
+        //console.log(`   Use this URL: ${url}`);
         return;
       } else {
         const errorText = await response.text().catch(() => 'Could not read response');
-        console.log(`   ❌ Failed: ${errorText}`);
+        //console.log(`   ❌ Failed: ${errorText}`);
       }
     } catch (error) {
-      console.log(`   🚨 Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      //console.log(`   🚨 Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
   
-  console.log(`\n❌ None of the endpoints worked. Check your server configuration.`);
+  //console.log(`\n❌ None of the endpoints worked. Check your server configuration.`);
 }
 
 // Updated handleResendCode with AlertHandler

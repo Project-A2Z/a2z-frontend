@@ -22,12 +22,12 @@ async function getProducts(): Promise<{
   const startTime = Date.now();
   
   try {
-    console.log('🏗️  Fetching products for page...');
+    //console.log('🏗️  Fetching products for page...');
     
     const productsData = await fetchAllProducts();
     
     const loadTime = Date.now() - startTime;
-    console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
+    //console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
     
     if (!productsData.data || productsData.data.length === 0) {
       console.warn('⚠️  No products found');
@@ -47,7 +47,7 @@ async function getProducts(): Promise<{
       };
     }
     
-    console.log(`📦 Successfully loaded ${productsData.data.length} products`);
+    //console.log(`📦 Successfully loaded ${productsData.data.length} products`);
     
     return {
       data: productsData,

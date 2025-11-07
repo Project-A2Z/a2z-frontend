@@ -1,37 +1,115 @@
 "use client";
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import FavoritesList, { FavoriteItem } from './Sections/FavoritesList';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import { useFavorites } from '@/services/favorites/FavoritesContext';
 import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
 import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 import { UserStorage } from '@/services/auth/login';
 import { LogIn } from 'lucide-react';
 
-// In a real app this would come from API or global store
 const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
-  const { items: favItems, remove, loading, error } = useFavorites();
-  const list = useMemo(() => items ?? favItems, [items, favItems]);
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+  const [favItems, setFavItems] = useState<FavoriteItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [removeFn, setRemoveFn] = useState<((id: string | number) => void) | null>(null);
 
+  const list = useMemo(() => items ?? favItems, [items, favItems]);
+
+  // Initialize on client side
   useEffect(() => {
-    // Check authentication using UserStorage
+    setIsMounted(true);
+  }, []);
+
+  // Load favorites context after mount
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // Check authentication
     const user = UserStorage.getUser();
     const token = UserStorage.getToken();
     const isUserAuthenticated = user !== null && token !== null;
 
     if (!isUserAuthenticated) {
-      // User is not authenticated, redirect to login
-      console.log('❌ User not authenticated, redirecting to login...');
       router.push('/login?redirect=/favorites');
       return;
     }
 
-    console.log('✅ User authenticated:', user?.firstName, user?.lastName);
+    // Dynamically load favorites hook
+    const loadFavorites = async () => {
+      try {
+        const { useFavorites } = await import('@/services/favorites/FavoritesContext');
+        
+        // Note: We can't use hooks conditionally, so we need to handle this differently
+        // For now, we'll set a loading state
+        setLoading(false);
+      } catch (err) {
+        console.error('Error loading favorites:', err);
+        setError('حدث خطأ أثناء تحميل المفضلة');
+        setLoading(false);
+      }
+    };
+
+    loadFavorites();
+  }, [isMounted, router]);
+
+  // Alternative: Use FavoritesWrapper component
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-600">جاري التحميل...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <FavoritesPageContent items={items} />;
+};
+
+// Separate component that uses the context
+const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
+  const router = useRouter();
+  
+  // Now we can safely use the hook because we're only on client side
+  let favItems: FavoriteItem[] = [];
+  let remove = (id: string | number) => {};
+  let loading = false;
+  let error: string | null = null;
+
+  try {
+    const { useFavorites } = require('@/services/favorites/FavoritesContext');
+    const favContext = useFavorites();
+    favItems = favContext.items;
+    remove = favContext.remove;
+    loading = favContext.loading;
+    error = favContext.error;
+  } catch (err) {
+    console.error('Error using favorites context:', err);
+    error = 'حدث خطأ أثناء تحميل المفضلة';
+  }
+
+  const list = useMemo(() => items ?? favItems, [items, favItems]);
+
+  useEffect(() => {
+    const user = UserStorage.getUser();
+    const token = UserStorage.getToken();
+    const isUserAuthenticated = user !== null && token !== null;
+
+    if (!isUserAuthenticated) {
+      router.push('/login?redirect=/favorites');
+      return;
+    }
   }, [router]);
 
-  // Show loading state while checking authentication
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-background font-beiruti mt-[93px]">
@@ -123,7 +201,6 @@ const FavoritesPage: React.FC<{ items?: FavoriteItem[] }> = ({ items }) => {
 
         {/* Related products */}
         <section>
-          {/* <h2 className="text-xl font-bold text-black87 mb-4">منتجات قد تعجبك</h2> */}
           <RelatedProducts />
         </section>
       </div>

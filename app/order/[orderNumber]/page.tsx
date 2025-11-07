@@ -55,11 +55,11 @@ const OrderDetails: React.FC = () => {
         const foundOrder = allOrders.find(o => o._id === orderId || o.orderId === orderId);
 
         if (foundOrder) {
-          console.log('✅ Order found in cache:', foundOrder);
+          //console.log('✅ Order found in cache:', foundOrder);
           setOrder(foundOrder);
         } else {
           // If not found in list, try to fetch specific order details
-          console.log('⚠️ Order not found in list, fetching details...');
+          //console.log('⚠️ Order not found in list, fetching details...');
           const orderDetails = await orderService.getOrderDetails(orderId);
           setOrder(orderDetails);
         }
@@ -141,7 +141,7 @@ const OrderDetails: React.FC = () => {
   const fullName = `${order.address.firstName} ${order.address.lastName}`;
 
   // This is the corrected mapping based on your actual API response structure
-  console.log('Order items:', order.cartId);
+  //console.log('Order items:', order.cartId);
 const orderItems = order.cartId && 
                    typeof order.cartId === 'object' && 
                    order.cartId.items && 
@@ -150,8 +150,8 @@ const orderItems = order.cartId &&
       // item.productId is an object containing: name, imageList, price, etc.
       const product = item.productId;
 
-      console.log('Mapping item:', item);
-      console.log('Product details:', product);
+      //console.log('Mapping item:', item);
+      //console.log('Product details:', product);
       
       return {
         id: item._id,

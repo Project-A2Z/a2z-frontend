@@ -30,14 +30,14 @@ apiClient.interceptors.request.use((config) => {
     config.params = params;
   }
 
-  console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  //console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
 
 // Enhanced response interceptor with retry logic for network errors
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    //console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
     return response;
   },
   async (error) => {
@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
+      //console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
       return apiClient(config);
     }
 

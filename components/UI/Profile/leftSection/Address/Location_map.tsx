@@ -153,7 +153,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           region: address.state || address.province || ''
         };
 
-        console.log('Location selected in MapLocationPicker:', location);
+        //console.log('Location selected in MapLocationPicker:', location);
         setSelectedLocation(location);
         
         // IMPORTANT: Call the parent callback immediately
@@ -163,7 +163,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       console.error('Error geocoding:', err);
       // Still set location even if geocoding fails
       const location: Location = { lat, lng };
-      console.log('Location selected (no geocoding):', location);
+      //console.log('Location selected (no geocoding):', location);
       setSelectedLocation(location);
       
       // IMPORTANT: Call the parent callback even if geocoding fails

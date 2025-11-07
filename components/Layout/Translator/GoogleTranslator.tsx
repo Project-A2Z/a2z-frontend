@@ -108,7 +108,7 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
             'google_translate_element'
           );
           
-          console.log('✅ Google Translate initialized');
+          //console.log('✅ Google Translate initialized');
           
           // Remove translating class after initialization
           setTimeout(() => {
@@ -136,7 +136,7 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
     };
 
     script.onload = () => {
-      console.log('✅ Google Translate script loaded');
+      //console.log('✅ Google Translate script loaded');
       scriptLoadedRef.current = true;
     };
 
@@ -150,19 +150,20 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
   }, [pageLanguage]);
 
   return (
-    <div 
-      ref={containerRef}
-      id="google_translate_element" 
-      className="notranslate"
-      translate="no"
-      style={{ 
-        display: 'none',
-        position: 'absolute',
-        top: '-9999px',
-        left: '-9999px',
-        isolation: 'isolate'
-      }}
-    />
+    // <div 
+    //   ref={containerRef}
+    //   id="google_translate_element" 
+    //   className="notranslate"
+    //   translate="no"
+    //   style={{ 
+    //     display: 'none',
+    //     position: 'absolute',
+    //     top: '-9999px',
+    //     left: '-9999px',
+    //     isolation: 'isolate'
+    //   }}
+    // />
+    <div></div>
   );
 };
 

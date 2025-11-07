@@ -51,7 +51,7 @@ export default function RegistrationForm() {
       /(?=.*\d)/.test(value) &&
       /(?=.*[@$!%*?&#])/.test(value);
     setValidPass(isValid);
-    console.log("Password valid:", isValid);
+    //console.log("Password valid:", isValid);
     if (errors.password) {
       setErrors((prev) => ({
         ...prev,
@@ -149,13 +149,13 @@ export default function RegistrationForm() {
   };
 
   const handleSubmit = async () => {
-    console.log("🚀 Starting registration process...");
+    //console.log("🚀 Starting registration process...");
 
     // Validate form first
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length > 0) {
-      console.log("❌ Form validation failed:", newErrors);
+      //console.log("❌ Form validation failed:", newErrors);
       setErrors(newErrors);
       return;
     }
@@ -173,16 +173,16 @@ export default function RegistrationForm() {
         phoneNumber: formData.phoneNumber.trim().replace(/\s+/g, ""), // Remove spaces
       };
 
-      console.log("📤 Sending registration data:", {
-        ...registerData,
-        password: "[HIDDEN]", // Don't log password
-      });
+      //console.log("📤 Sending registration data:", {
+      //   ...registerData,
+      //   password: "[HIDDEN]", // Don't log password
+      // });
 
       const response = await registerUser(registerData);
-      console.log("📥 Registration response:", response);
+      //console.log("📥 Registration response:", response);
 
       if (response.status === "success") {
-        console.log("✅ Registration successful:", response.data.user);
+        //console.log("✅ Registration successful:", response.data.user);
 
         // Show success message to user
         setAlertMessage(
@@ -191,7 +191,7 @@ export default function RegistrationForm() {
         setShowSuccessAlert(true);
       }
     } catch (error: any) {
-      console.error("❌ Registration failed:", error);
+      //console.error("❌ Registration failed:", error);
 
       // Enhanced error handling with Arabic translations
       let errorMessage = "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.";
@@ -206,11 +206,11 @@ export default function RegistrationForm() {
         const status = error.status || error.response?.status;
         const responseData = error.response?.data;
 
-        console.log("🔍 Error details:", {
-          status,
-          responseData,
-          errors: error.errors,
-        });
+        //console.log("🔍 Error details:", {
+        //   status,
+        //   responseData,
+        //   errors: error.errors,
+        // });
 
         // Handle specific status codes
         switch (status) {

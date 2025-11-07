@@ -85,7 +85,7 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
         throw new Error('لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
       }
 
-      console.log('👤 Current user from UserStorage:', currentUser);
+      //console.log('👤 Current user from UserStorage:', currentUser);
 
       // ✅ FIX: Include firstName, lastName, and phoneNumber to satisfy API requirement
       const updateData: UpdateProfileData = {
@@ -95,17 +95,17 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
         image: file
       };
 
-      console.log('🚀 Uploading image with user data...', {
-        firstName: updateData.firstName,
-        lastName: updateData.lastName,
-        phoneNumber: updateData.phoneNumber,
-        hasImage: !!updateData.image
-      });
+      //console.log('🚀 Uploading image with user data...', {
+      //   firstName: updateData.firstName,
+      //   lastName: updateData.lastName,
+      //   phoneNumber: updateData.phoneNumber,
+      //   hasImage: !!updateData.image
+      // });
 
       // Call the API to update profile with new image
       const response = await updateUserProfile(updateData, token);
 
-      console.log('✅ Image uploaded successfully!', response);
+      //console.log('✅ Image uploaded successfully!', response);
 
       // Update the avatar with the server's image URL
       if (response.user.image) {
@@ -121,7 +121,7 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
         updatedAt: response.user.updatedAt
       });
 
-      console.log('💾 UserStorage updated with new user data');
+      //console.log('💾 UserStorage updated with new user data');
 
       // Call onChange callback with updated user data
       if (onChange) {
@@ -137,7 +137,7 @@ const Info: React.FC<InfoProps> = ({ user, onChange, onError }) => {
       }
 
       // Show success message (optional)
-      console.log('✅ تم تحديث الصورة الشخصية بنجاح');
+      //console.log('✅ تم تحديث الصورة الشخصية بنجاح');
 
     } catch (error: any) {
       console.error('❌ Image upload error:', error);

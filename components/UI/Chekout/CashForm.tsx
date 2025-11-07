@@ -89,7 +89,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     }
 
     const handleSubmit = () => {
-         console.log('way:', way, 'paymentWith:', paymentWith)
+         //console.log('way:', way, 'paymentWith:', paymentWith)
 
     if (!transactionId || !transactionDate || !receiptFile) {
         showAlert('يرجى ملء جميع الحقول المطلوبة', 'warning')
@@ -97,21 +97,21 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     }
 
     if (!paymentWith) {
-        console.log('❗ Missing paymentWith')
+        //console.log('❗ Missing paymentWith')
         showAlert('يرجى اختيار وسيلة الدفع', 'warning')
         return
     }
         setIsConfirmed(true)
         
-        console.log('✅ Form confirmed:', {
-            id: transactionId,
-            date: transactionDate,
-            price: price,
-            file: receiptFile.name,
-            paymentWith: paymentWith || 'N/A',
-            way: way,
-            image: receiptFile
-        })
+        //console.log('✅ Form confirmed:', {
+        //     id: transactionId,
+        //     date: transactionDate,
+        //     price: price,
+        //     file: receiptFile.name,
+        //     paymentWith: paymentWith || 'N/A',
+        //     way: way,
+        //     image: receiptFile
+        // })
     }
 
     const handleEdit = () => {

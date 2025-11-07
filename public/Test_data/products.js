@@ -229,7 +229,7 @@ function getByFirstLetter(letter) {
 
 // Fixed function to handle array of category IDs
 function getByCategory(categoryIds) {
-  console.log('Selected category IDs:', categoryIds);
+  //console.log('Selected category IDs:', categoryIds);
   
   // If no categories selected, return all products
   if (!categoryIds || categoryIds.length === 0) {
@@ -252,7 +252,7 @@ function getByCategory(categoryIds) {
   // Convert category IDs to Arabic labels
   const categoryLabels = categoryIds.map(id => categoryMap[id]).filter(Boolean);
   
-  console.log('Mapped to labels:', categoryLabels);
+  //console.log('Mapped to labels:', categoryLabels);
   
   // Filter products by matching category labels
   return products.filter(product => categoryLabels.includes(product.category));

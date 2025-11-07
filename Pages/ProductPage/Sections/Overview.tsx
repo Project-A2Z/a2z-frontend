@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
-import { useFavorites } from "@/services/favorites/FavoritesContext";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
 import { Button } from "@/components/UI/Buttons";
@@ -11,40 +10,58 @@ import { isAuthenticated } from "@/utils/auth";
 import Alert from "@/components/UI/Alert/alert";
 
 type Props = {
-  id: number | string;
-  title: string;
+  id?: number | string;
+  title?: string;
   description?: string;
-  price: number;
-  imageList: string[];
-  rating: number;
-  ratingCount: number;
-  category: string;
-  stockQty: number;
-  stockType: "unit" | "kg" | "ton";
+  price?: number;
+  imageList?: string[];
+  rating?: number;
+  ratingCount?: number;
+  category?: string;
+  stockQty?: number;
+  stockType?: "unit" | "kg" | "ton";
 };
 
 const Overview: React.FC<Props> = ({
-  id,
-  title,
-  description,
-  price,
-  imageList,
-  rating,
-  ratingCount,
-  category,
-  stockQty,
-  stockType,
+  id = 0,
+  title = "Product Title",
+  description = "",
+  price = 0,
+  imageList = ["/acessts/download (47).jpg"],
+  rating = 0,
+  ratingCount = 0,
+  category = "غير محدد",
+  stockQty = 0,
+  stockType = "unit",
 }) => {
-  const { toggle, isFavorite } = useFavorites();
-  const loved = isFavorite(id);
+  const [isMounted, setIsMounted] = useState(false);
+  const [loved, setLoved] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
-  const [selectedUnit, setSelectedUnit] = useState(stockType); // State for selected unit, init with prop
+  const [selectedUnit, setSelectedUnit] = useState(stockType);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isManualNavigation, setIsManualNavigation] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const router = useRouter();
+
+  // Initialize favorites hook only on client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Safe favorites hook usage
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    try {
+      const { useFavorites } = require("@/services/favorites/FavoritesContext");
+      const { isFavorite } = useFavorites();
+      setLoved(isFavorite(id));
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+    }
+  }, [isMounted, id]);
 
   const unitOptions = {
     unit: "قطعة",
@@ -53,13 +70,12 @@ const Overview: React.FC<Props> = ({
   };
 
   const handleUnitSelect = (key: keyof typeof unitOptions) => {
-    setSelectedUnit(key); // Update selected unit dynamically
+    setSelectedUnit(key);
   };
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % imageList.length);
     setIsManualNavigation(true);
-    // Reset manual navigation after 5 seconds
     setTimeout(() => setIsManualNavigation(false), 5000);
   };
 
@@ -68,27 +84,25 @@ const Overview: React.FC<Props> = ({
       (prev) => (prev - 1 + imageList.length) % imageList.length
     );
     setIsManualNavigation(true);
-    // Reset manual navigation after 5 seconds
     setTimeout(() => setIsManualNavigation(false), 5000);
   };
 
   const goToImage = (index: number) => {
     setCurrentImageIndex(index);
     setIsManualNavigation(true);
-    // Reset manual navigation after 5 seconds
     setTimeout(() => setIsManualNavigation(false), 5000);
   };
 
-  // Auto-play: advance to next image every 5 seconds
+  // Auto-play: advance to next image every 3 seconds
   useEffect(() => {
     if (imageList.length <= 1 || isHovering || isManualNavigation) return;
 
     const autoPlayInterval = setInterval(() => {
       nextImage();
-    }, 3000); // 3 seconds
+    }, 3000);
 
     return () => clearInterval(autoPlayInterval);
-  }, [imageList.length, isHovering, isManualNavigation]); // Re-run effect when imageList, hover state, or manual navigation changes
+  }, [imageList.length, isHovering, isManualNavigation]);
 
   // Keyboard navigation for image slider
   useEffect(() => {
@@ -106,7 +120,7 @@ const Overview: React.FC<Props> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [imageList.length]); // Re-run effect when imageList changes
+  }, [imageList.length]);
 
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
@@ -116,11 +130,9 @@ const Overview: React.FC<Props> = ({
         router.push("/login");
         return;
       }
-      // Send selected unit to cart
       await cartService.addToCart({
         productId: String(id),
         quantity,
-        // stockType: selectedUnit, // Include the selected stockType
       });
       router.push("/cart");
     } finally {
@@ -129,23 +141,31 @@ const Overview: React.FC<Props> = ({
   };
 
   const handleFavoriteClick = () => {
-    // Check if user is authenticated using UserStorage
-    const { UserStorage } = require("@/services/auth/login");
-    const user = UserStorage.getUser();
+    if (!isMounted) return;
 
-    if (!user) {
-      // Show custom alert for unauthenticated users
-      setShowLoginAlert(true);
-      return;
+    try {
+      const { UserStorage } = require("@/services/auth/login");
+      const user = UserStorage.getUser();
+
+      if (!user) {
+        setShowLoginAlert(true);
+        return;
+      }
+
+      const { useFavorites } = require("@/services/favorites/FavoritesContext");
+      const { toggle } = useFavorites();
+      
+      toggle({
+        id,
+        name: title,
+        price,
+        image: imageList[0] || "/acessts/download (47).jpg",
+      });
+      
+      setLoved(!loved);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
     }
-
-    // User is authenticated, proceed with toggle
-    toggle({
-      id,
-      name: title,
-      price,
-      image: imageList[0] || "/acessts/download (47).jpg",
-    });
   };
 
   const handleLoginConfirm = () => {
@@ -242,7 +262,7 @@ const Overview: React.FC<Props> = ({
 
           <div className="flex flex-col items-start justify-between gap-4 mb-3">
             <span className="px-3 py-1 rounded-full text-xs border text-sm hover:border-primary hover:text-primary">
-              {category || "غير محدد"}
+              {category}
             </span>
             <div className="text-2xl font-extrabold text-primary">
               {price.toLocaleString()} ج.م
@@ -288,11 +308,11 @@ const Overview: React.FC<Props> = ({
                   key={key}
                   onClick={() =>
                     handleUnitSelect(key as keyof typeof unitOptions)
-                  } // Make clickable and dynamic
+                  }
                   className={`w-[90px] h-[35px] px-4 py-1 rounded-full border text-sm transition-colors ${
                     selectedUnit === key
-                      ? "border-primary text-primary bg-primary/10" // Active style
-                      : "hover:border-primary hover:text-primary hover:bg-gray-50" // Hover style
+                      ? "border-primary text-primary bg-primary/10"
+                      : "hover:border-primary hover:text-primary hover:bg-gray-50"
                   }`}
                 >
                   {label}

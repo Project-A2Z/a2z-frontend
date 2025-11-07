@@ -3,7 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Development indicators configuration
   devIndicators: false,
-  // Or set to false to disable: devIndicators: false,
+  
+  // GSAP transpilation fix for build errors
+  transpilePackages: ['gsap'],
   
   // Image configuration for external domains using the current Next.js format
   images: {
@@ -13,12 +15,6 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/**',
       },
-      // Add other image domains if you have any
-      // {
-      //   protocol: 'https',
-      //   hostname: 'another-domain.com',
-      //   pathname: '/**',
-      // },
     ],
     
     // Optional: Image optimization settings

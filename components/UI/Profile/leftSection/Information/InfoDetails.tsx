@@ -165,7 +165,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       
       await updateUserProfile(payload);
       
-      console.log('Form submitted:', formData);
+      //console.log('Form submitted:', formData);
       showAlert('تم تحديث بيانات الحساب بنجاح!', 'success');
       setEdit(false);
     } catch (error) {
@@ -177,7 +177,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
   };
 
   const handleIconClick = (field: string) => {
-    console.log(`Icon clicked for ${field}`);
+    //console.log(`Icon clicked for ${field}`);
     // Add any icon click logic here
   };
 

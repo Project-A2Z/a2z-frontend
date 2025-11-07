@@ -88,7 +88,7 @@ export function CustomImage({
       )}
       
       <Image
-        src={imgSrc}
+        src={getSrcString(imgSrc)}
         alt={alt}
         width={!fill ? width || undefined : undefined}
         height={!fill ? height || undefined : undefined}
