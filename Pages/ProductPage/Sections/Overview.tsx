@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
@@ -8,6 +9,14 @@ import { cartService } from "@/services/api/cart";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/utils/auth";
 import Alert from "@/components/UI/Alert/alert";
+
+// Import the FavoritesContext directly but mark it as client-side only
+let FavoritesContext: any;
+
+// This will only be executed on the client side
+if (typeof window !== 'undefined') {
+  FavoritesContext = require('@/services/favorites/FavoritesContext');
+}
 
 type Props = {
   id?: number | string;
@@ -34,8 +43,6 @@ const Overview: React.FC<Props> = ({
   stockQty = 0,
   stockType = "unit",
 }) => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [loved, setLoved] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(stockType);
@@ -45,23 +52,30 @@ const Overview: React.FC<Props> = ({
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const router = useRouter();
 
-  // Initialize favorites hook only on client side
+  // Initialize all state hooks at the top level
+  const [isMounted, setIsMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [loved, setLoved] = useState(false);
+  const [isFavoriteState, setIsFavoriteState] = useState(false);
+  
+  // Initialize client-side state
   useEffect(() => {
     setIsMounted(true);
+    setIsClient(true);
   }, []);
-
-  // Safe favorites hook usage
+  
+  // Always call useFavorites at the top level to maintain hook order
+  const favoritesContext = FavoritesContext ? FavoritesContext.useFavorites() : null;
+  
+  // Update favorite state when id changes or favorites context changes
   useEffect(() => {
-    if (!isMounted) return;
-    
-    try {
-      const { useFavorites } = require("@/services/favorites/FavoritesContext");
-      const { isFavorite } = useFavorites();
-      setLoved(isFavorite(id));
-    } catch (error) {
-      console.error("Error loading favorites:", error);
+    if (isClient && favoritesContext && id) {
+      const { isFavorite } = favoritesContext;
+      const favoriteStatus = isFavorite(id);
+      setIsFavoriteState(favoriteStatus);
+      setLoved(favoriteStatus);
     }
-  }, [isMounted, id]);
+  }, [id, isClient, favoritesContext]);
 
   const unitOptions = {
     unit: "قطعة",
@@ -140,31 +154,36 @@ const Overview: React.FC<Props> = ({
     }
   };
 
-  const handleFavoriteClick = () => {
+  const toggleFavorite = async () => {
     if (!isMounted) return;
-
+    
+    if (!isAuthenticated()) {
+      setShowLoginAlert(true);
+      return;
+    }
+    
+    if (!favoritesContext) {
+      setShowLoginAlert(true);
+      return;
+    }
+    
+    // Optimistically update the UI
+    const newLovedState = !loved;
+    setLoved(newLovedState);
+    
     try {
-      const { UserStorage } = require("@/services/auth/login");
-      const user = UserStorage.getUser();
-
-      if (!user) {
-        setShowLoginAlert(true);
-        return;
-      }
-
-      const { useFavorites } = require("@/services/favorites/FavoritesContext");
-      const { toggle } = useFavorites();
-      
-      toggle({
-        id,
-        name: title,
-        price,
-        image: imageList[0] || "/acessts/download (47).jpg",
+      // Toggle the favorite in the context
+      const { toggle } = favoritesContext;
+      toggle({ 
+        id, 
+        name: title, 
+        price, 
+        image: imageList[0] || '/acessts/NoImage.jpg' 
       });
-      
-      setLoved(!loved);
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
+    } catch (err) {
+      // Revert the UI if the API call fails
+      console.error('Failed to toggle favorite:', err);
+      setLoved(!newLovedState);
     }
   };
 
@@ -251,7 +270,7 @@ const Overview: React.FC<Props> = ({
             </h1>
             <button
               aria-label={loved ? "remove from wishlist" : "add to wishlist"}
-              onClick={handleFavoriteClick}
+              onClick={toggleFavorite}
               className={`p-2 rounded-full border hover:border-primary transition-colors ${
                 loved ? "text-primary border-primary" : "text-black60"
               }`}
