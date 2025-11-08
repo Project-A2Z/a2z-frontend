@@ -18,6 +18,8 @@ interface OrdersProps {
 const Orders: React.FC<OrdersProps> = ({orders}) => {
   const router = useRouter();
   const [selectedFilters, setSelectedFilters] = React.useState<string[]>([]);
+
+  // console.log('📦 Orders received in Orders component:', orders);
   
   const filterOptions: FilterOption[] = [
     { 
@@ -35,8 +37,8 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
     { 
       id: '3', 
       label: 'تم التجهيز', 
-      value: 'pending', 
-      count: orders.filter(order => order.status === 'pending').length 
+      value: 'prepared', 
+      count: orders.filter(order => order.status === 'prepared').length 
     },
     { 
       id: '4', 
@@ -81,7 +83,7 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
         return styles.statusProcessing;
       case 'shipped':
         return styles.statusShipped;
-      case 'pending':
+      case 'prepared':
         return styles.statusPending;
       case 'cancelled':
         return styles.statusCancelled;
@@ -96,7 +98,7 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
     switch (status) {
       case 'Under review': return 'قيد المراجعة';
       case 'reviewed': return 'تمت المراجعة';
-      case 'pending': return 'تم التجهيز';
+      case 'prepared': return 'تم التجهيز';
       case 'shipped': return 'تم الشحن';
       case 'delivered': return 'تم التسليم';
       case 'cancelled': return 'ملغي';
