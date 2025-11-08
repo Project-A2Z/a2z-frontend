@@ -78,7 +78,7 @@ const Overview: React.FC<Props> = ({
   }, [id, isClient, favoritesContext]);
 
   const unitOptions = {
-    unit: "قطعة",
+    unit: "لتر",
     kg: "كيلو",
     ton: "طن",
   };
