@@ -114,7 +114,7 @@ function Card({
     }, [originalPrice]);
 
     const imageSrc: string = useMemo(() => {
-        return typeof productImg === 'string' ? productImg : (productImg?.src || '/images/placeholder.jpg');
+        return typeof productImg === 'string' ? productImg : (productImg?.src || '/acessts/NoImage.jpg');
     }, [productImg]);
 
     const id = useMemo(() => productId || productName || imageSrc, [productId, productName, imageSrc]);
@@ -276,13 +276,13 @@ function Card({
                     <div className={styles.priceSection}>
                         <div className={styles.currentPrice}>
                             {formatPrice(productPrice)}
-                            <span className={styles.currency}>ج</span>
+                            <span className={styles.currency}> ج.م </span>
                         </div>
                         
                         {numericOriginalPrice && numericOriginalPrice > numericPrice && (
                             <div className={styles.originalPrice}>
                                 {formatPrice(originalPrice)}
-                                <span className={styles.currency}>ج</span>
+                                <span className={styles.currency}>  ج.م </span>
                             </div>
                         )}
                     </div>

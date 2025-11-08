@@ -9,7 +9,7 @@ interface Product {
   name: string;
   category: string;
   price: number;
-  instock: boolean;
+  inStock: boolean;
   img: any; // or string if it's a URL
 }
 
@@ -144,7 +144,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                   <div
                     key={`${product.name}-${index}`}
                     className={`${styles.searchResultItem} ${
-                      !product.instock ? styles.outOfStock : ""
+                      !product.inStock ? styles.outOfStock : ""
                     }`}
                     onClick={() =>
                       {
@@ -156,7 +156,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                     <div>
                       <div className={styles.resultTitle}>
                         {product.name}
-                        {!product.instock && (
+                        {!product.inStock && (
                           <span className={styles.outOfStockBadge}>
                             {" "}
                             - غير متوفر
@@ -222,14 +222,14 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                 <div
                   key={`${product.name}-${index}`}
                   className={`${styles.searchResultItem} ${
-                    !product.instock ? styles.outOfStock : ""
+                    !product.inStock ? styles.outOfStock : ""
                   }`}
-                  onClick={() => product.instock && handleResultClick(product)}
+                  onClick={() => product.inStock && handleResultClick(product)}
                 >
                   <div>
                     <div className={styles.resultTitle}>
                       {product.name}
-                      {!product.instock && (
+                      {!product.inStock && (
                         <span className={styles.outOfStockBadge}>
                           {" "}
                           - غير متوفر

@@ -28,7 +28,7 @@ export function CustomImage({
   objectFit = 'cover',
   priority = false,
   rounded = 'none',
-  fallbackSrc = '/images/placeholder.jpg',
+  fallbackSrc = '/acessts/NoImage.jpg',
   fill = false,
   onClick,
   ...props

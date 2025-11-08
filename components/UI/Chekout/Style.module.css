@@ -626,7 +626,7 @@
 }
 
 .label {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 500;
   color: var(--black87);
   margin-bottom: 8px;
@@ -679,6 +679,7 @@
   align-items: center;
   justify-content: center;
 }
+
 
 .uploadLabel:hover {
   border-color: var(--primary);

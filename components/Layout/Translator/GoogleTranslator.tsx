@@ -30,7 +30,6 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    // Only initialize once
     if (initializedRef.current) return;
     initializedRef.current = true;
 
@@ -57,7 +56,6 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
         display: none !important;
       }
       
-      /* Hide all Google Translate UI elements */
       .goog-te-gadget {
         display: none !important;
       }
@@ -66,7 +64,6 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
         display: none !important;
       }
       
-      /* Hide the top frame */
       body > .skiptranslate {
         display: none !important;
       }
@@ -74,10 +71,31 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
       iframe.skiptranslate {
         display: none !important;
       }
+      
+      /* Prevent translation of currency symbols */
+      .notranslate, [translate="no"] {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
     `;
     
     if (!document.getElementById('google-translate-styles')) {
       document.head.appendChild(style);
+    }
+
+    // Add custom translation glossary for currency
+    const glossaryStyle = document.createElement('style');
+    glossaryStyle.id = 'currency-translation-fix';
+    glossaryStyle.innerHTML = `
+      /* Force currency display */
+      .currency-symbol::after {
+        content: attr(data-currency);
+      }
+    `;
+    if (!document.getElementById('currency-translation-fix')) {
+      document.head.appendChild(glossaryStyle);
     }
 
     // Initialize Google Translate
@@ -93,6 +111,25 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
             },
             'google_translate_element'
           );
+
+          // Monitor for translation changes
+          const observer = new MutationObserver(() => {
+            // Re-apply notranslate class to currency elements if needed
+            document.querySelectorAll('.currency, .notranslate').forEach(el => {
+              if (!el.classList.contains('notranslate')) {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+              }
+            });
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'translate']
+          });
+
         } catch (error) {
           console.error('Error initializing Google Translate:', error);
         }
@@ -108,11 +145,9 @@ const GoogleTranslate: React.FC<GoogleTranslateProps> = ({
       document.body.appendChild(script);
     }
 
-    // No cleanup - let Google Translate persist
     return () => {};
   }, [pageLanguage]);
 
-  // Return null - container is outside React
   return null;
 };
 
