@@ -170,4 +170,4 @@ const Ratings: React.FC<Props> = React.memo(({
 
 Ratings.displayName = 'Ratings';
 
-export default Ratings;
+export default React.memo(Ratings);
