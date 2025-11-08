@@ -289,7 +289,7 @@
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border: 6px solid transparent;
+  /* border: 6px solid transparent; */
   border-bottom-color: var(--black87);
 }
 
@@ -344,7 +344,6 @@
   height: 80px;
   padding: 0 16px 8px;
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  /* clip-path: ellipse(100% 100% at 50% 100%); */
   
 }
 
@@ -469,7 +468,7 @@
   font-weight: 700;
   line-height: 1;
   border-radius: 9px;
-  border: 2px solid white;
+  /* border: 2px solid white; */
   z-index: 2;
   box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
   animation: badgePulse 2s infinite;
