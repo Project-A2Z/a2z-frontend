@@ -41,30 +41,43 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-    console.error(`❌ API Error:`, {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
+    // Use console.log to avoid Next.js dev tools interception
+    console.log('❌ API Error Details:');
+    console.log('- Message:', error.message);
+    console.log('- Code:', error.code);
+    console.log('- Status:', error.response?.status);
+    console.log('- Status Text:', error.response?.statusText);
+    console.log('- URL:', error.config?.url);
+    console.log('- Method:', error.config?.method);
+    console.log('- Response Data:', error.response?.data);
+    console.log('- Is Axios Error:', error.isAxiosError);
+    console.log('- Full Error:', JSON.stringify({
       message: error.message,
-      url: error.config?.url,
-      method: error.config?.method,
-    });
+      code: error.code,
+      status: error.response?.status,
+      data: error.response?.data,
+    }, null, 2));
 
     // Retry logic for network errors (socket hang up, timeout, etc.)
     const config = error.config;
     if (config && !config._retry && (
       error.message?.includes('socket hang up') ||
       error.message?.includes('timeout') ||
-      error.code === 'ECONNABORTED'
+      error.message?.includes('Network Error') ||
+      error.code === 'ECONNABORTED' ||
+      error.code === 'ECONNRESET' ||
+      error.code === 'ERR_NETWORK'
     )) {
       config._retry = true;
 
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      //console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
       return apiClient(config);
     }
 
+    // Handle 401 unauthorized
     if (typeof window !== 'undefined' && error?.response?.status === 401) {
       try {
         // Optionally clear invalid token
