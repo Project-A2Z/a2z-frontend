@@ -11,35 +11,34 @@ export interface OrderAddress {
   region: string;
 }
 
-export interface OrderAddress {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  address: string;
-  city: string;
-  region: string;
+// Product interface
+export interface Product {
+  _id: string;
+  category: string;
+  name: string;
+  description: string;
+  imageList: string[];
+  price: number;
+  PurchasePrice: number;
+  stockQty: number;
+  stockType: string;
+  advProduct: any[];
+  averageRate: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  id: string;
 }
- // Update your CartItem interface to include product details
+
+// Updated CartItem interface to match your actual data structure
 export interface CartItem {
   _id: string;
   cartId: string;
-  // productId: string;
+  productId: Product;
   itemQty: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
-  // Add these fields to include product details
-  productId?: {
-    _id: string;
-    name: string;
-    image: string;
-    price: number;
-    // Add other product fields as needed
-  };
-  // OR if your API returns them flattened:
-  productName?: string;
-  productImage?: string;
-  productPrice?: number;
 }
 
 export interface Cart {
@@ -78,15 +77,15 @@ export interface OrderItem {
   cartId: Cart;  // Changed from string to Cart object
   userId: string;
   orderId: string;
-  status: 'pending' | 'Under review' | 'shipped' | 'delivered' | 'cancelled' | 'loaded' | 'reviewed';
+  status: 'Under review' | 'reviewed' | 'prepared' | 'shipped' | 'delivered' | 'cancelled';
   address: OrderAddress;
   deliveryPrice: number;
-  deliveryDate: string | null;  // Changed to allow null
+  deliveryDate: string | null;
   createdAt: string;
   updatedAt: string;
-  __v: number;  // Added missing field
-  paymentDetails?: PaymentDetails;  // Added missing field (optional since it might not always be present)
-  id: string;  // Added missing field
+  __v: number;
+  paymentDetails?: PaymentDetails;
+  id: string;
 }
 
 export interface OrdersResponse {
@@ -99,11 +98,12 @@ export interface OrdersResponse {
 export interface TransformedOrder {
   id: string;
   orderNumber: string;
-  status: 'pending' | 'Under review' | 'shipped' | 'delivered' | 'cancelled' | 'loaded' | 'reviewed';
+  status: 'Under review' | 'reviewed' | 'prepared' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
   total: number;
   items: number;
 }
+
 
 // Cache entry interface
 interface CacheEntry<T> {
@@ -159,7 +159,7 @@ class OrderService {
         return parsed;
       }
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      //console.error('Error parsing user data:', error);
     }
     
     return null;
@@ -265,7 +265,7 @@ class OrderService {
       //console.log('🔑 Using token:', token ? 'Found' : 'Not found');
       
       if (!token) {
-        console.error('❌ No authentication token found in localStorage');
+        //console.error('❌ No authentication token found in localStorage');
         //console.log('📦 LocalStorage contents:', {
         //   auth_token: localStorage.getItem('auth_token'),
         //   token: localStorage.getItem('token'),
@@ -295,10 +295,10 @@ class OrderService {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('❌ 401 Unauthorized - Token may be expired or invalid');
+          //console.error('❌ 401 Unauthorized - Token may be expired or invalid');
           
           const errorText = await response.text();
-          console.error('Error response:', errorText);
+          //console.error('Error response:', errorText);
           
           localStorage.removeItem('auth_token');
           localStorage.removeItem('token');
@@ -306,12 +306,12 @@ class OrderService {
           throw new Error('Session expired. Please login again.');
         }
         if (response.status === 403) {
-          console.error('❌ 403 Forbidden - Insufficient permissions');
+          //console.error('❌ 403 Forbidden - Insufficient permissions');
           throw new Error('You do not have permission to view orders');
         }
         
         const errorText = await response.text();
-        console.error('❌ Error response:', errorText);
+        //console.error('❌ Error response:', errorText);
         throw new Error(`Failed to fetch orders: ${response.statusText}`);
       }
 
@@ -325,7 +325,7 @@ class OrderService {
       
       return orders;
     } catch (error) {
-      console.error('💥 Error fetching user orders:', error);
+      //console.error('💥 Error fetching user orders:', error);
       throw error;
     }
   }
@@ -391,7 +391,7 @@ class OrderService {
       
       return orderDetails;
     } catch (error) {
-      console.error('Error fetching order details:', error);
+      //console.error('Error fetching order details:', error);
       throw error;
     }
   }
@@ -431,7 +431,7 @@ class OrderService {
       
       return true;
     } catch (error) {
-      console.error('Error canceling order:', error);
+      //console.error('Error canceling order:', error);
       throw error;
     }
   }
@@ -483,7 +483,7 @@ class OrderService {
       
       return trackingData;
     } catch (error) {
-      console.error('Error tracking order:', error);
+      //console.error('Error tracking order:', error);
       throw error;
     }
   }
@@ -516,7 +516,7 @@ class OrderService {
    */
   debugAuth(): void {
     //console.log('🔍 Authentication Debug Info:');
-    //console.log('📦 LocalStorage:', {
+    // console.log('📦 LocalStorage:', {
     //   auth_token: localStorage.getItem('auth_token'),
     //   token: localStorage.getItem('token'),
     //   accessToken: localStorage.getItem('accessToken'),

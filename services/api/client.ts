@@ -42,21 +42,21 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     // Use console.log to avoid Next.js dev tools interception
-    console.log('❌ API Error Details:');
-    console.log('- Message:', error.message);
-    console.log('- Code:', error.code);
-    console.log('- Status:', error.response?.status);
-    console.log('- Status Text:', error.response?.statusText);
-    console.log('- URL:', error.config?.url);
-    console.log('- Method:', error.config?.method);
-    console.log('- Response Data:', error.response?.data);
-    console.log('- Is Axios Error:', error.isAxiosError);
-    console.log('- Full Error:', JSON.stringify({
-      message: error.message,
-      code: error.code,
-      status: error.response?.status,
-      data: error.response?.data,
-    }, null, 2));
+    // console.log('❌ API Error Details:');
+    // console.log('- Message:', error.message);
+    // console.log('- Code:', error.code);
+    // console.log('- Status:', error.response?.status);
+    // console.log('- Status Text:', error.response?.statusText);
+    // console.log('- URL:', error.config?.url);
+    // console.log('- Method:', error.config?.method);
+    // console.log('- Response Data:', error.response?.data);
+    // console.log('- Is Axios Error:', error.isAxiosError);
+    // console.log('- Full Error:', JSON.stringify({
+    //   message: error.message,
+    //   code: error.code,
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    // }, null, 2));
 
     // Retry logic for network errors (socket hang up, timeout, etc.)
     const config = error.config;
@@ -73,7 +73,7 @@ apiClient.interceptors.response.use(
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
+      // console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
       return apiClient(config);
     }
 

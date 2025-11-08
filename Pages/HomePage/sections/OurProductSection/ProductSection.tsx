@@ -98,29 +98,3 @@ export default async function ProductsPage() {
     </div>
   );
 }
-
-// Optional: Generate static params if you have dynamic routes
-// export async function generateStaticParams() {
-//   return [];
-// }
-
-// Optional: Loading component
-// export function Loading() {
-//   return (
-//     <div style={{ padding: '40px', textAlign: 'center' }}>
-//       <div className="loader"></div>
-//       <p>جاري تحميل المنتجات...</p>
-//     </div>
-//   );
-// }
-
-// Optional: Error boundary
-// export function Error({ error, reset }: { error: Error; reset: () => void }) {
-//   return (
-//     <div style={{ padding: '40px', textAlign: 'center' }}>
-//       <h2>حدث خطأ!</h2>
-//       <p>{error.message}</p>
-//       <button onClick={reset}>المحاولة مرة أخرى</button>
-//     </div>
-//   );
-// }
