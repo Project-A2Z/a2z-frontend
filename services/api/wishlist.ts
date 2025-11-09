@@ -80,12 +80,12 @@ if (typeof window !== 'undefined') {
     const token = localStorage.getItem('auth_token');
     const user = userData ? JSON.parse(userData) : null;
 
-    console.log('🔍 Auth Debug:', {
-      user: user ? { id: user._id, email: user.email } : null,
-      token: token ? token.substring(0, 50) + '...' : null,
-      hasToken: !!token,
-      hasUser: !!user
-    });
+    //console.log('🔍 Auth Debug:', {
+    //   user: user ? { id: user._id, email: user.email } : null,
+    //   token: token ? token.substring(0, 50) + '...' : null,
+    //   hasToken: !!token,
+    //   hasUser: !!user
+    // });
     return { user, token: token?.substring(0, 20) + '...' };
   };
 }
@@ -121,255 +121,300 @@ export class AuthenticationError extends Error {
 
 export const wishlistService = {
   async getAll(params?: Record<string, any>) {
-    const auth = checkAuthentication();
-
-    if (!auth.isAuthenticated) {
-      throw new AuthenticationError('يرجى تسجيل الدخول لعرض قائمة المفضلة');
-    }
-
-    console.log('🔄 Getting wishlist:', { userId: auth.user._id, token: auth.token?.substring(0, 20) + '...' });
-
-    // Debug token structure
-    if (auth.token) {
-      try {
-        const tokenParts = auth.token.split('.');
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('🔍 Token payload:', payload);
-        }
-      } catch (e) {
-        console.warn('⚠️ Could not decode token:', e);
-      }
-    }
-
-    // Client-side cache check first
-    const cacheKey = getWishlistCacheKey(params);
-    const cachedData = wishlistCache.get(cacheKey);
-
-    if (cachedData) {
-      console.log(`✅ Using cached wishlist data`);
-      return cachedData;
-    }
-
     try {
-      console.log('🔄 Calling API: GET /wish-items/');
-      const res = await apiClient.get('/wish-items/', { params });
+      const auth = checkAuthentication();
 
-      // Store in client cache for future requests
-      wishlistCache.set(cacheKey, res.data);
+      if (!auth.isAuthenticated) {
+        throw new AuthenticationError('يرجى تسجيل الدخول لعرض قائمة المفضلة');
+      }
 
-      console.log('✅ Successfully loaded wishlist:', res.data);
-      return res.data; // { status, data: { count, wishItems: [...] } }
+      // Client-side cache check first
+      const cacheKey = getWishlistCacheKey(params);
+      const cachedData = wishlistCache.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData;
+      }
+
+      try {
+        const res = await apiClient.get('/wish-items/', { params });
+        
+        // Validate response structure
+        const responseData = res.data?.data || {};
+        const wishlistData = {
+          status: 'success',
+          data: {
+            count: responseData.count || 0,
+            wishItems: Array.isArray(responseData.wishItems) ? responseData.wishItems : []
+          }
+        };
+
+        // Store in client cache for future requests
+        wishlistCache.set(cacheKey, wishlistData);
+
+        return wishlistData;
+        
+      } catch (error: any) {
+        // Check if this is a network error (no response from server)
+        const isNetworkError = !error.response && (error.request || error.message);
+
+        if (isNetworkError) {
+          console.warn('Network error - unable to connect to server');
+          // For network errors, return empty wishlist
+          return {
+            status: 'success',
+            data: {
+              count: 0,
+              wishItems: []
+            }
+          };
+        }
+
+        // Handle 401 Unauthorized
+        if (error?.response?.status === 401) {
+          // Clear any invalid token
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+          }
+          throw new AuthenticationError('يرجى تسجيل الدخول لعرض قائمة المفضلة');
+        }
+
+        // If wishlist doesn't exist (404), return empty data
+        if (error?.response?.status === 404) {
+          return {
+            status: 'success',
+            data: {
+              count: 0,
+              wishItems: []
+            }
+          };
+        }
+
+        // Log other errors
+        console.error('Error fetching wishlist:', {
+          status: error?.response?.status,
+          data: error?.response?.data,
+          message: error.message
+        });
+
+        // Return empty data for other errors
+        return {
+          status: 'success',
+          data: {
+            count: 0,
+            wishItems: []
+          }
+        };
+      }
     } catch (error: any) {
-      // Check if this is a network error (no response from server)
-      const isNetworkError = !error.response && (error.request || error.message);
-
-      if (isNetworkError) {
-        console.warn('🌐 Network error - unable to connect to server:', error.message);
-
-        // For network errors, return empty wishlist (user can still use local storage)
-        return {
-          status: 'success',
-          data: {
-            count: 0,
-            wishItems: []
-          }
-        };
-      }
-
-      // Don't log 404 as error when wishlist doesn't exist yet - it's expected
-      if (error?.response?.status !== 404) {
-        console.error('❌ Wishlist API failed:', error?.response?.status, error?.response?.data);
-
-        // Log detailed error information
-        if (error?.response) {
-          console.error('❌ Response Status:', error.response.status);
-          console.error('❌ Response Data:', error.response.data);
-          console.error('❌ Response Headers:', error.response.headers);
-        }
-
-        if (error?.config) {
-          console.error('❌ Request URL:', error.config.url);
-          console.error('❌ Request Method:', error.config.method);
-          console.error('❌ Request Headers:', error.config.headers);
-          console.error('❌ Request Data:', error.config.data);
-        }
-      }
-
-      // If wishlist doesn't exist (404), return empty data instead of throwing
-      if (error?.response?.status === 404) {
-        console.log('ℹ️ Wishlist not found (404) - returning empty wishlist');
-        return {
-          status: 'success',
-          data: {
-            count: 0,
-            wishItems: []
-          }
-        };
-      }
-
-      throw error;
+      // This catch block is for non-API errors (like authentication errors)
+      console.error('Unexpected error in wishlist getAll:', error);
+      throw error; // Re-throw to be handled by the caller
     }
   },
 
   async add(productId: string) {
-    const auth = checkAuthentication();
-
-    if (!auth.isAuthenticated) {
-      throw new AuthenticationError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
-    }
-
-    console.log('🔄 Adding to wishlist:', { productId, userId: auth.user._id, token: auth.token?.substring(0, 20) + '...' });
-
-    // Debug token structure
-    if (auth.token) {
-      try {
-        const tokenParts = auth.token.split('.');
-        if (tokenParts.length === 3) {
-          const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('🔍 Token payload:', payload);
-        }
-      } catch (e) {
-        console.warn('⚠️ Could not decode token:', e);
-      }
-    }
-
     try {
-      console.log('🔄 Calling API: POST /wish-items/');
-      const res = await apiClient.post('/wish-items/', { productId });
+      const auth = checkAuthentication();
 
-      // Clear wishlist cache since data changed
-      wishlistCache.clear();
-
-      console.log('✅ Successfully added to wishlist:', res.data);
-      return res.data; // { status, data: { wishItem } }
-    } catch (err: any) {
-      // Check if this is a network error (no response from server)
-      const isNetworkError = !err.response && (err.request || err.message);
-
-      if (isNetworkError) {
-        console.warn('🌐 Network error - unable to connect to server:', err.message);
-
-        // For network errors during add, return conflict to keep optimistic update
-        return {
-          status: 'conflict',
-          message: 'Network error - item may already exist',
-        } as any;
+      if (!auth.isAuthenticated) {
+        throw new AuthenticationError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
       }
 
-      // Don't log 409 as error - it's expected behavior
-      if (err?.response?.status !== 409 && err?.response?.status !== 404) {
-        console.error('❌ Add to wishlist failed:', err?.response?.status, err?.response?.data);
-
-        // Log detailed error information
-        if (err?.response) {
-          console.error('❌ Response Status:', err.response.status);
-          console.error('❌ Response Data:', err.response.data);
-          console.error('❌ Response Headers:', err.response.headers);
+      try {
+        const res = await apiClient.post('/wish-items/', { productId });
+        wishlistCache.clear();
+        
+        // Handle successful response
+        if (res.data.status === 'success') {
+          return {
+            status: 'success',
+            data: res.data.data?.wishItem,
+            message: res.data.message || 'تمت إضافة المنتج إلى المفضلة بنجاح',
+            wasAdded: true
+          };
         }
-
-        if (err?.config) {
-          console.error('❌ Request URL:', err.config.url);
-          console.error('❌ Request Method:', err.config.method);
-          console.error('❌ Request Headers:', err.config.headers);
-          console.error('❌ Request Data:', err.config.data);
-        }
-      }
-
-      // 409 = conflict (already exists in wishlist) - this is expected behavior, not an error
-      if (err?.response?.status === 409) {
-        console.log('ℹ️ Item already exists in wishlist (409 Conflict) - this is expected behavior');
+        
+        // Handle API error response
         return {
           status: 'error',
-          message: 'المنتج موجود بالفعل في قائمة الأمنيات',
-          data: null
-        } as any;
-      }
-
-      // If the new endpoint doesn't work (404), try the old endpoint as fallback
-      if (err?.response?.status === 404) {
-        console.log('🔄 Trying old wishlist endpoint: /wishlist/add');
-        try {
-          const res = await apiClient.post('/wishlist/add', { productId });
-          wishlistCache.clear();
-          console.log('✅ Successfully added to wishlist (old endpoint):', res.data);
-          return res.data;
-        } catch (fallbackError: any) {
-          console.error('❌ Both endpoints failed:', {
-            newEndpoint: err?.response?.status,
-            oldEndpoint: fallbackError?.response?.status,
-            newData: err?.response?.data,
-            oldData: fallbackError?.response?.data
-          });
-          throw err;
+          message: res.data.message || 'حدث خطأ غير متوقع',
+          data: res.data
+        };
+        
+      } catch (error: any) {
+        // Handle network errors or API errors
+        const isNetworkError = !error.response && (error.request || error.message);
+        
+        if (isNetworkError) {
+          console.warn('Network error - unable to connect to server');
+          // Return a success response to maintain optimistic UI
+          return { 
+            status: 'success',
+            message: 'تمت الإضافة إلى المفضلة (اتصال غير مستقر)',
+            wasAdded: true // Assume success for network errors
+          };
         }
-      }
 
-      throw err;
+        // Handle 409 Conflict (item already exists)
+        if (error?.response?.status === 409) {
+          // Clear cache to ensure we have the latest data
+          wishlistCache.clear();
+          
+          return {
+            status: 'success',
+            message: 'المنتج موجود بالفعل في قائمة الأمنيات',
+            data: error.response?.data,
+            wasAlreadyAdded: true
+          };
+        }
+
+        // Handle 401 Unauthorized
+        if (error?.response?.status === 401) {
+          // Clear any invalid token
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+          }
+          throw new AuthenticationError('يرجى تسجيل الدخول لإضافة منتج للمفضلة');
+        }
+
+        // Handle 400 Bad Request
+        if (error?.response?.status === 400) {
+          return {
+            status: 'error',
+            message: 'بيانات غير صالحة. يرجى التحقق من معرف المنتج.',
+            data: error.response?.data
+          };
+        }
+
+        // Handle 404 Not Found
+        if (error?.response?.status === 404) {
+          return {
+            status: 'error',
+            message: 'المنتج غير موجود',
+            data: error.response?.data
+          };
+        }
+
+        // For other errors, log and return a generic error
+        console.error('Error adding to wishlist:', {
+          status: error?.response?.status,
+          data: error?.response?.data,
+          message: error.message,
+          config: error?.config
+        });
+
+        // Return a user-friendly error message
+        return {
+          status: 'error',
+          message: 'حدث خطأ أثناء إضافة المنتج إلى المفضلة. يرجى المحاولة مرة أخرى لاحقاً.'
+        };
+      }
+    } catch (error: any) {
+      // This catch block is for non-API errors (like authentication errors)
+      console.error('Unexpected error in wishlist add:', error);
+      throw error; // Re-throw to be handled by the caller
     }
   },
 
   async remove(productId: string) {
-    const auth = checkAuthentication();
-
-    if (!auth.isAuthenticated) {
-      throw new AuthenticationError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
-    }
-
-    console.log('🔄 Removing from wishlist:', { productId, userId: auth.user._id, token: auth.token?.substring(0, 20) + '...' });
-
     try {
-      console.log('🔄 Calling API: DELETE /wish-items/:productId');
-      const res = await apiClient.delete(`/wish-items/${productId}`);
+      const auth = checkAuthentication();
 
-      // Clear wishlist cache since data changed
-      wishlistCache.clear();
-
-      console.log('✅ Successfully removed from wishlist:', res.data);
-      return res.data; // { status, message }
-    } catch (err: any) {
-      // Check if this is a network error (no response from server)
-      const isNetworkError = !err.response && (err.request || err.message);
-
-      if (isNetworkError) {
-        console.warn('🌐 Network error - unable to connect to server:', err.message);
-
-        // For network errors during removal, return success (optimistic update)
-        return { status: 'success', message: 'تم حذف المنتج من المفضلة' };
+      if (!auth.isAuthenticated) {
+        throw new AuthenticationError('يرجى تسجيل الدخول لحذف منتج من المفضلة');
       }
 
-      // Don't log 404 as error when item doesn't exist - it's expected
-      if (err?.response?.status !== 404) {
-        console.error('❌ Remove from wishlist failed:', err?.response?.status, err?.response?.data);
-      }
-
-      // If the new endpoint doesn't work, try the old endpoint as fallback
-      if (err?.response?.status === 404) {
-        console.log('🔄 Trying old wishlist endpoint: /wishlist/remove/:id');
-        try {
-          const res = await apiClient.delete(`/wishlist/remove/${productId}`);
-          wishlistCache.clear();
-          console.log('✅ Successfully removed from wishlist (old endpoint):', res.data);
-          return res.data;
-        } catch (fallbackError: any) {
-          // If both endpoints fail with 404, don't throw error - just return success
-          if (fallbackError?.response?.status === 404) {
-            console.log('ℹ️ Item not found in wishlist (404) - treating as successful removal');
-            wishlistCache.clear();
-            return { status: 'success', message: 'تم حذف المنتج من المفضلة' };
-          }
-
-          console.error('❌ Both endpoints failed:', {
-            newEndpoint: err?.response?.status,
-            oldEndpoint: fallbackError?.response?.status,
-            newData: err?.response?.data,
-            oldData: fallbackError?.response?.data
-          });
-          throw err;
+      try {
+        const res = await apiClient.delete(`/wish-items/${productId}`);
+        wishlistCache.clear();
+        
+        // Handle successful response
+        if (res.data.status === 'success') {
+          return {
+            status: 'success',
+            message: res.data.message || 'تم حذف المنتج من المفضلة بنجاح',
+            data: res.data.data
+          };
         }
-      }
+        
+        // Handle API error response
+        return {
+          status: 'error',
+          message: res.data.message || 'حدث خطأ غير متوقع',
+          data: res.data
+        };
+        
+      } catch (error: any) {
+        // Handle network errors or API errors
+        const isNetworkError = !error.response && (error.request || error.message);
 
-      throw err;
+        if (isNetworkError) {
+          console.warn('Network error - unable to connect to server');
+          // For network errors during removal, return success (optimistic update)
+          return { 
+            status: 'success', 
+            message: 'تم حذف المنتج من المفضلة (اتصال غير مستقر)' 
+          };
+        }
+
+        // Handle 404 Not Found (item doesn't exist or already removed)
+        if (error?.response?.status === 404) {
+          // Clear cache to ensure we don't have stale data
+          wishlistCache.clear();
+          
+          // Check if the error message indicates the item is already removed
+          const errorMessage = error?.response?.data?.message || '';
+          if (errorMessage.includes('not found') || errorMessage.includes('غير موجود')) {
+            return { 
+              status: 'success', 
+              message: 'المنتج غير موجود في المفضلة',
+              wasAlreadyRemoved: true
+            };
+          }
+          
+          // For other 404 errors, still treat as success since the end result is the same
+          return { 
+            status: 'success', 
+            message: 'تم حذف المنتج من المفضلة',
+            wasAlreadyRemoved: true
+          };
+        }
+
+        // Handle 400 Bad Request
+        if (error?.response?.status === 400) {
+          return {
+            status: 'error',
+            message: 'بيانات غير صالحة. يرجى المحاولة مرة أخرى.',
+            data: error.response?.data
+          };
+        }
+
+        // Handle 401 Unauthorized
+        if (error?.response?.status === 401) {
+          // Clear any invalid token
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+          }
+          throw new AuthenticationError('يرجى تسجيل الدخول لإزالة منتج من المفضلة');
+        }
+
+        // For other errors, log and return a generic error
+        console.error('Error removing from wishlist:', {
+          status: error?.response?.status,
+          data: error?.response?.data,
+          message: error.message
+        });
+
+        return {
+          status: 'error',
+          message: 'حدث خطأ أثناء إزالة المنتج من المفضلة. يرجى المحاولة مرة أخرى لاحقاً.'
+        };
+      }
+    } catch (error: any) {
+      // This catch block is for non-API errors (like authentication errors)
+      console.error('Unexpected error in wishlist remove:', error);
+      throw error; // Re-throw to be handled by the caller
     }
   },
 
@@ -392,7 +437,7 @@ export const wishlistService = {
   // Method to clear wishlist cache
   clearCache() {
     wishlistCache.clear();
-    console.log('🧹 Wishlist cache cleared');
+    //console.log('🧹 Wishlist cache cleared');
   },
 
   // Helper method to check if user is authenticated
@@ -422,11 +467,11 @@ if (typeof window !== 'undefined') {
       const token = UserStorage.getToken();
 
       if (!user || !token) {
-        console.log('❌ Not authenticated');
+        //console.log('❌ Not authenticated');
         return { authenticated: false };
       }
 
-      console.log('🔍 Testing wishlist endpoints...');
+      //console.log('🔍 Testing wishlist endpoints...');
       const axios = (await import('./client')).default;
 
       const results: any = {
@@ -438,7 +483,7 @@ if (typeof window !== 'undefined') {
 
       // Test wish-items endpoints (based on documentation)
       try {
-        console.log('🔍 Testing GET /wish-items/');
+        //console.log('🔍 Testing GET /wish-items/');
         const getRes = await axios.get('/wish-items/');
         results.endpoints.wish_items_get = { status: getRes.status, data: getRes.data };
       } catch (err: any) {
@@ -453,7 +498,7 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        console.log('🔍 Testing POST /wish-items/');
+        //console.log('🔍 Testing POST /wish-items/');
         const postRes = await axios.post('/wish-items/', { productId: 'test-123' });
         results.endpoints.wish_items_add = { status: postRes.status, data: postRes.data };
       } catch (err: any) {
@@ -469,7 +514,7 @@ if (typeof window !== 'undefined') {
 
       // Test old wishlist endpoints as fallback
       try {
-        console.log('🔍 Testing GET /wishlist');
+        //console.log('🔍 Testing GET /wishlist');
         const getRes = await axios.get('/wishlist');
         results.endpoints.wishlist_get = { status: getRes.status, data: getRes.data };
       } catch (err: any) {
@@ -481,7 +526,7 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        console.log('🔍 Testing POST /wishlist/add');
+        //console.log('🔍 Testing POST /wishlist/add');
         const postRes = await axios.post('/wishlist/add', { productId: 'test-123' });
         results.endpoints.wishlist_add = { status: postRes.status, data: postRes.data };
       } catch (err: any) {
@@ -493,7 +538,7 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        console.log('🔍 Testing DELETE /wishlist/remove/test-123');
+        //console.log('🔍 Testing DELETE /wishlist/remove/test-123');
         const deleteRes = await axios.delete('/wishlist/remove/test-123');
         results.endpoints.wishlist_remove = { status: deleteRes.status, data: deleteRes.data };
       } catch (err: any) {
@@ -504,7 +549,7 @@ if (typeof window !== 'undefined') {
         }
       }
 
-      console.log('🔍 Debug results:', results);
+      //console.log('🔍 Debug results:', results);
       return results;
     } catch (err) {
       console.error('❌ Debug failed:', err);
@@ -518,10 +563,10 @@ if (typeof window !== 'undefined') {
     localStorage.removeItem('a2z:favorites');
 
     // Clear API caches
-    import('./products').then(({ productService }) => productService.clearCache()).catch(() => {});
+    // import('./products').then(({ productService }) => productService.clearCache()).catch(() => {});
     import('./reviews').then(({ reviewService }) => reviewService.clearCache()).catch(() => {});
     import('./wishlist').then(({ wishlistService }) => wishlistService.clearCache()).catch(() => {});
 
-    console.log('🧹 All favorites data cleared. Please refresh the page.');
+    //console.log('🧹 All favorites data cleared. Please refresh the page.');
   };
 }

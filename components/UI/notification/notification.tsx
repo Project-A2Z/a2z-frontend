@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import styles from "./notification.module.css";
+
+//styles
+import styles from "@/components/UI/notification/notification.module.css";
 
 //icon
-import Trash from "./../../../public/icons/Trash Bin Trash.svg";
+import Trash from "@/public/icons/Trash Bin Trash.svg";
 
 import {
   getNotifications,
@@ -42,7 +44,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
     async (pageNum: number = 1, append: boolean = false) => {
       // Prevent duplicate fetches
       if (isFetchingRef.current) {
-        console.log("⏭️ Skipping fetch - already fetching");
+        //console.log("⏭️ Skipping fetch - already fetching");
         return;
       }
 
@@ -50,7 +52,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       const now = Date.now();
       const timeSinceLastFetch = now - lastFetchTimeRef.current;
       if (timeSinceLastFetch < 2000 && lastFetchTimeRef.current > 0) {
-        console.log(`⏭️ Skipping fetch - too soon (${timeSinceLastFetch}ms ago)`);
+        //console.log(`⏭️ Skipping fetch - too soon (${timeSinceLastFetch}ms ago)`);
         return;
       }
 
@@ -70,7 +72,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
           ...(filter === "unread" && { isRead: false }),
         };
 
-        console.log(`🔄 Fetching notifications - Page ${pageNum}, Filter: ${filter}`);
+        //console.log(`🔄 Fetching notifications - Page ${pageNum}, Filter: ${filter}`);
         const response = await getNotifications(params);
 
         // Update notifications from the correct response structure
@@ -89,10 +91,10 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
           setHasMore(false);
         }
 
-        console.log(`✅ Fetched ${response.data.length} notifications`);
+        //console.log(`✅ Fetched ${response.data.length} notifications`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "فشل في تحميل الإشعارات");
-        console.error("❌ Error fetching notifications:", err);
+        //console.error("❌ Error fetching notifications:", err);
       } finally {
         if (!append) {
           setIsLoading(false);
@@ -108,7 +110,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
     if (!isOpen) {
       // Clear interval when modal is closed
       if (intervalRef.current) {
-        console.log("🛑 Clearing notification interval - modal closed");
+        //console.log("🛑 Clearing notification interval - modal closed");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
@@ -118,20 +120,20 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
     // Fetch immediately when opening (only if not fetched recently)
     const timeSinceLastFetch = Date.now() - lastFetchTimeRef.current;
     if (timeSinceLastFetch > 2000 || lastFetchTimeRef.current === 0) {
-      console.log("📂 Modal opened - fetching notifications");
+      //console.log("📂 Modal opened - fetching notifications");
       fetchNotifications(1, false);
     }
 
     // Set up interval to refetch every 5 minutes
-    console.log("⏰ Setting up 5-minute notification interval");
+    //console.log("⏰ Setting up 5-minute notification interval");
     intervalRef.current = setInterval(() => {
-      console.log("🔄 Auto-refetching notifications (5-min interval)");
+      //console.log("🔄 Auto-refetching notifications (5-min interval)");
       fetchNotifications(1, false);
     }, 300000); // 5 minutes
 
     return () => {
       if (intervalRef.current) {
-        console.log("🧹 Cleaning up notification interval");
+        //console.log("🧹 Cleaning up notification interval");
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
@@ -142,7 +144,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    console.log(`🔀 Filter changed to: ${filter}`);
+    //console.log(`🔀 Filter changed to: ${filter}`);
     setPage(1);
     setHasMore(true);
     
@@ -162,7 +164,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
 
     if (scrollTop + clientHeight >= scrollHeight - 100) {
       const nextPage = page + 1;
-      console.log(`📜 Loading more - Page ${nextPage}`);
+      //console.log(`📜 Loading more - Page ${nextPage}`);
       setPage(nextPage);
       fetchNotifications(nextPage, true);
     }
@@ -192,7 +194,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
         window.location.href = notification.actionUrl;
       }
     } catch (err) {
-      console.error("Error marking notification as read:", err);
+      //console.error("Error marking notification as read:", err);
     }
   };
 
@@ -208,7 +210,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       setUnreadCount(0);
       onUnreadCountChange(0);
     } catch (err) {
-      console.error("Error marking all as read:", err);
+      //console.error("Error marking all as read:", err);
     }
   };
 
@@ -235,7 +237,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       // Remove from local state
       setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
     } catch (err) {
-      console.error("Error deleting notification:", err);
+      //console.error("Error deleting notification:", err);
     }
   };
 
@@ -263,7 +265,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       setPage(1);
       setFilter("all");
 
-      console.log("✅ All notifications deleted successfully");
+      //console.log("✅ All notifications deleted successfully");
 
       // Trigger callback
       onUnreadCountChange(0);
@@ -271,7 +273,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       const errorMessage =
         err instanceof Error ? err.message : "فشل في حذف الإشعارات";
       setError(errorMessage);
-      console.error("Error deleting all notifications:", err);
+      //console.error("Error deleting all notifications:", err);
     } finally {
       setIsLoading(false);
     }

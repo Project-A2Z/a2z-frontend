@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import FilterIcon from './../../../public/icons/Filter.svg';
-import { Button } from './../Buttons/Button';
-import styles from './Filter.module.css';
+
+//styles
+import styles from '@/components/UI/Product/Filter.module.css';
 
 interface FilterProps {
   getByCategory: (categories: string[]) => void;

@@ -1,10 +1,14 @@
 'use client'
 import React, { useState, useEffect } from "react"
-import styles from './Style.module.css'
+
+//styles
+import styles from '@/components/UI/Chekout/Style.module.css'
+
 //components
-import { Button } from "./../Buttons/Button"
+import { Button } from "@/components/UI/Buttons/Button"
+
 //icons
-import Edit from './../../../public/icons/Pen.svg'
+import Edit from '@/public/icons/Pen.svg'
 
 interface Detailes {
     price: number,

@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from "react"
-import styles from './Style.module.css'
-import Form from './CashForm'
-import { Button } from "../Buttons"
-import Edit from './../../../public/icons/Pen.svg'
+//styles
+import styles from '@/components/UI/Chekout/Style.module.css'
+
+//components
+import Form from '@/components/UI/Chekout/CashForm'
+
 
 export interface PaymentData {
     paymentWay: 'cash' | 'online' | '';
@@ -99,7 +101,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
                     onChange={() => handleClick('cash')}
                 />
                 <label className={styles.radioLabel}>
-                    الدفع كاش عند الاستلام + مبلغ أولي بقيمة 15% من إجمالي المبلغ
+                    الدفع كاش عند الاستلام + مبلغ أولي بقيمة 10% من إجمالي المبلغ
                 </label>
             </div>
             

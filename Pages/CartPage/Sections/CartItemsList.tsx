@@ -1,46 +1,95 @@
-import React, { useState } from 'react';
-import { Minus, Plus, Trash, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Minus, Plus, Trash } from 'lucide-react';
 import { Button, IconButton } from '@/components/UI/Buttons/Button';
-import type { CartItem } from './types';
-import { div, h2 } from 'motion/react-client';
 import { useRouter } from 'next/navigation';
 import ActionEmptyState from '@/components/UI/EmptyStates/ActionEmptyState';
 
+export type CartItem = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  unit: string;
+  availability: string;
+  category?: string;
+};
+
 type Props = {
-  items: CartItem[];
-  onUpdateQuantity: (id: string, quantity: number) => void;
-  onRemove: (id: string) => void;
+  items?: CartItem[];
+  onUpdateQuantity?: (id: string, quantity: number) => void;
+  onRemove?: (id: string) => void;
 };
 
 const CartItemImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
-  const [imgError, setImgError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src);
+  const [imageSource, setImageSource] = React.useState('');
+  const [hasError, setHasError] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (!src) {
+      setImageSource('/acessts/NoImage.jpg');
+      return;
+    }
+
+    // If it's already a full URL or data URL, use it directly
+    if (src.startsWith('http') || src.startsWith('blob:') || src.startsWith('data:')) {
+      setImageSource(src);
+      return;
+    }
+
+    // Handle local paths (remove any leading slashes)
+    const cleanPath = src.replace(/^\/+/, '');
+    
+    // Check if it's a local path that should be served from the public folder
+    if (cleanPath.startsWith('public/') || cleanPath.startsWith('uploads/')) {
+      setImageSource(`/${cleanPath}`);
+    } else {
+      // For API paths, use the API base URL
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+      setImageSource(baseUrl ? `${baseUrl}/${cleanPath}` : `/${cleanPath}`);
+    }
+  }, [src]);
 
   const handleError = () => {
-    if (!imgError) {
-      setImgError(true);
-      if (imgSrc.includes('/uploads/')) {
-        setImgSrc(imgSrc.replace(/^\//, ''));
-      } else {
-        setImgSrc('/acessts/NoImage.jpg');
-      }
+    if (!hasError) {
+      setHasError(true);
+      // Use absolute path for the fallback image
+      setImageSource('/acessts/NoImage.jpg');
     }
   };
 
+  // Show loading state while image is being processed
+  if (!imageSource) {
+    return (
+      <div className="w-16 h-16 sm:w-18 sm:h-18 bg-gray-100 rounded-lg animate-pulse" />
+    );
+  }
+
   return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      onError={handleError}
-      className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-lg bg-white"
-    />
+    <div className="w-16 h-16 sm:w-18 sm:h-18 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+      <img
+        src={imageSource}
+        alt={alt}
+        onError={handleError}
+        className="w-full h-full object-contain p-1"
+        loading="lazy"
+        crossOrigin="anonymous"
+      />
+    </div>
   );
 };
 
-const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) => {
+const CartItemsList: React.FC<Props> = React.memo(({ 
+  items = [], 
+  onUpdateQuantity = () => {}, 
+  onRemove = () => {} 
+}) => {
   const router = useRouter();
   
-  if (items.length === 0) {
+  // Ensure items is always an array
+  const cartItems = Array.isArray(items) ? items : [];
+  
+  if (cartItems.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-12 text-center">
@@ -58,22 +107,24 @@ const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) =
 
   return (
     <div className="rounded-lg shadow-sm border bg-white">
-       <div className="divide-y pt-[5px] max-h-[60vh] md:max-h-[70vh] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {items.map((item) => (
-          <div key={item.id} className="pt-[3px] sm:p-3 mt-[15px] mb-[15px] rounded-[10px] mx-[10px] bg-white border-[2px] border-gray-200">
-           <div className="flex sm:flex-row gap-4 ">
+      <div className="divide-y pt-[5px] max-h-[60vh] md:max-h-[70vh] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {cartItems.map((item) => (
+          <div 
+            key={item.id} 
+            className="pt-[3px] sm:p-3 mt-[15px] mb-[15px] rounded-[10px] mx-[10px] bg-white border-[2px] border-gray-200"
+          >
+            <div className="flex sm:flex-row gap-4">
               <div className="flex-shrink-0 m-auto">
                 <CartItemImage src={item.image} alt={item.name} />
               </div>
 
-              <div className="flex-1 flex justify-between min-w-0 ">
-
-                <div className="flex flex-col justify-between items-start w-[35%] mb-2 ">
+              <div className="flex-1 flex justify-between min-w-0">
+                <div className="flex flex-col justify-between items-start w-[35%] mb-2">
                   <h3 className="text-lg font-medium text-black87 truncate">
                     {item.name}
                   </h3>
                   <h4 className="text-[14px] font-medium text-right leading-tight w-[17px] h-[17px] text-black60 font-beiruti mb-2">
-                    {item.unit}   
+                    {item.unit}
                   </h4>
                   <h4 className="text-[14px] font-medium leading-[1] text-right w-[71px] h-[17px] text-secondary1 font-beiruti mb-2">
                     {item.availability}
@@ -92,40 +143,68 @@ const CartItemsList: React.FC<Props> = ({ items, onUpdateQuantity, onRemove }) =
                   </Button>
                 </div>
 
-                <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center sm:justify-between gap-4 ">
-                  <div className="text-left w-[100%]">
+                <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center pr-[10px] sm:pr-3 justify-between gap-4">
+                  <div className="text-left w-[100%] pl-2 sm:pl-3 ">
                     <div className="text-xl font-bold text-black60">
                       {(item.price * item.quantity).toLocaleString()} ج.م
                     </div>
                   </div>
                   
-                  <div className="flex items-start justify-start gap-3 w-full " dir="ltr">
-                   <IconButton
+                  {/* <div className="flex items-start justify-start gap-3 w-full sm:pr-[10px]" dir="ltr">
+                    <IconButton
                       aria-label="increase quantity"
                       title="زيادة الكمية"
                       onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary"
-                      icon={<Plus className="w-4 h-4" />}
-                    /> 
-                    <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">{item.quantity}</span>
+                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
+                      icon={<Plus className="w-4 h-4 sm:w-6 sm:h-6" />}
+                    />
+                    <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
+                      {item.quantity}
+                    </span>
                     <IconButton
                       aria-label="decrease quantity"
                       title="إنقاص الكمية"
                       onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                       size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary"
-                      icon={<Minus className="w-4 h-4" />}
+                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
+                      icon={<Minus className="w-4 h-4 sm:w-6 sm:h-6" />}
                     />
-                  </div>
+                  </div> */}
+
+  <div className="w-full flex justify-end  pr-2 sm:pr-4">
+                    <div className="flex items-center justify-end gap-3" dir="ltr">
+                      <IconButton
+                        aria-label="decrease quantity"
+                        title="إنقاص الكمية"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        size="sm"
+                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        icon={<Minus className="w-4 h-4" />}
+                      />
+                      <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
+                        {item.quantity}
+                      </span>
+                      <IconButton
+                        aria-label="increase quantity"
+                        title="زيادة الكمية"
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        size="sm"
+                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        icon={<Plus className="w-4 h-4" />}
+                      />
+                    </div>
+</div>
                 </div>
               </div>
             </div>
           </div>
         ))}
-      </div> 
+      </div>
     </div>
   );
-};
+});
+
+CartItemsList.displayName = 'CartItemsList';
 
 export default React.memo(CartItemsList);

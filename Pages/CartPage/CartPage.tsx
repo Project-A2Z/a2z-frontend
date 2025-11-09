@@ -1,15 +1,26 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import CartHeader from './Sections/CartHeader';
-import CartItemsList from './Sections/CartItemsList';
-import OrderSummary from './Sections/OrderSummary';
-import ContactHelp from './Sections/ContactHelp';
+import CartHeader from '@/pages/CartPage/Sections/CartHeader';
+import CartItemsList from '@/pages/CartPage/Sections/CartItemsList';
+import OrderSummary from '@/pages/CartPage/Sections/OrderSummary';
+// import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
-import type { CartItem } from './Sections/types';
+// import type { CartItem } from './Sections/types';
 import { div } from 'motion/react-client';
 import { cartService } from '@/services/api/cart';
 import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
+
+export  type CartItem = {
+  id: string;            // Cart item ID
+  name: string;          // Name of the product
+  price: number;         // Price of the individual item
+  quantity: number;      // Quantity in cart
+  image: string;         // URL or path to the product image
+  unit: string;          // Unit of measurement (e.g., 'قطعة')
+  availability: string;  // Availability status (e.g., 'متوفر', 'غير متوفر')
+  category?: string;     // Optional category of the product
+};
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -31,9 +42,11 @@ const CartPage = () => {
           let imageUrl = '/acessts/NoImage.jpg';
           const imageSources = p.imageList || p.images || p.image || [];
           
+          // Handle different image source formats
           if (Array.isArray(imageSources) && imageSources.length > 0) {
             const firstImage = imageSources[0];
             if (typeof firstImage === 'string') {
+              imageUrl = firstImage;
             } else if (firstImage?.url) {
               imageUrl = firstImage.url;
             }
@@ -41,8 +54,25 @@ const CartPage = () => {
             imageUrl = imageSources;
           }
 
-          if (imageUrl === '/acessts/NoImage.jpg') {
-            imageUrl = p.thumbnail || p.mainImage || p.coverImage || '/acessts/NoImage.jpg';
+          // If still no valid image, try other possible image fields
+          if (!imageUrl || imageUrl === '/acessts/NoImage.jpg') {
+            imageUrl = p.thumbnail || p.mainImage || p.coverImage || p.imageUrl || '/acessts/NoImage.jpg';
+          }
+
+          // Ensure the image URL is properly formatted
+          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:')) {
+            // Remove any leading slashes to prevent double slashes
+            const cleanPath = imageUrl.replace(/^\/+/, '');
+            // Check if it's a local path that should be served from the public folder
+            if (cleanPath.startsWith('public/') || cleanPath.startsWith('uploads/') || cleanPath.startsWith('acessts/')) {
+              imageUrl = `/${cleanPath}`;
+            } else if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+              // For API paths, use the API base URL
+              imageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${cleanPath}`;
+            } else {
+              // Fallback to absolute path
+              imageUrl = `/${cleanPath}`;
+            }
           }
 
           const unit = p.stockType || p.unit || 'قطعة';
@@ -61,7 +91,7 @@ const CartPage = () => {
         });
         setCartItems(mapped);
       } catch (error: any) {
-        console.error('Error fetching cart items:', error);
+        //console.error('Error fetching cart items:', error);
         if (error?.response?.status === 401) {
           return;
         }
@@ -83,7 +113,7 @@ const CartPage = () => {
       await cartService.updateCartItem(id, newQuantity);
       setCartItems(items => items.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
     } catch (e) {
-      console.error('Failed to update cart item quantity', e);
+      //console.error('Failed to update cart item quantity', e);
     }
   };
 
@@ -92,15 +122,15 @@ const CartPage = () => {
       await cartService.removeFromCart(id);
       setCartItems(items => items.filter(item => item.id !== id));
     } catch (e) {
-      console.error('Failed to remove cart item', e);
+      //console.error('Failed to remove cart item', e);
     }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   // const shipping = 1000;
   // const total = subtotal ;
-  console.log('Cart Items:', cartItems);
-  console.log('Subtotal:', subtotal);
+  //console.log('Cart Items:', cartItems);
+  //console.log('Subtotal:', subtotal);
   
   if (loading) {
     return (

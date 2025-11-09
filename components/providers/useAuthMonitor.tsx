@@ -61,7 +61,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
    * Handle token expiration
    */
   const handleTokenExpiry = async () => {
-    console.log('🔒 useAuthMonitor: Token expired, handling logout...');
+    //console.log('🔒 useAuthMonitor: Token expired, handling logout...');
     
     // Call custom callback if provided
     if (onTokenExpired) {
@@ -79,7 +79,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
     try {
       await logoutUser();
     } catch (error) {
-      console.error('❌ Error during logout:', error);
+      //console.error('❌ Error during logout:', error);
     }
 
     // Redirect if enabled
@@ -137,7 +137,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
     const isAuth = checkAuth();
     
     if (!isAuth && redirectOnExpiry) {
-      console.log('❌ Not authenticated on mount, redirecting...');
+      //console.log('❌ Not authenticated on mount, redirecting...');
       router.push(redirectUrl);
       return;
     }
@@ -158,7 +158,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
    */
   useEffect(() => {
     const handleTokenExpiredEvent = () => {
-      console.log('🔔 Token expiration event received');
+      //console.log('🔔 Token expiration event received');
       handleTokenExpiry();
     };
 
@@ -177,7 +177,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
       const isAuth = checkAuth();
       
       if (!isAuth) {
-        console.log('⏰ Periodic check: Token invalid');
+        //console.log('⏰ Periodic check: Token invalid');
         handleTokenExpiry();
       }
     }, 30000); // Check every 30 seconds
@@ -191,12 +191,12 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'user_data' || e.key === 'auth_token' || e.key === 'token_expiry') {
-        console.log('🔄 Storage changed, checking auth...');
+        //console.log('🔄 Storage changed, checking auth...');
         
         const isAuth = checkAuth();
         
         if (!isAuth && redirectOnExpiry) {
-          console.log('❌ Auth changed in another tab, redirecting...');
+          //console.log('❌ Auth changed in another tab, redirecting...');
           router.push(redirectUrl);
         }
       }

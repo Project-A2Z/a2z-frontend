@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import MessageComponent from './Messages';
-import styles from './Messages.module.css';
+
+// Components
+import MessageComponent from '@/components/UI/Profile/leftSection/Messages/Messages';
+
+// Styles
+import styles from '@/components/UI/Profile/leftSection/Messages/Messages.module.css';
+
 import { MessageCircle } from 'lucide-react';
+
+// Services
 import { 
   fetchProfileMessages, 
   ProfileMessages,
   ProfileMessagesError,
   sortMessagesByDate,
   filterMessagesByStatus
-} from './../../../../../services/profile/messages';
+} from '@/services/profile/messages';
 
 type MessageStatus = 'open' | 'closed' | 'pending';
 
@@ -38,7 +45,7 @@ const MessagesList = () => {
       } else {
         setError('حدث خطأ أثناء تحميل الرسائل. يرجى المحاولة مرة أخرى.');
       }
-      console.error('Error loading messages:', err);
+      //console.error('Error loading messages:', err);
     } finally {
       setLoading(false);
     }

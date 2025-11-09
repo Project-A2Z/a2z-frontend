@@ -11,35 +11,34 @@ export interface OrderAddress {
   region: string;
 }
 
-export interface OrderAddress {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  address: string;
-  city: string;
-  region: string;
+// Product interface
+export interface Product {
+  _id: string;
+  category: string;
+  name: string;
+  description: string;
+  imageList: string[];
+  price: number;
+  PurchasePrice: number;
+  stockQty: number;
+  stockType: string;
+  advProduct: any[];
+  averageRate: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  id: string;
 }
- // Update your CartItem interface to include product details
+
+// Updated CartItem interface to match your actual data structure
 export interface CartItem {
   _id: string;
   cartId: string;
-  // productId: string;
+  productId: Product;
   itemQty: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
-  // Add these fields to include product details
-  productId?: {
-    _id: string;
-    name: string;
-    image: string;
-    price: number;
-    // Add other product fields as needed
-  };
-  // OR if your API returns them flattened:
-  productName?: string;
-  productImage?: string;
-  productPrice?: number;
 }
 
 export interface Cart {
@@ -78,15 +77,15 @@ export interface OrderItem {
   cartId: Cart;  // Changed from string to Cart object
   userId: string;
   orderId: string;
-  status: 'pending' | 'Under review' | 'shipped' | 'delivered' | 'cancelled' | 'loaded' | 'reviewed';
+  status: 'Under review' | 'reviewed' | 'prepared' | 'shipped' | 'delivered' | 'cancelled';
   address: OrderAddress;
   deliveryPrice: number;
-  deliveryDate: string | null;  // Changed to allow null
+  deliveryDate: string | null;
   createdAt: string;
   updatedAt: string;
-  __v: number;  // Added missing field
-  paymentDetails?: PaymentDetails;  // Added missing field (optional since it might not always be present)
-  id: string;  // Added missing field
+  __v: number;
+  paymentDetails?: PaymentDetails;
+  id: string;
 }
 
 export interface OrdersResponse {
@@ -99,11 +98,12 @@ export interface OrdersResponse {
 export interface TransformedOrder {
   id: string;
   orderNumber: string;
-  status: 'pending' | 'Under review' | 'shipped' | 'delivered' | 'cancelled' | 'loaded' | 'reviewed';
+  status: 'Under review' | 'reviewed' | 'prepared' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
   total: number;
   items: number;
 }
+
 
 // Cache entry interface
 interface CacheEntry<T> {
@@ -136,7 +136,7 @@ class OrderService {
                   localStorage.getItem('token') ||
                   localStorage.getItem('accessToken');
     
-    console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
+    //console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
     
     return token;
   }
@@ -151,15 +151,15 @@ class OrderService {
       const userData = localStorage.getItem('user_data');
       if (userData) {
         const parsed = JSON.parse(userData);
-        console.log('👤 User data found:', {
-          hasToken: !!parsed.token,
-          hasAccessToken: !!parsed.accessToken,
-          keys: Object.keys(parsed)
-        });
+        //console.log('👤 User data found:', {
+        //   hasToken: !!parsed.token,
+        //   hasAccessToken: !!parsed.accessToken,
+        //   keys: Object.keys(parsed)
+        // });
         return parsed;
       }
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      //console.error('Error parsing user data:', error);
     }
     
     return null;
@@ -176,7 +176,7 @@ class OrderService {
       token = userData?.token || userData?.accessToken || userData?.auth_token;
     }
     
-    console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
+    //console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
     
     return token;
   }
@@ -191,7 +191,7 @@ class OrderService {
       timestamp: now,
       expiresAt: now + duration,
     });
-    console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
+    //console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
   }
 
   /**
@@ -201,18 +201,18 @@ class OrderService {
     const entry = this.cache.get(key);
     
     if (!entry) {
-      console.log(`❌ Cache miss for key: ${key}`);
+      //console.log(`❌ Cache miss for key: ${key}`);
       return null;
     }
 
     const now = Date.now();
     if (now > entry.expiresAt) {
-      console.log(`⏰ Cache expired for key: ${key}`);
+      //console.log(`⏰ Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
     }
 
-    console.log(`✅ Cache hit for key: ${key}`);
+    //console.log(`✅ Cache hit for key: ${key}`);
     return entry.data as T;
   }
 
@@ -222,7 +222,7 @@ class OrderService {
   clearCache(pattern?: string): void {
     if (!pattern) {
       this.cache.clear();
-      console.log('🗑️ All cache cleared');
+      //console.log('🗑️ All cache cleared');
       return;
     }
 
@@ -233,7 +233,7 @@ class OrderService {
         cleared++;
       }
     }
-    console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
+    //console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
   }
 
   /**
@@ -260,18 +260,18 @@ class OrderService {
     try {
       const token = this.getBestToken();
       
-      console.log('📡 Fetching orders...');
-      console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
-      console.log('🔑 Using token:', token ? 'Found' : 'Not found');
+      //console.log('📡 Fetching orders...');
+      //console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
+      //console.log('🔑 Using token:', token ? 'Found' : 'Not found');
       
       if (!token) {
-        console.error('❌ No authentication token found in localStorage');
-        console.log('📦 LocalStorage contents:', {
-          auth_token: localStorage.getItem('auth_token'),
-          token: localStorage.getItem('token'),
-          user_data: localStorage.getItem('user_data'),
-          refresh_token: localStorage.getItem('refresh_token'),
-        });
+        //console.error('❌ No authentication token found in localStorage');
+        //console.log('📦 LocalStorage contents:', {
+        //   auth_token: localStorage.getItem('auth_token'),
+        //   token: localStorage.getItem('token'),
+        //   user_data: localStorage.getItem('user_data'),
+        //   refresh_token: localStorage.getItem('refresh_token'),
+        // });
         throw new Error('Authentication token not found. Please login again.');
       }
 
@@ -280,25 +280,25 @@ class OrderService {
         'Content-Type': 'application/json',
       };
       
-      console.log('📤 Request headers:', {
-        Authorization: `Bearer ${token.substring(0, 20)}...`,
-        'Content-Type': 'application/json'
-      });
+      //console.log('📤 Request headers:', {
+      //   Authorization: `Bearer ${token.substring(0, 20)}...`,
+      //   'Content-Type': 'application/json'
+      // });
 
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`, {
         method: 'GET',
         headers,
       });
 
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      //console.log('📥 Response status:', response.status);
+      //console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('❌ 401 Unauthorized - Token may be expired or invalid');
+          //console.error('❌ 401 Unauthorized - Token may be expired or invalid');
           
           const errorText = await response.text();
-          console.error('Error response:', errorText);
+          //console.error('Error response:', errorText);
           
           localStorage.removeItem('auth_token');
           localStorage.removeItem('token');
@@ -306,17 +306,17 @@ class OrderService {
           throw new Error('Session expired. Please login again.');
         }
         if (response.status === 403) {
-          console.error('❌ 403 Forbidden - Insufficient permissions');
+          //console.error('❌ 403 Forbidden - Insufficient permissions');
           throw new Error('You do not have permission to view orders');
         }
         
         const errorText = await response.text();
-        console.error('❌ Error response:', errorText);
+        //console.error('❌ Error response:', errorText);
         throw new Error(`Failed to fetch orders: ${response.statusText}`);
       }
 
       const data: OrdersResponse = await response.json();
-      console.log('✅ Orders fetched successfully:', data.length, 'orders');
+      //console.log('✅ Orders fetched successfully:', data.length, 'orders');
       
       const orders = data.data || [];
       
@@ -325,7 +325,7 @@ class OrderService {
       
       return orders;
     } catch (error) {
-      console.error('💥 Error fetching user orders:', error);
+      //console.error('💥 Error fetching user orders:', error);
       throw error;
     }
   }
@@ -391,7 +391,7 @@ class OrderService {
       
       return orderDetails;
     } catch (error) {
-      console.error('Error fetching order details:', error);
+      //console.error('Error fetching order details:', error);
       throw error;
     }
   }
@@ -431,7 +431,7 @@ class OrderService {
       
       return true;
     } catch (error) {
-      console.error('Error canceling order:', error);
+      //console.error('Error canceling order:', error);
       throw error;
     }
   }
@@ -483,7 +483,7 @@ class OrderService {
       
       return trackingData;
     } catch (error) {
-      console.error('Error tracking order:', error);
+      //console.error('Error tracking order:', error);
       throw error;
     }
   }
@@ -515,26 +515,26 @@ class OrderService {
    * Debug helper - log all auth-related localStorage items
    */
   debugAuth(): void {
-    console.log('🔍 Authentication Debug Info:');
-    console.log('📦 LocalStorage:', {
-      auth_token: localStorage.getItem('auth_token'),
-      token: localStorage.getItem('token'),
-      accessToken: localStorage.getItem('accessToken'),
-      refresh_token: localStorage.getItem('refresh_token'),
-      user_data: localStorage.getItem('user_data'),
-    });
+    //console.log('🔍 Authentication Debug Info:');
+    // console.log('📦 LocalStorage:', {
+    //   auth_token: localStorage.getItem('auth_token'),
+    //   token: localStorage.getItem('token'),
+    //   accessToken: localStorage.getItem('accessToken'),
+    //   refresh_token: localStorage.getItem('refresh_token'),
+    //   user_data: localStorage.getItem('user_data'),
+    // });
     
     const userData = this.getUserData();
     if (userData) {
-      console.log('👤 User data keys:', Object.keys(userData));
+      //console.log('👤 User data keys:', Object.keys(userData));
     }
     
     const bestToken = this.getBestToken();
-    console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
+    //console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
     
     // Cache stats
     const stats = this.getCacheStats();
-    console.log('💾 Cache stats:', stats);
+    //console.log('💾 Cache stats:', stats);
   }
 }
 

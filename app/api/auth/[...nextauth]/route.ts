@@ -92,7 +92,8 @@ async function loginWithBackend(accessToken: string, provider: 'google' | 'faceb
   }
 }
 
-export const authOptions: NextAuthOptions = {
+// Don't export this - keep it internal to the route
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -232,4 +233,5 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 
+// Only export the HTTP handlers
 export { handler as GET, handler as POST };

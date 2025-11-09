@@ -1,11 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '../../../Buttons/Button';
-import Input from '../../../Inputs/Input';
-import styles from './info.module.css';
-import Alert, { AlertButton } from '../../../Alert/alert';
 
+// Components
+import { Button } from '@/components/UI/Buttons/Button';
+import Input from '@/components/UI/Inputs/Input';
+import Alert, { AlertButton } from '@/components/UI/Alert/alert';
+
+// Styles
+import styles from '@/components/UI/Profile/leftSection/Information/info.module.css';
+
+// Services
 import { UpdateProfileData , updateUserProfile} from '@/services/profile/profile';
 
 // Icons
@@ -165,11 +170,11 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       
       await updateUserProfile(payload);
       
-      console.log('Form submitted:', formData);
+      //console.log('Form submitted:', formData);
       showAlert('تم تحديث بيانات الحساب بنجاح!', 'success');
       setEdit(false);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      //console.error('Error submitting form:', error);
       showAlert('فشل تحديث بيانات الحساب. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setIsLoading(false);
@@ -177,7 +182,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
   };
 
   const handleIconClick = (field: string) => {
-    console.log(`Icon clicked for ${field}`);
+    //console.log(`Icon clicked for ${field}`);
     // Add any icon click logic here
   };
 

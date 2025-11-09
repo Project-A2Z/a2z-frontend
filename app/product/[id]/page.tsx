@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import ProductPage, { ProductData } from "@/Pages/ProductPage/ProductPage";
+import ProductPage, { ProductData } from "@/pages/ProductPage/ProductPage";
 import productService from "@/services/api/products";
 import { reviewService } from "@/services/api/reviews";
 

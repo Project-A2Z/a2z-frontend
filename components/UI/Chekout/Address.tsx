@@ -1,12 +1,13 @@
 'use client'
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import styles from './Style.module.css'
+//styles
+import styles from '@/components/UI/Chekout/Style.module.css'
 //components
-import { Button } from "./../Buttons/Button"
+import { Button } from "@/components/UI/Buttons/Button"
 //icons
-import Edit from './../../../public/icons/Pen.svg'
-import Location from './../../../public/icons/addLocation.svg'
+import Edit from '@/public/icons/Pen.svg'
+import Location from '@/public/icons/addLocation.svg'
 
 interface Address {
   id: number;
@@ -53,7 +54,7 @@ const Address: React.FC<AddressProp> = ({
                     try {
                         await fetchAddresses()
                     } catch (error) {
-                        console.error('Error fetching addresses:', error)
+                        //console.error('Error fetching addresses:', error)
                     } finally {
                         setLoading(false)
                     }

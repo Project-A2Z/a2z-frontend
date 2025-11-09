@@ -1,6 +1,10 @@
 import React from 'react';
-import { Button } from '../../../Buttons/Button';
-import styles from './order.module.css';
+
+//components
+import { Button } from '@/components/UI/Buttons/Button';
+
+//styles
+import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
 
 export interface FilterOption {
   id: string;

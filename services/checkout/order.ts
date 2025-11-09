@@ -223,6 +223,7 @@ export class OrderService {
       });
 
       const result = await response.json();
+      // console.log('Create Order Response:', result);
 
       if (!response.ok) {
         throw new Error(result.message || `HTTP error! status: ${response.status}`);
@@ -296,4 +297,3 @@ export class OrderService {
 
 // Export singleton instance
 export const orderService = new OrderService();
-

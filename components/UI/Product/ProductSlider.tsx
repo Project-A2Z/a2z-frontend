@@ -1,11 +1,13 @@
 "use client"
 import { useState, useRef } from 'react';
-import Card from './../Card/Card'; // Adjust the import path as needed
-import styles from './ProductSlider.module.css';
 
-const Def=  './../../../public/acessts/Logo-picsart.png'
+//components
+import Card from '@/components/UI/Card/Card';
 
-// Updated Types to match API response
+//styles
+import styles from '@/components/UI/Product/ProductSlider.module.css';
+
+
 export interface Product {
   id: string | number;
   name: string;
@@ -17,9 +19,9 @@ export interface Product {
   price: number;
   originalPrice?: number;
   discount?: number;
-  image: string ;
+  image: string;
   images?: (string)[];
-  imageList?: (string)[]; // Added imageList field for Cloudinary images
+  imageList?: (string)[];
   category: string;
   categoryId?: string | number;
   brand?: string;
@@ -33,6 +35,7 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
 }
+
 interface ProductSliderProps {
   products: Product[];
   title?: string;
@@ -44,9 +47,9 @@ interface ProductSliderProps {
 }
 
 function ProductSlider({ 
-  products = [], // Default empty array
+  products = [],
   title = "المنتجات المميزة",
-  itemsPerPage = 20, // 4 columns × 5 rows = 20 items per page
+  itemsPerPage = 20,
   columns = 4,
   rows = 5,
   isLoading = false,
@@ -55,7 +58,6 @@ function ProductSlider({
   const [currentPage, setCurrentPage] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Handle loading state
   if (isLoading) {
     return (
       <div className={styles.sliderContainer}>
@@ -77,7 +79,6 @@ function ProductSlider({
     );
   }
 
-  // Handle error state
   if (error) {
     return (
       <div className={styles.sliderContainer}>
@@ -90,7 +91,6 @@ function ProductSlider({
     );
   }
 
-  // Handle empty state
   if (!products || products.length === 0) {
     return (
       <div className={styles.sliderContainer}>
@@ -103,10 +103,8 @@ function ProductSlider({
     );
   }
 
-  // Calculate total pages
   const totalPages = Math.ceil(products.length / itemsPerPage);
   
-  // Get current page products
   const getCurrentPageProducts = () => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -127,22 +125,17 @@ function ProductSlider({
 
   const currentProducts = getCurrentPageProducts();
 
-  // Helper function to get product image
   const getProductImage = (product: Product): string => {
     if (product.image) return product.image;
-    // if (product.img) return product.img;
     if (product.images && product.images.length > 0) return product?.images[0];
     return '/acessts/NoImage.jpg';
   };
 
-  // Helper function to get product status
   const getProductStatus = (product: Product): boolean => {
     if (typeof product.inStock === 'boolean') return product.inStock;
-    // if (typeof product.status === 'boolean') return product.status;
-    return true; // Default to available
+    return true;
   };
 
-  // Helper function to get product name
   const getProductName = (product: Product): string => {
     return product.nameAr || product.name || 'منتج غير محدد';
   };
@@ -155,9 +148,7 @@ function ProductSlider({
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-            gap: '16px',
-            minHeight: `${rows * 300}px` // Adjust based on your card height
+            gap: '16px'
           }}
         >
           {currentProducts.map((product, index) => (
@@ -177,14 +168,12 @@ function ProductSlider({
             </div>
           ))}
           
-          {/* Fill empty slots if needed */}
           {Array.from({ length: itemsPerPage - currentProducts.length }).map((_, index) => (
             <div key={`empty-${index}`} className={styles.emptySlot} />
           ))}
         </div>
       </div>
 
-      {/* Bottom Pagination */}
       {totalPages > 1 && (
         <div className={styles.bottomPagination}>
           <div className={styles.paginationInfo}>
@@ -206,7 +195,6 @@ function ProductSlider({
             </button>
             
             <div className={styles.pageNumbers}>
-              {/* Show first page */}
               {currentPage > 2 && (
                 <>
                   <button
@@ -219,7 +207,6 @@ function ProductSlider({
                 </>
               )}
               
-              {/* Show pages around current page */}
               {Array.from({ length: totalPages }).map((_, index) => {
                 if (index >= currentPage - 1 && index <= currentPage + 1) {
                   return (
@@ -235,12 +222,10 @@ function ProductSlider({
                 return null;
               })}
 
-              {/* Show "من" only between current page and last page */}
               {currentPage < totalPages - 1 && (
                 <span className={styles.ellipsis}>من</span>
               )}
               
-              {/* Show last page */}
               {currentPage < totalPages - 3 && (
                 <>
                   {currentPage < totalPages - 4 && <span className={styles.ellipsis}>...</span>}

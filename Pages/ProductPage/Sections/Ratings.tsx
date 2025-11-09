@@ -4,17 +4,17 @@ import React, { useState } from 'react';
 type RatingsDistribution = { stars: number; count: number }[];
 
 type Props = {
-  average: number;
-  total: number;
-  distribution: RatingsDistribution;
+  average?: number;
+  total?: number;
+  distribution?: RatingsDistribution;
   onStarClick?: (stars: number) => void;
   onDistributionClick?: (stars: number) => void;
   interactive?: boolean;
 };
 
-const Ratings: React.FC<Props> = ({
-  average,
-  total,
+const Ratings: React.FC<Props> = React.memo(({
+  average = 0,
+  total = 0,
   distribution = [],
   onStarClick,
   onDistributionClick,
@@ -23,7 +23,14 @@ const Ratings: React.FC<Props> = ({
   const [hoveredStars, setHoveredStars] = useState<number | null>(null);
   const [selectedStars, setSelectedStars] = useState<number | null>(null);
 
-  const maxCount = Math.max(1, ...distribution.map(d => d.count));
+  // Ensure distribution is always an array
+  const safeDistribution = Array.isArray(distribution) ? distribution : [];
+  
+  // Ensure average and total are valid numbers
+  const safeAverage = typeof average === 'number' && !isNaN(average) ? average : 0;
+  const safeTotal = typeof total === 'number' && !isNaN(total) ? total : 0;
+
+  const maxCount = Math.max(1, ...safeDistribution.map(d => d.count));
 
   const handleStarClick = (starValue: number) => {
     if (!interactive || !onStarClick) return;
@@ -37,7 +44,7 @@ const Ratings: React.FC<Props> = ({
   };
 
   const getDisplayAverage = () => {
-    return hoveredStars !== null ? hoveredStars : average;
+    return hoveredStars !== null ? hoveredStars : safeAverage;
   };
 
   const getGoldColor = (count: number) => {
@@ -52,7 +59,7 @@ const Ratings: React.FC<Props> = ({
     return count >= 30 ? 'text-yellow-700' : 'text-yellow-600';
   };
 
-  if (total === 0) {
+  if (safeTotal === 0) {
     return (
       <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
         <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
@@ -102,11 +109,11 @@ const Ratings: React.FC<Props> = ({
         </div>
       </div>
       <div className="text-right text-black40 text-xs mb-4">
-        تقييم {total} {selectedStars && `- تم تصفية ${selectedStars} نجوم`}
+        تقييم {safeTotal} {selectedStars && `- تم تصفية ${selectedStars} نجوم`}
       </div>
 
       <div className="space-y-2">
-        {distribution
+        {safeDistribution
           .sort((a, b) => b.stars - a.stars)
           .map((row) => {
             const isClickable = interactive && onDistributionClick;
@@ -159,80 +166,8 @@ const Ratings: React.FC<Props> = ({
       </div>
     </section>
   );
-};
+});
+
+Ratings.displayName = 'Ratings';
 
 export default React.memo(Ratings);
-
-// "use client";
-// import React from 'react';
-// import { Star } from 'lucide-react';
-
-// type RatingsDistribution = { stars: number; count: number }[];
-// type Props = {
-//   average: number;
-//   total: number;
-//   distribution: RatingsDistribution;
-// };
-
-// const Ratings: React.FC<Props> = ({ average, total, distribution }) => {
-//   if (!total) return null;
-
-//   // Ensure distribution covers all 1-5 stars, defaulting to 0 if missing
-//   const fullDistribution = Array.from({ length: 5 }, (_, i) => {
-//     const star = i + 1;
-//     const entry = distribution.find(d => d.stars === star) || { stars: star, count: 0 };
-//     return entry;
-//   });
-
-//   // Calculate max count for dynamic bar scaling
-//   const maxCount = Math.max(...fullDistribution.map(d => d.count), 1); // Avoid division by zero
-
-//   // Render stars dynamically
-//   const renderStars = (rating: number) => {
-//     const safeRating = Math.max(0, Math.min(5, isNaN(rating) ? 0 : rating));
-//     const fullStars = Math.floor(safeRating);
-//     const hasHalfStar = safeRating % 1 >= 0.5;
-//     return (
-//       <div className="flex items-center gap-1 text-amber-500">
-//         {Array.from({ length: 5 }).map((_, i) => {
-//           let starClass = 'text-black16';
-//           if (i < fullStars) {
-//             starClass = 'fill-amber-500 text-amber-500';
-//           } else if (i === fullStars && hasHalfStar) {
-//             starClass = 'fill-amber-500 text-amber-500 opacity-50';
-//           }
-//           return <Star key={i} className={`w-4 h-4 ${starClass}`} />;
-//         })}
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-//       <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-4">التقييمات</h2>
-//       <div className="flex items-center justify-between mb-4">
-//         <div>
-//           <span className="text-xl font-bold text-black87">{average.toFixed(1)}</span>
-//           <span className="text-sm text-black60"> / 5</span>
-//         </div>
-//         <div>{renderStars(average)}</div>
-//       </div>
-//       <div className="space-y-2">
-//         {fullDistribution.map(({ stars, count }) => (
-//           <div key={stars} className="flex items-center gap-2">
-//             <span className="text-sm text-black87">{stars} نجوم</span>
-//             <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-//               <div
-//                 className="bg-amber-500 h-2.5 rounded-full"
-//                 style={{ width: `${(count / maxCount) * 100}%` }}
-//               ></div>
-//             </div>
-//             <span className="text-sm text-black60">{count}</span>
-//           </div>
-//         ))}
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default React.memo(Ratings);

@@ -1,12 +1,17 @@
 import React from 'react';
-import styles from './order.module.css';
+
+//styles
+import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
+
 import { useRouter } from 'next/navigation';
-import OrderFilter, { FilterOption } from './OrderFilter';
 import { useMemo } from 'react';
+
+//components
+import OrderFilter, { FilterOption } from '@/components/UI/Profile/leftSection/Orders/OrderFilter';
 
 //icons 
 import { Package } from 'lucide-react';
-import Box from './../../../../../public/icons/order.svg'
+import Box from '@/public/icons/order.svg'
 
 // Import the correct interfaces from the service
 import { OrderItem } from '@/services/profile/orders';
@@ -18,6 +23,8 @@ interface OrdersProps {
 const Orders: React.FC<OrdersProps> = ({orders}) => {
   const router = useRouter();
   const [selectedFilters, setSelectedFilters] = React.useState<string[]>([]);
+
+  // console.log('📦 Orders received in Orders component:', orders);
   
   const filterOptions: FilterOption[] = [
     { 
@@ -35,8 +42,8 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
     { 
       id: '3', 
       label: 'تم التجهيز', 
-      value: 'pending', 
-      count: orders.filter(order => order.status === 'pending').length 
+      value: 'prepared', 
+      count: orders.filter(order => order.status === 'prepared').length 
     },
     { 
       id: '4', 
@@ -81,7 +88,7 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
         return styles.statusProcessing;
       case 'shipped':
         return styles.statusShipped;
-      case 'pending':
+      case 'prepared':
         return styles.statusPending;
       case 'cancelled':
         return styles.statusCancelled;
@@ -96,7 +103,7 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
     switch (status) {
       case 'Under review': return 'قيد المراجعة';
       case 'reviewed': return 'تمت المراجعة';
-      case 'pending': return 'تم التجهيز';
+      case 'prepared': return 'تم التجهيز';
       case 'shipped': return 'تم الشحن';
       case 'delivered': return 'تم التسليم';
       case 'cancelled': return 'ملغي';

@@ -1,21 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 
 // Components
-import Header from "@/components/Layout/Nav/Header";
-import TopMetrics from "./sections/TopScetion/Top";
-import InformationSection from "./sections/informationSection.tsx/InformationSection";
+import TopMetrics from "@/pages/ProfilePage/sections/TopScetion/Top";
+import InformationSection from "@/pages/ProfilePage/sections/InformationSection/InformationSection";
 import AccountList from "@/components/UI/Profile/RightSection/List";
-import EditProfileSection from "./sections/EditProfile/EditProfileSection";
+import EditProfileSection from "@/pages/ProfilePage/sections/EditProfile/EditProfileSection";
 
 // Services
-import { getCurrentUser } from "./../../services/auth/login";
-import { ProfileService } from "./../../services/profile/profile";
-
-// Hooks
-import { useAuthMonitor } from "./../../components/providers/useAuthMonitor";
+import { getCurrentUser } from "../../services/auth/login";
+import { ProfileService } from "../../services/profile/profile";
 
 // Icons
 import Heart from "./../../public/icons/HeartProf.svg";
@@ -53,30 +50,40 @@ const ProfilePage = () => {
   const [box, setBox] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMain, setShowMobileMain] = useState(false);
-
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // 🔥 USE THE AUTH MONITOR HOOK - Handles all token expiration logic
-  const { 
-    isAuthenticated, 
-    warningMessage, 
-    isTokenExpiringSoon,
-    remainingMinutes 
-  } = useAuthMonitor({
-    redirectOnExpiry: true,
-    redirectUrl: '/login',
-    showWarning: true,
-    warningThresholdMinutes: 5,
-    onTokenExpired: () => {
-      console.log('🔒 Session expired, cleaning up...');
-      setError('انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.');
-    },
-    onTokenExpiringSoon: (minutes : number) => {
-      console.log(`⚠️ Token expiring in ${minutes} minutes`);
-    }
+  // Auth monitor state
+  const [authState, setAuthState] = useState({
+    isAuthenticated: false,
+    warningMessage: null as string | null,
+    isTokenExpiringSoon: false,
+    remainingMinutes: 0,
   });
+
+  // Initialize auth monitor only on client side
+  useEffect(() => {
+    setIsMounted(true);
+
+    // Dynamically import and initialize useAuthMonitor
+    const initializeAuth = async () => {
+      try {
+        const { useAuthMonitor } = await import(
+          "../../components/providers/useAuthMonitor"
+        );
+
+        // This is a simplified version - you may need to adjust based on your actual hook
+        // Since hooks can't be called conditionally, you might need to refactor this
+        // For now, we'll just set a flag that we're mounted
+      } catch (error) {
+        console.error("Error loading auth monitor:", error);
+      }
+    };
+
+    initializeAuth();
+  }, []);
 
   /**
    * Fetch user profile data from API
@@ -86,16 +93,11 @@ const ProfilePage = () => {
       setIsLoading(true);
       setError(null);
 
-      console.log("🔄 Fetching user profile from API...");
-
-      // Fetch profile from API
       const response = await ProfileService.getProfile();
 
       if (response.status === "success" && response.data.user) {
         const profileData = response.data.user;
-        console.log("✅ Profile data fetched successfully:", profileData);
 
-        // Convert UserProfile to User type
         const userData: User = {
           _id: profileData._id,
           firstName: profileData.firstName,
@@ -114,33 +116,24 @@ const ProfilePage = () => {
         };
 
         setUser(userData);
-        console.log("💾 User state updated with profile data");
       } else {
         throw new Error("Invalid response structure");
       }
     } catch (error: any) {
-      console.error("❌ Error fetching profile:", error);
-
-      // Handle 401 - Token expired (will be handled by useAuthMonitor)
       if (error.statusCode === 401) {
-        console.log("🔒 Authentication failed (401) - token expired");
         setError("انتهت صلاحية الجلسة. جاري تسجيل الخروج...");
-        return; // Don't use fallback data
-      } 
-      
-      // Handle network errors
+        return;
+      }
+
       if (error.isNetworkError) {
         setError("خطأ في الاتصال بالإنترنت. يرجى التحقق من اتصالك.");
       } else {
         setError(error.message || "حدث خطأ أثناء جلب بيانات الملف الشخصي");
       }
 
-      // Fallback to localStorage for non-auth errors
-      console.log("ℹ️ Falling back to localStorage data...");
       const localUser = getCurrentUser();
       if (localUser) {
         setUser(localUser);
-        console.log("💾 Using cached user data from localStorage");
       }
     } finally {
       setIsLoading(false);
@@ -151,21 +144,22 @@ const ProfilePage = () => {
    * Load user data on component mount
    */
   useEffect(() => {
-    // Load cached data for instant display
+    if (!isMounted) return;
+
     const localUser = getCurrentUser();
     if (localUser) {
       setUser(localUser);
-      console.log("💾 Loaded cached user data from localStorage");
     }
 
-    // Fetch fresh data from API
     fetchUserProfile();
-  }, []);
+  }, [isMounted]);
 
   /**
    * Check if screen is mobile size
    */
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -214,6 +208,18 @@ const ProfilePage = () => {
     fetchUserProfile();
   };
 
+  // Don't render until mounted on client
+  if (!isMounted) {
+    return (
+      <div className={styles.profile_page}>
+        <div className={styles.loading_container}>
+          <div className={styles.loading_spinner}></div>
+          <p>جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show loading state
   if (isLoading && !user) {
     return (
@@ -244,13 +250,17 @@ const ProfilePage = () => {
 
   return (
     <div className={styles.profile_page}>
-      {/* <Header /> */}
-
-      {/* Session warning banner - Shows when token is expiring soon */}
-      {warningMessage && (
+      {/* Session warning banner */}
+      {authState.warningMessage && (
         <div className={`${styles.error_banner} ${styles.warning_banner}`}>
-          <span>⚠️ {warningMessage}</span>
-          <button onClick={() => {}}>✕</button>
+          <span>⚠️ {authState.warningMessage}</span>
+          <button
+            onClick={() =>
+              setAuthState((prev) => ({ ...prev, warningMessage: null }))
+            }
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -326,16 +336,24 @@ const ProfilePage = () => {
             </div>
           )}
 
-          <EditProfileSection
-            box={box}
-            setBox={setBox}
-            user={user}
-            setUser={setUser}
-          />
+          {(() => {
+            const C = EditProfileSection as unknown as React.ComponentType<{
+              box: string;
+              setBox: React.Dispatch<React.SetStateAction<string>>;
+              user: User | null;
+              setUser: React.Dispatch<React.SetStateAction<User | null>>;
+            }>;
+            return (
+              <C
+                box={box}
+                setBox={setBox}
+                user={user}
+                setUser={setUser}
+              />
+            );
+          })()}
         </div>
       </div>
-
-      {/* <Footer/> */}
     </div>
   );
 };

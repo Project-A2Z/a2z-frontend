@@ -1,15 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
-import styles from './address.module.css';
 
-// Sample data for cities and areas
-const locationData: { [key: string]: string[] } = {
-  'القاهرة': ['المعادي', 'مصر الجديدة', 'الزمالك', 'وسط البلد', 'مدينة نصر', 'العباسية', 'شبرا'],
-  'الجيزة': ['الدقي', 'المهندسين', 'العجوزة', 'الهرم', 'بولاق الدكرور', 'إمبابة', 'الوراق'],
-  'الإسكندرية': ['سموحة', 'سيدي جابر', 'المنتزه', 'محرم بك', 'كرموز', 'الرمل', 'باكوس'],
-  'الشرقية': ['الزقازيق', 'بلبيس', 'أبو حماد', 'فاقوس', 'القرين', 'ديرب نجم', 'المطرية'],
-  'الأقصر': ['المنيل', 'الكرنك', 'طيبة', 'البياضية', 'العوامية', 'نجع الشيخ علي']
-};
+// styles
+import styles from '@/components/UI/Profile/leftSection/Address/address.module.css';
+
+
 
 interface DropdownProps {
   label: string;

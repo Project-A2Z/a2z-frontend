@@ -141,8 +141,8 @@ const getAuthHeaders = (): Record<string, string> => {
 
 // Get User Profile
 export const getUserProfile = async (): Promise<ProfileResponse> => {
-  console.log('🚀 Fetching user profile...');
-  console.log('🔧 Profile endpoint:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.PROFILE}`);
+  //console.log('🚀 Fetching user profile...');
+  //console.log('🔧 Profile endpoint:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.PROFILE}`);
 
   try {
     const headers = getAuthHeaders();
@@ -152,7 +152,7 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
       headers: headers,
     });
 
-    console.log('📥 Profile response status:', response.status);
+    //console.log('📥 Profile response status:', response.status);
 
     // Parse response
     let data;
@@ -163,21 +163,21 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
         data = await response.json();
       } else {
         const textData = await response.text();
-        console.log('📄 Non-JSON response:', textData);
+        //console.log('📄 Non-JSON response:', textData);
         try {
           data = JSON.parse(textData);
         } catch {
           data = { message: textData };
         }
       }
-      console.log('📄 Raw API response:', data);
+      //console.log('📄 Raw API response:', data);
     } catch (parseError) {
       console.error('❌ Failed to parse response:', parseError);
       throw new ProfileError('استجابة الخادم غير صحيحة');
     }
 
     if (!response.ok) {
-      console.log('❌ Failed to fetch profile with status:', response.status);
+      //console.log('❌ Failed to fetch profile with status:', response.status);
       
       let errorMessage = 'فشل في جلب بيانات الملف الشخصي';
       
@@ -227,18 +227,18 @@ export const getUserProfile = async (): Promise<ProfileResponse> => {
     }
 
     // 🔍 DEBUG: Log address information
-    console.log('🏠 Address fields after normalization:');
-    console.log('  - address:', userData.address?.length || 0, 'items');
-    console.log('  - addresses:', userData.addresses?.length || 0, 'items');
-    console.log('  - address data:', userData.address);
+    //console.log('🏠 Address fields after normalization:');
+    //console.log('  - address:', userData.address?.length || 0, 'items');
+    //console.log('  - addresses:', userData.addresses?.length || 0, 'items');
+    //console.log('  - address data:', userData.address);
 
-    console.log('✅ Profile fetched successfully!');
-    console.log('👤 User data:', userData);
+    //console.log('✅ Profile fetched successfully!');
+    //console.log('👤 User data:', userData);
     
     // Update user data in localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('user_data', JSON.stringify(userData));
-      console.log('💾 Profile data updated in localStorage');
+      //console.log('💾 Profile data updated in localStorage');
     }
     
     // Return in expected format
@@ -276,19 +276,19 @@ export const debugAddresses = async (): Promise<void> => {
     }
 
     // 1. Check profile endpoint
-    console.log('\n1️⃣ Checking profile endpoint...');
+    //console.log('\n1️⃣ Checking profile endpoint...');
     const profileRes = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.PROFILE}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const profileData = await profileRes.json();
-    console.log('Profile response:', JSON.stringify(profileData, null, 2));
+    //console.log('Profile response:', JSON.stringify(profileData, null, 2));
     
     const userData = profileData.data?.user || profileData.user;
-    console.log('Address count from profile:', userData?.address?.length || 0);
-    console.log('Address data:', userData?.address);
+    //console.log('Address count from profile:', userData?.address?.length || 0);
+    //console.log('Address data:', userData?.address);
 
     // 2. Check if there's a separate addresses endpoint
-    console.log('\n2️⃣ Checking addresses endpoint...');
+    //console.log('\n2️⃣ Checking addresses endpoint...');
     try {
       const addressRes = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.ADDRESSES}`, {
         headers: { 
@@ -299,21 +299,21 @@ export const debugAddresses = async (): Promise<void> => {
       
       if (addressRes.ok) {
         const addressData = await addressRes.json();
-        console.log('Addresses endpoint response:', JSON.stringify(addressData, null, 2));
+        //console.log('Addresses endpoint response:', JSON.stringify(addressData, null, 2));
       } else {
-        console.log('Addresses endpoint status:', addressRes.status);
+        //console.log('Addresses endpoint status:', addressRes.status);
       }
     } catch (err) {
-      console.log('Addresses endpoint error:', err);
+      //console.log('Addresses endpoint error:', err);
     }
 
     // 3. Check localStorage
-    console.log('\n3️⃣ Checking localStorage...');
+    //console.log('\n3️⃣ Checking localStorage...');
     const localUserData = localStorage.getItem('user_data');
     if (localUserData) {
       const localUser = JSON.parse(localUserData);
-      console.log('localStorage address count:', localUser?.address?.length || 0);
-      console.log('localStorage address data:', localUser?.address);
+      //console.log('localStorage address count:', localUser?.address?.length || 0);
+      //console.log('localStorage address data:', localUser?.address);
     }
 
   } catch (error) {
@@ -439,7 +439,7 @@ export const updateUserProfileWithValidation = async (
 // Update the updatePassword function in profile.ts
 
 export const updatePassword = async (passwordData: UpdatePasswordData): Promise<{ status: string; message: string }> => {
-  console.log('🚀 Updating password...');
+  //console.log('🚀 Updating password...');
 
   try {
     const headers = getAuthHeaders();
@@ -451,10 +451,10 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
       // Note: confirmPassword is not sent to API (frontend validation only)
     };
     
-    console.log('📤 Sending password update with payload:', { 
-      OldPassword: '***', 
-      NewPassword: '***' 
-    });
+    //console.log('📤 Sending password update with payload:', { 
+    //   OldPassword: '***', 
+    //   NewPassword: '***' 
+    // });
     
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.UPDATE_PASSWORD}`, {
       method: 'PATCH',
@@ -462,12 +462,12 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
       body: JSON.stringify(apiPayload), // Send mapped payload
     });
 
-    console.log('📥 Password update response status:', response.status);
+    //console.log('📥 Password update response status:', response.status);
 
     let data;
     try {
       data = await response.json();
-      console.log('📄 Password update response:', data);
+      //console.log('📄 Password update response:', data);
     } catch (parseError) {
       console.error('❌ Failed to parse response:', parseError);
       throw new ProfileError('استجابة الخادم غير صحيحة');
@@ -493,7 +493,7 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
       throw new ProfileError(errorMessage, response.status);
     }
 
-    console.log('✅ Password updated successfully!');
+    //console.log('✅ Password updated successfully!');
     return data;
 
   } catch (error: any) {
@@ -511,8 +511,8 @@ export const updatePassword = async (passwordData: UpdatePasswordData): Promise<
   }
 };
 export const addAddress = async (addressData: AddAddressData): Promise<ProfileResponse> => {
-  console.log('🚀 Adding new address...');
-  console.log('📤 Address data:', addressData);
+  //console.log('🚀 Adding new address...');
+  //console.log('📤 Address data:', addressData);
 
   try {
     const headers = getAuthHeaders();
@@ -523,12 +523,12 @@ export const addAddress = async (addressData: AddAddressData): Promise<ProfileRe
       body: JSON.stringify(addressData),
     });
 
-    console.log('📥 Add address response status:', response.status);
+    //console.log('📥 Add address response status:', response.status);
 
     let data;
     try {
       data = await response.json();
-      console.log('📄 Add address response:', data);
+      //console.log('📄 Add address response:', data);
     } catch (parseError) {
       throw new ProfileError('استجابة الخادم غير صحيحة');
     }
@@ -550,7 +550,7 @@ export const addAddress = async (addressData: AddAddressData): Promise<ProfileRe
       throw new ProfileError(errorMessage, response.status);
     }
 
-    console.log('✅ Address added successfully!');
+    //console.log('✅ Address added successfully!');
     
     // Update user data in localStorage with address normalization
     if (data.data && data.data.user && typeof window !== 'undefined') {
@@ -575,7 +575,7 @@ export const addAddress = async (addressData: AddAddressData): Promise<ProfileRe
 };
 
 export const updateAddress = async (addressData: UpdateAddressData): Promise<ProfileResponse> => {
-  console.log('🚀 Updating address...');
+  //console.log('🚀 Updating address...');
   
   try {
     const headers = getAuthHeaders();
@@ -597,7 +597,7 @@ export const updateAddress = async (addressData: UpdateAddressData): Promise<Pro
       throw new ProfileError(data?.message || 'فشل في تحديث العنوان', response.status);
     }
 
-    console.log('✅ Address updated successfully!');
+    //console.log('✅ Address updated successfully!');
     
     if (data.data && data.data.user && typeof window !== 'undefined') {
       const userData = data.data.user;
@@ -618,7 +618,7 @@ export const updateAddress = async (addressData: UpdateAddressData): Promise<Pro
 };
 
 export const deleteAddress = async (addressId: string): Promise<ProfileResponse> => {
-  console.log('🚀 Deleting address...');
+  //console.log('🚀 Deleting address...');
   
   try {
     const headers = getAuthHeaders();
@@ -640,7 +640,7 @@ export const deleteAddress = async (addressId: string): Promise<ProfileResponse>
       throw new ProfileError(data?.message || 'فشل في حذف العنوان', response.status);
     }
 
-    console.log('✅ Address deleted successfully!');
+    //console.log('✅ Address deleted successfully!');
     
     if (data.data && data.data.user && typeof window !== 'undefined') {
       const userData = data.data.user;

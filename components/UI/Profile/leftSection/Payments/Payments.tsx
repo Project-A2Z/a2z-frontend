@@ -1,5 +1,6 @@
 import React from 'react';
-import styles from './Payments.module.css';
+//styles
+import styles from '@/components/UI/Profile/leftSection/Payments/Payments.module.css';
 import { useRouter } from 'next/navigation';
 
 // Payment record data type
@@ -51,7 +52,7 @@ const mockPaymentRecords: PaymentRecord[] = [
 const PaymentRecords: React.FC = () => {
     const router = useRouter()
   const handleViewDetails = (orderNumber: string) => {
-    // console.log(`Viewing details for record: ${recordId}`);
+    // //console.log(`Viewing details for record: ${recordId}`);
     router.push(`/order/${orderNumber}`)
     
   };

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Alert from "./../UI/Alert/alert";
+import Alert from "@/components/UI/Alert/alert";
 import AlertHandlerService, { AlertConfig } from "@/services/Utils/alertHandler";
 
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from 'next/navigation';
 import styles from './Checkout.module.css';
 
@@ -45,9 +45,9 @@ interface CheckoutData {
 }
 
 // -------------------------
-// Component
+// Component that uses useSearchParams
 // -------------------------
-const Checkout: React.FC = () => {
+const CheckoutContent: React.FC = () => {
   const searchParams = useSearchParams();
 
   // UI state
@@ -122,7 +122,6 @@ const Checkout: React.FC = () => {
 
     try {
       if (!AddressService.isAuthenticated()) {
-        console.warn('⚠️ User not authenticated, using empty addresses');
         setAddresses([]);
         setDef(null);
         return;
@@ -147,7 +146,6 @@ const Checkout: React.FC = () => {
       }
 
     } catch (err: any) {
-      console.error('❌ Error loading addresses:', err);
       setAddressError(err.message || 'فشل تحميل العناوين');
     } finally {
       setIsLoadingAddresses(false);
@@ -165,7 +163,7 @@ const Checkout: React.FC = () => {
         const parsed: CheckoutData = JSON.parse(decoded);
         setCheckoutData(parsed);
       } catch (err) {
-        console.error('❌ Failed to parse checkout data:', err);
+        console.error('Failed to parse checkout data:', err);
       }
     }
   }, [searchParams]);
@@ -203,7 +201,6 @@ const Checkout: React.FC = () => {
   }
 
   const { totalItemQuantity: itemCount, total, order } = checkoutData;
-  console.log('Checkout Data:', checkoutData);
 
   // -------------------------
   // UI: Main Checkout Layout
@@ -277,6 +274,42 @@ const Checkout: React.FC = () => {
         />
       </div>
     </div>
+  );
+};
+
+// -------------------------
+// Main Component with Suspense
+// -------------------------
+const Checkout: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '400px',
+        gap: '16px'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{ color: '#666', fontSize: '16px' }}>جاري تحميل صفحة الدفع...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 };
 

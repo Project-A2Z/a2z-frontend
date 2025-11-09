@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import styles from './order.module.css'
 
-export type OrderStatus = 'pending' | 'reviewed' | 'Under review' | 'shipped' | 'delivered';
+//styles
+import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
+
+
+export type OrderStatus = "Under review" | "reviewed" | "prepared" | "shipped" | "delivered" | "cancelled";
 
 interface OrderStatusStepperProps {
   currentStatus: OrderStatus;
@@ -10,7 +13,7 @@ interface OrderStatusStepperProps {
 
 const statusSteps: { key: OrderStatus; label: string }[] = [
   {
-    key: 'pending',
+    key: 'Under review',
     label: 'قيد المراجعة'
   },
   {
@@ -18,7 +21,7 @@ const statusSteps: { key: OrderStatus; label: string }[] = [
     label: 'تمت المراجعة'
   },
   {
-    key: 'Under review',
+    key: 'prepared',
     label: 'تم التجهيز'
   },
   {
@@ -28,6 +31,10 @@ const statusSteps: { key: OrderStatus; label: string }[] = [
   {
     key: 'delivered',
     label: 'تم التسليم'
+  },
+  {
+    key: 'cancelled',
+    label: 'ملغي'
   }
 ];
 
@@ -41,14 +48,14 @@ export default function OrderStatusStepper({
   currentStatus = 'delivered',
   onStatusUpdate 
 }: OrderStatusStepperProps) {
-  console.log('Component props - currentStatus:', currentStatus, 'typeof:', typeof currentStatus);
+  //console.log('Component props - currentStatus:', currentStatus, 'typeof:', typeof currentStatus);
   
   const [activeStatus, setActiveStatus] = useState<OrderStatus>(currentStatus);
 
   const getCurrentStepIndex = (status: OrderStatus): number => {
     const index = statusSteps.findIndex(step => step.key === status);
-    console.log(`getCurrentStepIndex for "${status}":`, index);
-    console.log('Available steps:', statusSteps.map(s => s.key));
+    //console.log(`getCurrentStepIndex for "${status}":`, index);
+    //console.log('Available steps:', statusSteps.map(s => s.key));
     
     // Fallback: if status not found, return 0 (first step)
     return index === -1 ? 0 : index;
@@ -87,8 +94,8 @@ export default function OrderStatusStepper({
   };
 
   // Debug logging to help understand the issue
-  console.log('Current Status:', currentStatus, 'Index:', currentStepIndex);
-  console.log('Active Status:', activeStatus, 'Index:', activeStepIndex);
+  //console.log('Current Status:', currentStatus, 'Index:', currentStepIndex);
+  //console.log('Active Status:', activeStatus, 'Index:', activeStepIndex);
 
   return (
     <div className={styles.stepperContainer}>
@@ -111,12 +118,12 @@ export default function OrderStatusStepper({
           const shouldShowCheckIcon = stepState === 'complete' || stepState === 'active';
 
           // Debug logging for each step
-          console.log(`Step ${index} (${step.key}):`, {
-            stepState,
-            shouldShowCheckIcon,
-            isClickable,
-            connectorActive
-          });
+          //console.log(`Step ${index} (${step.key}):`, {
+          //   stepState,
+          //   shouldShowCheckIcon,
+          //   isClickable,
+          //   connectorActive
+          // });
 
           return (
             <React.Fragment key={step.key}>

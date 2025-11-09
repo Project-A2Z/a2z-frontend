@@ -1,5 +1,7 @@
 import React from "react";
-import styles from './order.module.css'
+
+//styles
+import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
 
 interface InfoCardProps {
     orderNumber: string;

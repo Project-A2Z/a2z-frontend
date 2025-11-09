@@ -1,10 +1,8 @@
 import React from 'react';
-import styles from './Footer.module.css';
-import ContactSection from './Sections/ContactSection/ContactSection';
-import QuickLinks from './Sections/QuickLinksSection/QuickLinks';
-import CategoriesSection from './Sections/CategoriesSection/CategoriesSection';
-import AboutUsSection from './Sections/AboutUsSection/AboutUsSection';
-import MobileNavigation from './Sections/MobileNavigation/MobileNavigation';
+import ContactSection from '@/pages/HomePage/sections/FooterSection/Sections/ContactSection/ContactSection';
+import QuickLinks from '@/pages/HomePage/sections/FooterSection/Sections/QuickLinksSection/QuickLinks';
+import CategoriesSection from '@/pages/HomePage/sections/FooterSection/Sections/CategoriesSection/CategoriesSection';
+import AboutUsSection from '@/pages/HomePage/sections/FooterSection/Sections/AboutUsSection/AboutUsSection';
 
 const Footer = () => {
   return (
@@ -47,8 +45,7 @@ const Footer = () => {
         </div>
       </div>
       
-      {/* Mobile Navigation */}
-      {/* <MobileNavigation /> */}
+    
     </footer>
   );
 };

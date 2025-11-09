@@ -1,9 +1,13 @@
 'use client'
 import React, { useState, useEffect } from "react"
-import styles from './Style.module.css'
-import { Button } from './../Buttons/Button' 
-import Input from './../Inputs/Input'
-import Alert, { AlertButton } from './../Alert/alert'
+
+//styles
+import styles from '@/components/UI/Chekout/Style.module.css'
+
+//components
+import { Button } from '@/components/UI/Buttons/Button' 
+import Input from '@/components/UI/Inputs/Input'
+import Alert, { AlertButton } from '@/components/UI/Alert/alert'
 
 interface FormData {
     opId: string;
@@ -89,7 +93,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     }
 
     const handleSubmit = () => {
-         console.log('way:', way, 'paymentWith:', paymentWith)
+         //console.log('way:', way, 'paymentWith:', paymentWith)
 
     if (!transactionId || !transactionDate || !receiptFile) {
         showAlert('يرجى ملء جميع الحقول المطلوبة', 'warning')
@@ -97,21 +101,21 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     }
 
     if (!paymentWith) {
-        console.log('❗ Missing paymentWith')
+        //console.log('❗ Missing paymentWith')
         showAlert('يرجى اختيار وسيلة الدفع', 'warning')
         return
     }
         setIsConfirmed(true)
         
-        console.log('✅ Form confirmed:', {
-            id: transactionId,
-            date: transactionDate,
-            price: price,
-            file: receiptFile.name,
-            paymentWith: paymentWith || 'N/A',
-            way: way,
-            image: receiptFile
-        })
+        //console.log('✅ Form confirmed:', {
+        //     id: transactionId,
+        //     date: transactionDate,
+        //     price: price,
+        //     file: receiptFile.name,
+        //     paymentWith: paymentWith || 'N/A',
+        //     way: way,
+        //     image: receiptFile
+        // })
     }
 
     const handleEdit = () => {
@@ -227,17 +231,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                                     </div>
                                 ) : (
                                     <div className={styles.uploadPlaceholder}>
-                                        <svg 
-                                            width="48" 
-                                            height="48" 
-                                            viewBox="0 0 24 24" 
-                                            fill="none" 
-                                            stroke="currentColor"
-                                        >
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                        </svg>
+                                        
                                         <span>اضغط لرفع صورة الإيصال</span>
                                         <span className={styles.fileNote}>
                                             (PNG, JPG, JPEG - حجم أقصى 5MB)

@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
-import { Button } from './../Buttons/Button';
-import styles from './alert.module.css';
+import { Button } from '@/components/UI/Buttons/Button';
+import styles from '@/components/UI/Alert/alert.module.css';
 
 export interface AlertButton {
   label: string;

@@ -7,9 +7,10 @@ import Alert from '@/components/UI/Alert/alert';
 
 type Props = {
   productId: string;
+  onReviewAdded?: () => Promise<void>; // ✅ Added this line
 };
 
-const Reviews: React.FC<Props> = ({ productId }) => {
+const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => { // ✅ Added onReviewAdded to destructuring
   const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
             const payload = JSON.parse(atob(storedToken.split('.')[1]));
             setUserId(payload.userId || payload.id || null);
           } catch (error) {
-            console.error('Error decoding token:', error);
+            //console.error('Error decoding token:', error);
             setUserId(null);
             setAuthToken(null);
           }
@@ -91,11 +92,11 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       
       // Show message if there was an issue but we got empty results
       if (response.message && fetchedReviews.length === 0 && response.message !== 'success') {
-        console.warn('⚠️ Reviews loaded with warning:', response.message);
+        //console.warn('⚠️ Reviews loaded with warning:', response.message);
         // Don't set error, just log it - the app will show "no reviews" message
       }
     } catch (err: any) {
-      // console.error('❌ Get reviews error:', err);
+      // //console.error('❌ Get reviews error:', err);
       // This should rarely happen now since API returns empty data instead of throwing
       setReviews([]);
       setError(null); // Don't show error, just show empty state
@@ -113,7 +114,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
   const handleAddReview = async () => {
     if (!newReview.description?.trim() || submitting || hasUserReview || !authToken) {
       if (!authToken) {
-        // console.log('❌ No auth token found');
+        // //console.log('❌ No auth token found');
         setError('يرجى تسجيل الدخول أولاً لإضافة تقييم');
       } else if (hasUserReview) {
         setError('لقد قمت بإضافة تقييم لهذا المنتج بالفعل');
@@ -121,19 +122,24 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       return;
     }
 
-    // console.log('🚀 Attempting to add review...');
-    // console.log('📦 Review data:', newReview);
-    // console.log('🔑 Auth token:', authToken.substring(0, 20) + '...');
+    // //console.log('🚀 Attempting to add review...');
+    // //console.log('📦 Review data:', newReview);
+    // //console.log('🔑 Auth token:', authToken.substring(0, 20) + '...');
 
     try {
       setSubmitting(true);
       setError(null); // Clear any previous errors
       await reviewService.addReview(newReview, authToken);
-      // console.log('✅ Review added successfully');
+      // //console.log('✅ Review added successfully');
       setNewReview({ productId, description: '', rateNum: 5 });
       await refreshReviews();
+      
+      // ✅ Call the callback to update parent component's ratings
+      if (onReviewAdded) {
+        await onReviewAdded();
+      }
     } catch (err: any) {
-      // console.error('❌ Add review error:', err);
+      // //console.error('❌ Add review error:', err);
       const errorMessage = err.message || 'فشل في إضافة التعليق';
 
       // Handle specific error cases
@@ -197,8 +203,13 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       setEditingId(null);
       setEditForm({ description: '', rateNum: 5 });
       await refreshReviews();
+      
+      // ✅ Call the callback to update parent component's ratings
+      if (onReviewAdded) {
+        await onReviewAdded();
+      }
     } catch (err: any) {
-      // console.error('Update review error:', err);
+      // //console.error('Update review error:', err);
       const errorMessage = err.message || 'فشل في تحديث التعليق';
 
       // Handle specific error cases
@@ -263,14 +274,19 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       await reviewService.deleteReview(deleteTargetId, productId, authToken);
 
       // Immediately refresh the list after successful delete
-      console.log('✅ Review deleted, refreshing list...');
+      //console.log('✅ Review deleted, refreshing list...');
       await refreshReviews();
+
+      // ✅ Call the callback to update parent component's ratings
+      if (onReviewAdded) {
+        await onReviewAdded();
+      }
 
       // Clear all states
       setError(null);
       setConfirmDeleteOpen(false);
       setDeleteTargetId(null);
-      console.log('✅ Delete completed successfully');
+      //console.log('✅ Delete completed successfully');
 
     } catch (err: any) {
       const errorMessage = err.message || 'فشل في حذف التعليق';
@@ -288,7 +304,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       }
 
       // Always refresh the list even on error to sync with backend state
-      console.log('⚠️ Delete failed, but refreshing list to sync state...');
+      //console.log('⚠️ Delete failed, but refreshing list to sync state...');
       await refreshReviews();
 
     } finally {
@@ -437,7 +453,7 @@ const Reviews: React.FC<Props> = ({ productId }) => {
                           <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                           <span className="text-xs sm:text-sm font-medium text-primary">رد من الإدارة</span>
                         </div>
-                        <p className="text-xs sm:text-sm text-primary/80 break-words">{review.reply}</p>
+                        <p className="text-sm sm:text-base text-primary/80 break-words">{review.reply}</p>
                       </div>
                     )}
                   </div>

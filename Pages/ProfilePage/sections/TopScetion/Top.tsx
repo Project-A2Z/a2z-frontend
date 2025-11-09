@@ -1,26 +1,30 @@
-"use client";
 import React from 'react';
-import styles from './../../profile.module.css';
-import MetricCard from '../../../../components/UI/Profile/MeticsCard';
+import styles from './../../profile.module.css'; 
+import MetricCard from '@/components/UI/Profile/MeticsCard'; 
+
+interface Metric {
+  icon: React.ReactNode;
+  number: number;
+  title: string;
+  className?: string;
+  onClick?: () => void;
+}
 
 interface TopMetricsProps {
-  metrics: Array<{
-    icon: React.ReactNode;
-    number: string | number ;
-    title: string;
-    className?: string;
-    onClick?: () => void;
-  }>;
+  metrics?: Metric[];
   className?: string;
 }
 
-const TopMetrics: React.FC<TopMetricsProps> = ({
-  metrics,
-  className = ''
+const TopMetrics: React.FC<TopMetricsProps> = ({ 
+  metrics = [], 
+  className = '' 
 }) => {
+  // Ensure metrics is always an array
+  const safeMetrics = Array.isArray(metrics) ? metrics : [];
+
   return (
     <div className={styles.top_metrics}>
-      {metrics.map((metric, index) => (
+      {safeMetrics.map((metric, index) => (
         <MetricCard
           key={index}
           icon={metric.icon}
@@ -34,4 +38,4 @@ const TopMetrics: React.FC<TopMetricsProps> = ({
   );
 };
 
-export default TopMetrics;
+export default React.memo(TopMetrics);

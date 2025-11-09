@@ -85,10 +85,10 @@ export const getNotifications = async (
     }
 
     const data: NotificationsResponse = await response.json();
-    console.log('✅ Fetched notifications:', data);
+    //console.log('✅ Fetched notifications:', data);
     return data;
   } catch (error) {
-    console.error('❌ Error fetching notifications:', error);
+    //console.error('❌ Error fetching notifications:', error);
     throw error;
   }
 };
@@ -119,9 +119,9 @@ export const markNotificationAsRead = async (notificationId: string): Promise<vo
       throw new Error(`Failed to mark notification as read: ${response.status}`);
     }
 
-    console.log('✅ Notification marked as read');
+    //console.log('✅ Notification marked as read');
   } catch (error) {
-    console.error('❌ Error marking notification as read:', error);
+    //console.error('❌ Error marking notification as read:', error);
     throw error;
   }
 };
@@ -153,10 +153,10 @@ export const markAllNotificationsAsRead = async (): Promise<{ updatedCount: numb
     }
 
     const result = await response.json();
-    console.log('✅ All notifications marked as read:', result);
+    //console.log('✅ All notifications marked as read:', result);
     return result.data;
   } catch (error) {
-    console.error('❌ Error marking all notifications as read:', error);
+    //console.error('❌ Error marking all notifications as read:', error);
     throw error;
   }
 };
@@ -187,9 +187,9 @@ export const deleteNotification = async (notificationId: string): Promise<void> 
       throw new Error(`Failed to delete notification: ${response.status}`);
     }
 
-    console.log('✅ Notification deleted');
+    //console.log('✅ Notification deleted');
   } catch (error) {
-    console.error('❌ Error deleting notification:', error);
+    //console.error('❌ Error deleting notification:', error);
     throw error;
   }
 };
@@ -221,10 +221,10 @@ export const deleteAllNotifications = async (): Promise<{ deletedCount: number }
     }
 
     const result = await response.json();
-    console.log('✅ All notifications deleted:', result);
+    //console.log('✅ All notifications deleted:', result);
     return result.data;
   } catch (error) {
-    console.error('❌ Error deleting all notifications:', error);
+    //console.error('❌ Error deleting all notifications:', error);
     throw error;
   }
 };
@@ -237,7 +237,7 @@ export const getUnreadNotificationsCount = async (): Promise<number> => {
     const response = await getNotifications({ limit: 1 });
     return response.unreadCount;
   } catch (error) {
-    console.error('❌ Error fetching unread count:', error);
+    //console.error('❌ Error fetching unread count:', error);
     return 0;
   }
 };

@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Overview from './Sections/Overview';
-import TopNav from './Sections/TopNav';
-import Specs, { Spec } from './Sections/Specs';
-import Ratings from './Sections/Ratings';
-import Reviews from './Sections/Reviews';
+import Overview from '@/pages/ProductPage/Sections/Overview';
+import Specs, { Spec } from '@/pages/ProductPage/Sections/Specs';
+import Ratings from '@/pages/ProductPage/Sections/Ratings';
+import Reviews from '@/pages/ProductPage/Sections/Reviews';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 
 export type ProductData = {

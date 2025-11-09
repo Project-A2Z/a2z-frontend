@@ -1,8 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import styles from './../profile.module.css';
-import { logoutUser, AuthService } from './../../../../services/auth/login';
+
+//styles
+import styles from '@/components/UI/Profile/profile.module.css';
+
 
 export interface User {
   _id: string;

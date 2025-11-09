@@ -42,7 +42,7 @@ const Ratings: React.FC<Props> = ({
           setError('فشل في تحميل التقييمات');
         }
       } catch (err) {
-        console.error('Error fetching reviews:', err);
+        //console.error('Error fetching reviews:', err);
         setError('فشل في تحميل التقييمات');
       } finally {
         setLoading(false);

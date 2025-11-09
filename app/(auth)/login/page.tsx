@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { Eye, EyeOff } from 'lucide-react';
@@ -13,7 +13,8 @@ import styles from './../auth.module.css';
 import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
 import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
 
-export default function LoginForm() {
+// Component that uses useSearchParams
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -34,7 +35,7 @@ export default function LoginForm() {
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
-  // ✅ MODIFIED: Better session handling with event dispatch
+  // Better session handling with event dispatch
   useEffect(() => {
     const handleSocialAuth = async () => {
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -46,33 +47,26 @@ export default function LoginForm() {
       if (storedToken && storedUser && storedExpiry) {
         const isValid = Date.now() < parseInt(storedExpiry, 10);
         if (isValid) {
-          console.log('✅ Valid auth data in localStorage, redirecting...');
           router.push('/');
           return;
         } else {
-          console.log('⚠️ Token expired in localStorage, clearing...');
           UserStorage.removeUser();
         }
       }
       
       if (session?.backendToken && session?.user?.backendUser) {
-        console.log('✅ Backend token found in session, saving to localStorage...');
-        
         UserStorage.saveUser(session.user.backendUser);
         UserStorage.saveToken(session.backendToken);
         
-        // ✅ NEW: Dispatch custom event to notify Header
+        // Dispatch custom event to notify Header
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authUpdated'));
-          console.log('📢 Auth update event dispatched');
         }
         
         AuthService.startTokenMonitoring(() => {
-          console.log('🔒 Token expired - redirecting to login');
           router.push('/login');
         });
         
-        console.log('✅ Token saved with expiry, redirecting to home...');
         router.push('/');
         return;
       }
@@ -86,7 +80,6 @@ export default function LoginForm() {
   useEffect(() => {
     const error = searchParams?.get('error');
     if (error) {
-      console.error('OAuth error:', error);
       let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
       
       if (error === 'OAuthCallback') {
@@ -158,11 +151,10 @@ export default function LoginForm() {
     try {
       const response = await AuthService.login(formData);
       
-      // ✅ NEW: Dispatch event after successful login
+      // Dispatch event after successful login
       if (response.status === 'success') {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authUpdated'));
-          console.log('📢 Auth update event dispatched after login');
         }
         router.push('/');
       } else {
@@ -170,8 +162,6 @@ export default function LoginForm() {
         setShowVerificationAlert(true);
       }
     } catch (error) {
-      console.error('Login error:', error);
-      
       if (error instanceof AuthError) {
         setAlertMessage(error.message);
       } else {
@@ -188,22 +178,18 @@ export default function LoginForm() {
       setIsLoading(true);
       setErrors({});
       
-      console.log('🔵 Starting Google Sign-In...');
-      
       const result = await signIn('google', { 
         redirect: true,
         callbackUrl: '/'  
       });
       
       if (result?.error) {
-        console.error('Google sign-in error:', result.error);
         setAlertMessage('فشل تسجيل الدخول عبر Google');
         setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
-      console.error('Google login error:', error);
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
       setShowErrorAlert(true);
       setIsLoading(false);
@@ -215,22 +201,18 @@ export default function LoginForm() {
       setIsLoading(true);
       setErrors({});
       
-      console.log('🔵 Starting Facebook Sign-In...');
-      
       const result = await signIn('facebook', { 
         redirect: true,
         callbackUrl: '/'  
       });
       
       if (result?.error) {
-        console.error('Facebook sign-in error:', result.error);
         setAlertMessage('فشل تسجيل الدخول عبر Facebook');
         setShowErrorAlert(true);
         setIsLoading(false);
       }
       
     } catch (error) {
-      console.error('Facebook login error:', error);
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
       setShowErrorAlert(true);
       setIsLoading(false);
@@ -402,5 +384,42 @@ export default function LoginForm() {
         />
       )}
     </>
+  );
+}
+
+// Main component with Suspense
+export default function LoginForm() {
+  return (
+    <Suspense fallback={
+      <>
+        <Background />
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          gap: '16px'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ color: '#666', fontSize: '16px' }}>جاري التحميل...</p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </>
+    }>
+      <LoginFormContent />
+    </Suspense>
   );
 }

@@ -78,7 +78,7 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
         setProducts([]);
       }
     } catch (err) {
-      console.error('Error fetching related products:', err);
+      //console.error('Error fetching related products:', err);
       setError('حدث خطأ أثناء تحميل المنتجات المتعلقة');
       setProducts([]);
     } finally {

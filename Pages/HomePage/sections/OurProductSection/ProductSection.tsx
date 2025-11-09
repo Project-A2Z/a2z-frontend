@@ -1,6 +1,6 @@
 // app/products/page.tsx (For Next.js 13+ App Router)
 import { Metadata } from 'next';
-import OptimizedProductSection from '@/Pages/HomePage/sections/OurProductSection/optimizer';
+import OptimizedProductSection from '@/pages/HomePage/sections/OurProductSection/optimizer';
 import { fetchAllProducts, ProductsResponse } from '@/services/product/products';
 
 // Metadata for SEO
@@ -22,15 +22,15 @@ async function getProducts(): Promise<{
   const startTime = Date.now();
   
   try {
-    console.log('🏗️  Fetching products for page...');
+    //console.log('🏗️  Fetching products for page...');
     
     const productsData = await fetchAllProducts();
     
     const loadTime = Date.now() - startTime;
-    console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
+    //console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
     
     if (!productsData.data || productsData.data.length === 0) {
-      console.warn('⚠️  No products found');
+      //console.warn('⚠️  No products found');
       
       return {
         data: {
@@ -47,7 +47,7 @@ async function getProducts(): Promise<{
       };
     }
     
-    console.log(`📦 Successfully loaded ${productsData.data.length} products`);
+    //console.log(`📦 Successfully loaded ${productsData.data.length} products`);
     
     return {
       data: productsData,
@@ -56,7 +56,7 @@ async function getProducts(): Promise<{
     };
   } catch (error) {
     const loadTime = Date.now() - startTime;
-    console.error(`❌ Error fetching products (after ${loadTime}ms):`, error);
+    //console.error(`❌ Error fetching products (after ${loadTime}ms):`, error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     
@@ -98,29 +98,3 @@ export default async function ProductsPage() {
     </div>
   );
 }
-
-// Optional: Generate static params if you have dynamic routes
-// export async function generateStaticParams() {
-//   return [];
-// }
-
-// Optional: Loading component
-// export function Loading() {
-//   return (
-//     <div style={{ padding: '40px', textAlign: 'center' }}>
-//       <div className="loader"></div>
-//       <p>جاري تحميل المنتجات...</p>
-//     </div>
-//   );
-// }
-
-// Optional: Error boundary
-// export function Error({ error, reset }: { error: Error; reset: () => void }) {
-//   return (
-//     <div style={{ padding: '40px', textAlign: 'center' }}>
-//       <h2>حدث خطأ!</h2>
-//       <p>{error.message}</p>
-//       <button onClick={reset}>المحاولة مرة أخرى</button>
-//     </div>
-//   );
-// }

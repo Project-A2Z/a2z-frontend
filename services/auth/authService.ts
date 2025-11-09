@@ -4,7 +4,7 @@ interface ResetPasswordParams {
 
 export const resetPassword = async (params: ResetPasswordParams): Promise<void> => {
     // TODO: Implement actual API call
-    console.log('Resetting password with:', params);
+    //console.log('Resetting password with:', params);
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));

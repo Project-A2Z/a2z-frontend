@@ -85,9 +85,9 @@ export class AddressCache {
     try {
       localStorage.setItem(STORAGE_KEYS.ADDRESSES, JSON.stringify(addresses));
       localStorage.setItem(STORAGE_KEYS.CACHE_TIMESTAMP, Date.now().toString());
-      console.log('💾 Addresses saved to cache:', addresses.length);
+      //console.log('💾 Addresses saved to cache:', addresses.length);
     } catch (error) {
-      console.error('❌ Error saving addresses to cache:', error);
+      //console.error('❌ Error saving addresses to cache:', error);
     }
   }
 
@@ -98,15 +98,15 @@ export class AddressCache {
     try {
       const cached = localStorage.getItem(STORAGE_KEYS.ADDRESSES);
       if (!cached) {
-        console.log('📭 No cached addresses found');
+        //console.log('📭 No cached addresses found');
         return null;
       }
 
       const addresses = JSON.parse(cached) as Address[];
-      console.log('📬 Retrieved cached addresses:', addresses.length);
+      //console.log('📬 Retrieved cached addresses:', addresses.length);
       return addresses;
     } catch (error) {
-      console.error('❌ Error reading addresses from cache:', error);
+      //console.error('❌ Error reading addresses from cache:', error);
       return null;
     }
   }
@@ -122,10 +122,10 @@ export class AddressCache {
       const cacheAge = Date.now() - parseInt(timestamp);
       const isValid = cacheAge < STORAGE_KEYS.CACHE_DURATION;
       
-      console.log(`🕐 Cache age: ${Math.round(cacheAge / 1000)}s, Valid: ${isValid}`);
+      //console.log(`🕐 Cache age: ${Math.round(cacheAge / 1000)}s, Valid: ${isValid}`);
       return isValid;
     } catch (error) {
-      console.error('❌ Error checking cache validity:', error);
+      //console.error('❌ Error checking cache validity:', error);
       return false;
     }
   }
@@ -137,9 +137,9 @@ export class AddressCache {
     try {
       localStorage.removeItem(STORAGE_KEYS.ADDRESSES);
       localStorage.removeItem(STORAGE_KEYS.CACHE_TIMESTAMP);
-      console.log('🗑️ Address cache cleared');
+      //console.log('🗑️ Address cache cleared');
     } catch (error) {
-      console.error('❌ Error clearing cache:', error);
+      //console.error('❌ Error clearing cache:', error);
     }
   }
 
@@ -149,9 +149,9 @@ export class AddressCache {
   static invalidate(): void {
     try {
       localStorage.removeItem(STORAGE_KEYS.CACHE_TIMESTAMP);
-      console.log('⚠️ Address cache invalidated');
+      //console.log('⚠️ Address cache invalidated');
     } catch (error) {
-      console.error('❌ Error invalidating cache:', error);
+      //console.error('❌ Error invalidating cache:', error);
     }
   }
 }
@@ -175,26 +175,26 @@ const getAuthHeaders = (): HeadersInit => {
  * Get all addresses (with caching)
  */
 export const getAddresses = async (forceRefresh = false): Promise<Address[]> => {
-  console.log('🚀 Getting addresses (forceRefresh:', forceRefresh, ')');
+  //console.log('🚀 Getting addresses (forceRefresh:', forceRefresh, ')');
 
   // Check cache first (unless force refresh)
   if (!forceRefresh && AddressCache.isValid()) {
     const cachedAddresses = AddressCache.get();
     if (cachedAddresses) {
-      console.log('✅ Returning cached addresses');
+      //console.log('✅ Returning cached addresses');
       return cachedAddresses;
     }
   }
 
   // Fetch from API
   try {
-    console.log('🌐 Fetching addresses from API...');
+    //console.log('🌐 Fetching addresses from API...');
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.ADDRESSES}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
-    console.log('📥 Response status:', response.status);
+    //console.log('📥 Response status:', response.status);
     const data = await response.json();
 
     if (response.status === 200) {
@@ -208,13 +208,13 @@ export const getAddresses = async (forceRefresh = false): Promise<Address[]> => 
       response.status
     );
   } catch (error: any) {
-    console.error('❌ Get addresses error:', error);
+    //console.error('❌ Get addresses error:', error);
     
     // If network error, try to return cached data even if expired
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       const cachedAddresses = AddressCache.get();
       if (cachedAddresses) {
-        console.log('⚠️ Network error, returning stale cached addresses');
+        //console.log('⚠️ Network error, returning stale cached addresses');
         return cachedAddresses;
       }
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -232,8 +232,8 @@ export const getAddresses = async (forceRefresh = false): Promise<Address[]> => 
  * Add a new address
  */
 export const addAddress = async (addressData: AddressData): Promise<AddAddressResponse> => {
-  console.log('🚀 Starting add address...');
-  console.log('📤 Address data:', addressData);
+  //console.log('🚀 Starting add address...');
+  //console.log('📤 Address data:', addressData);
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.ADDRESSES}`, {
@@ -242,11 +242,11 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
       body: JSON.stringify(addressData),
     });
 
-    console.log('📥 Response status:', response.status);
+    //console.log('📥 Response status:', response.status);
     const data = await response.json();
 
     if (response.status === 200) {
-      console.log('✅ Address added successfully!');
+      //console.log('✅ Address added successfully!');
       AlertHandler.success(data.message || 'تم إضافة العنوان بنجاح');
       
       // Update cache with new addresses
@@ -288,7 +288,7 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
-    console.error('❌ Add address error:', error);
+    //console.error('❌ Add address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -306,8 +306,8 @@ export const addAddress = async (addressData: AddressData): Promise<AddAddressRe
  * Update an existing address
  */
 export const updateAddress = async (updateData: UpdateAddressData): Promise<UpdateAddressResponse> => {
-  console.log('🚀 Starting update address...');
-  console.log('📤 Update data:', updateData);
+  //console.log('🚀 Starting update address...');
+  //console.log('📤 Update data:', updateData);
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.UPDATE_ADDRESS}`, {
@@ -316,11 +316,11 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
       body: JSON.stringify(updateData),
     });
 
-    console.log('📥 Response status:', response.status);
+    //console.log('📥 Response status:', response.status);
     const data = await response.json();
 
     if (response.status === 200) {
-      console.log('✅ Address updated successfully!');
+      //console.log('✅ Address updated successfully!');
       AlertHandler.success(data.message || 'تم تحديث العنوان بنجاح');
       
       // Update cache with updated addresses
@@ -361,7 +361,7 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
     throw new AddressError(errorMessage, response.status, false, data?.errors);
 
   } catch (error: any) {
-    console.error('❌ Update address error:', error);
+    //console.error('❌ Update address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -379,8 +379,8 @@ export const updateAddress = async (updateData: UpdateAddressData): Promise<Upda
  * Delete an address
  */
 export const deleteAddress = async (deleteData: DeleteAddressData): Promise<DeleteAddressResponse> => {
-  console.log('🚀 Starting delete address...');
-  console.log('📤 Delete data:', deleteData);
+  //console.log('🚀 Starting delete address...');
+  //console.log('📤 Delete data:', deleteData);
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.DELETE_ADDRESS}`, {
@@ -389,11 +389,11 @@ export const deleteAddress = async (deleteData: DeleteAddressData): Promise<Dele
       body: JSON.stringify(deleteData),
     });
 
-    console.log('📥 Response status:', response.status);
+    //console.log('📥 Response status:', response.status);
     const data = await response.json();
 
     if (response.status === 200) {
-      console.log('✅ Address deleted successfully!');
+      //console.log('✅ Address deleted successfully!');
       AlertHandler.success(data.message || 'تم حذف العنوان بنجاح');
       
       // Invalidate cache after deletion
@@ -427,7 +427,7 @@ export const deleteAddress = async (deleteData: DeleteAddressData): Promise<Dele
     throw new AddressError(errorMessage, response.status);
 
   } catch (error: any) {
-    console.error('❌ Delete address error:', error);
+    //console.error('❌ Delete address error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AddressError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);

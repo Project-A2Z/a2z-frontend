@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from './../../../Buttons/Button';
-import Input from './../../../Inputs/Input';
-import styles from './pass.module.css';
+import { Button } from '@/components/UI//Buttons/Button';
+import Input from '@/components/UI//Inputs/Input';
+import styles from '@/components/UI/Profile/leftSection/PassChange/pass.module.css';
 
 // Eye icons for password visibility toggle
 const EyeIcon = () => (

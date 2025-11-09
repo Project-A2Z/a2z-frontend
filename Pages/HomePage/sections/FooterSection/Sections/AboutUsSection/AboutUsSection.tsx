@@ -1,5 +1,5 @@
 import React from 'react'
-import LogoSection from "@/Pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
+import LogoSection from "@/pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
 
 const AboutUsSection = () => {
     return (

@@ -1,12 +1,18 @@
 'use client'
 import React, { useState } from "react";
-import styles from './Style.module.css'
-import { Button } from './../../UI/Buttons/Button'
+
+//styles
+import styles from '@/components/UI/Chekout/Style.module.css'
+
+//components
+import { Button } from '@/components/UI/Buttons/Button'
+import { PaymentData } from '@/components/UI/Chekout/Cash';
+import Alert, { AlertButton } from '@/components/UI/Alert/alert';
+
+//services
 import { useRouter } from 'next/navigation';
 import { orderService, CreateOrderData} from '@/services/checkout/order';
 import { getAuthToken } from '@/services/auth/login';
-import { PaymentData } from './Cash';
-import Alert, { AlertButton } from './../../UI/Alert/alert';
 
 interface Address {
     id: number;
@@ -117,12 +123,12 @@ const Summary: React.FC<SummaryInter> = ({
                 image: paymentData.image
             };
 
-            console.log('📦 Creating order:', orderData);
+            //console.log('📦 Creating order:', orderData);
 
             // Create order
             const response = await orderService.createOrder(orderData);
             
-            console.log('✅ Order created successfully:', response);
+            //console.log('✅ Order created successfully:', response);
 
             // Show success message with redirect
             showAlert(
@@ -151,7 +157,7 @@ const Summary: React.FC<SummaryInter> = ({
             setIsSubmitting(false);
         }
     };
-    console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
+    //console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
 
     return (
         <>
@@ -172,20 +178,24 @@ const Summary: React.FC<SummaryInter> = ({
 
                 {/* Row 1: Product count */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
-                    <span className={styles.details}>عدد المنتجات ({numberItems})</span>
-                    <span className={`${styles.price} notranslate`}>ج{Total}</span>
+                    <span className={styles.details}>عدد المنتجات </span>
+                    <span className={`${styles.price} notranslate `}>({numberItems})</span>
+                
+                    <span className={`${styles.price} `}>  {Total}  ج.م </span>
+                    {/* <span className={styles.currency}> ج.م </span> */}
                 </div>
 
                 {/* Row 2: Delivery */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
                     <span className={styles.details}>التوصيل</span>
-                    <span className={`${styles.price} notranslate`}>يتم التحديد من قبل أحد المسؤولين لاحقا</span>
+                    <span className={`${styles.price} `}>يتم التحديد من قبل أحد المسؤولين لاحقا</span>
                 </div>
 
                 {/* Row 3: Total */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px', borderTop: '1px solid var(--black16)', width: '100%' }}>
                     <span className={styles.details} style={{ fontWeight: 600 }}>الإجمالي</span>
-                    <span className={`${styles.price} notranslate`} style={{ fontWeight: 600, fontSize: '18px' }}>ج{Total + delivery}</span>
+                    <span className={`${styles.price} `} style={{ fontWeight: 600, fontSize: '18px' }}>{Total + delivery}  ج.م </span>
+                    {/* <span className={styles.currency} style={{ fontWeight: 600, fontSize: '18px' }}></span> */}
                 </div>
 
                 {error && (

@@ -1,6 +1,8 @@
 // MessageComponent.tsx
 import React from 'react';
-import styles from './Messages.module.css';
+
+// Styles
+import styles from '@/components/UI/Profile/leftSection/Messages/Messages.module.css';
 
 export type MessageComponentProps = {
   message: string;

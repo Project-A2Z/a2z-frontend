@@ -125,7 +125,7 @@ class UserStorage {
     
     // If token is expired, auto logout
     if (!isTokenValid) {
-      console.log('🔒 Token expired, auto logging out...');
+      //console.log('🔒 Token expired, auto logging out...');
       this.removeUser();
       return false;
     }
@@ -145,7 +145,7 @@ class UserStorage {
       // Save login time
       localStorage.setItem(STORAGE_KEYS.LOGIN_TIME, Date.now().toString());
       
-      console.log('💾 Token saved with expiry:', new Date(expiryTime).toLocaleString());
+      //console.log('💾 Token saved with expiry:', new Date(expiryTime).toLocaleString());
     }
   }
 
@@ -165,7 +165,7 @@ class UserStorage {
       }
       
       // ✅ FIX: Token expired - clear auth data
-      console.log('🔒 Token expired in getToken, clearing auth data...');
+      //console.log('🔒 Token expired in getToken, clearing auth data...');
       this.removeUser();
       
       return null;
@@ -270,7 +270,7 @@ class TokenExpirationMonitor {
     // ✅ FIX: Only start monitoring if there's actually a token to monitor
     const hasToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
     if (!hasToken) {
-      console.log('⚠️ No token found, skipping monitor start');
+      //console.log('⚠️ No token found, skipping monitor start');
       return;
     }
     
@@ -279,13 +279,13 @@ class TokenExpirationMonitor {
       // ✅ FIX: Double-check token exists before validating
       const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
       if (!token) {
-        console.log('⚠️ Token removed, stopping monitor');
+        //console.log('⚠️ Token removed, stopping monitor');
         this.stop();
         return;
       }
       
       if (!UserStorage.isTokenValid()) {
-        console.log('⏰ Token expired detected by monitor');
+        //console.log('⏰ Token expired detected by monitor');
         UserStorage.removeUser();
         
         if (this.onExpiry) {
@@ -296,18 +296,18 @@ class TokenExpirationMonitor {
       } else if (UserStorage.isTokenExpiringSoon()) {
         const remaining = UserStorage.getRemainingTime();
         const minutes = Math.floor(remaining / 60000);
-        console.log(`⚠️ Token expiring in ${minutes} minutes`);
+        //console.log(`⚠️ Token expiring in ${minutes} minutes`);
       }
     }, TOKEN_CONFIG.CHECK_INTERVAL_MS);
     
-    console.log('👁️ Token expiration monitor started');
+    //console.log('👁️ Token expiration monitor started');
   }
 
   stop() {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      console.log('🛑 Token expiration monitor stopped');
+      //console.log('🛑 Token expiration monitor stopped');
     }
   }
 }
@@ -317,14 +317,14 @@ const tokenMonitor = new TokenExpirationMonitor();
 
 // Enhanced Login function with better error handling
 export const loginUser = async (credentials: LoginCredentials): Promise<LoginResponse> => {
-  console.log('🚀 Starting login...');
-  console.log('🔧 API Base URL:', API_BASE_URL);
-  console.log('🔧 Login endpoint:', API_ENDPOINTS.AUTH.LOGIN);
-  console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`);
-  console.log('📤 Login credentials:', {
-    email: credentials.email,
-    password: '[HIDDEN]'
-  });
+  //console.log('🚀 Starting login...');
+  //console.log('🔧 API Base URL:', API_BASE_URL);
+  //console.log('🔧 Login endpoint:', API_ENDPOINTS.AUTH.LOGIN);
+  //console.log('🔧 Full URL:', `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`);
+  //console.log('📤 Login credentials:', {
+  //   email: credentials.email,
+  //   password: '[HIDDEN]'
+  // });
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, {
@@ -336,43 +336,43 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
       body: JSON.stringify(credentials),
     });
 
-    console.log('📥 Raw response:', response);
-    console.log('📊 Response status:', response.status);
-    console.log('📊 Response ok:', response.ok);
-    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+    //console.log('📥 Raw response:', response);
+    //console.log('📊 Response status:', response.status);
+    //console.log('📊 Response ok:', response.ok);
+    //console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
 
     // Try to parse response data
     let data;
     const contentType = response.headers.get('content-type');
-    console.log('📋 Content-Type:', contentType);
+    //console.log('📋 Content-Type:', contentType);
 
     try {
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
         const textData = await response.text();
-        console.log('📄 Non-JSON response:', textData);
+        //console.log('📄 Non-JSON response:', textData);
         try {
           data = JSON.parse(textData);
         } catch {
           data = { message: textData };
         }
       }
-      console.log('📄 Parsed response data:', data);
+      //console.log('📄 Parsed response data:', data);
     } catch (parseError) {
-      console.error('❌ Failed to parse response:', parseError);
+      //console.error('❌ Failed to parse response:', parseError);
       throw new AuthError('Server returned invalid response format');
     }
 
     if (!response.ok) {
-      console.log('❌ Login failed with status:', response.status);
+      //console.log('❌ Login failed with status:', response.status);
       
       let errorMessage = 'تسجيل الدخول فشل';
       let errorDetails = {};
 
       switch (response.status) {
         case 400:
-          console.log('🔍 400 Bad Request - analyzing response...');
+          //console.log('🔍 400 Bad Request - analyzing response...');
           if (data) {
             errorMessage = data.message || data.error || 'بيانات الطلب غير صحيحة';
             errorDetails = data.errors || data.validationErrors || data.data || {};
@@ -410,44 +410,44 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
           errorMessage = data?.message || `خطأ غير متوقع (${response.status})`;
       }
 
-      console.log('🔍 Final error message:', errorMessage);
-      console.log('🔍 Error details:', errorDetails);
+      //console.log('🔍 Final error message:', errorMessage);
+      //console.log('🔍 Error details:', errorDetails);
 
       throw new AuthError(errorMessage, response.status, false, errorDetails);
     }
 
     // Success case
-    console.log('✅ Login successful!');
-    console.log('🎉 Response data:', data);
+    //console.log('✅ Login successful!');
+    //console.log('🎉 Response data:', data);
 
     // Validate response structure
     if (data.status !== 'success') {
-      console.log('❌ Login failed - status is not success:', data.status);
+      //console.log('❌ Login failed - status is not success:', data.status);
       throw new AuthError(data.message || 'فشل تسجيل الدخول');
     }
 
     if (!data.data || !data.data.user || !data.data.token) {
-      console.log('❌ Invalid response structure:', data);
+      //console.log('❌ Invalid response structure:', data);
       throw new AuthError('استجابة الخادم غير صحيحة');
     }
 
     // Save user data and token to localStorage after successful login
-    console.log('💾 Saving user data and token to localStorage...');
+    //console.log('💾 Saving user data and token to localStorage...');
     UserStorage.saveUser(data.data.user);
     UserStorage.saveToken(data.data.token);
     saveAuthToken(data.data.token);
     
     // If there's a refresh token in the response, save it
     if (data.data.refreshToken) {
-      console.log('🔄 Saving refresh token...');
+      //console.log('🔄 Saving refresh token...');
       UserStorage.saveRefreshToken(data.data.refreshToken);
     }
 
-    console.log('✅ User data and token saved successfully!');
+    //console.log('✅ User data and token saved successfully!');
     
     // Start monitoring token expiration
     tokenMonitor.start(() => {
-      console.log('🔒 Token expired - user needs to login again');
+      //console.log('🔒 Token expired - user needs to login again');
       // Trigger custom event for components to listen to
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('tokenExpired'));
@@ -457,7 +457,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
     return data;
 
   } catch (error: any) {
-    console.error('❌ Login error:', error);
+    //console.error('❌ Login error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AuthError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -473,10 +473,10 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
 
 // Social login function
 export const socialLogin = async (socialData: SocialLoginData): Promise<LoginResponse> => {
-  console.log('🚀 Starting social login...');
-  console.log('🔧 Provider:', socialData.provider);
-  console.log('🔧 API Base URL:', API_BASE_URL);
-  console.log('🔧 Social login endpoint:', API_ENDPOINTS.AUTH.LOGIN_SOCIAL);
+  //console.log('🚀 Starting social login...');
+  //console.log('🔧 Provider:', socialData.provider);
+  //console.log('🔧 API Base URL:', API_BASE_URL);
+  //console.log('🔧 Social login endpoint:', API_ENDPOINTS.AUTH.LOGIN_SOCIAL);
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN_SOCIAL}`, {
@@ -503,7 +503,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
         }
       }
     } catch (parseError) {
-      console.error('❌ Failed to parse social login response:', parseError);
+      //console.error('❌ Failed to parse social login response:', parseError);
       throw new AuthError('Server returned invalid response format');
     }
 
@@ -531,7 +531,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
       throw new AuthError(errorMessage, response.status, false, errorDetails);
     }
 
-    console.log('✅ Social login successful!');
+    //console.log('✅ Social login successful!');
 
     if (data.status !== 'success') {
       throw new AuthError(data.message || 'فشل تسجيل الدخول الاجتماعي');
@@ -560,7 +560,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
     return data;
 
   } catch (error: any) {
-    console.error('❌ Social login error:', error);
+    //console.error('❌ Social login error:', error);
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new AuthError('خطأ في الشبكة - يرجى التحقق من اتصال الإنترنت', 0, true);
@@ -576,7 +576,7 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
 
 // Logout function
 export const logoutUser = async (): Promise<void> => {
-  console.log('🚪 Starting logout process...');
+  //console.log('🚪 Starting logout process...');
   
   try {
     // Stop token monitoring
@@ -585,10 +585,10 @@ export const logoutUser = async (): Promise<void> => {
     // Clear all authentication data
     UserStorage.removeUser();
     
-    console.log('✅ User logged out successfully');
+    //console.log('✅ User logged out successfully');
     
   } catch (error) {
-    console.error('❌ Error during logout:', error);
+    //console.error('❌ Error during logout:', error);
     UserStorage.removeUser();
     throw new Error('حدث خطأ أثناء تسجيل الخروج');
   }

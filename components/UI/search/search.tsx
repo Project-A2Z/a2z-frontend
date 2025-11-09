@@ -1,15 +1,19 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./search.module.css";
-import SearchIcon from "./../../../public/icons/search.svg";
+
+// Styles
+import styles from "@/components/UI/search/search.module.css";
+
+// Icons
+import SearchIcon from "@/public/icons/Search.svg";
 
 interface Product {
   id: string;
   name: string;
   category: string;
   price: number;
-  instock: boolean;
+  inStock: boolean;
   img: any; // or string if it's a URL
 }
 
@@ -55,6 +59,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     []
   );
 
+  // console.log("Search Component Data:", data);
+
   // Filter results based on search term
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -65,7 +71,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
       );
       setFilteredResults(filtered);
       setShowResults(true);
-      console.log("Filtered results:", filtered);
+      //console.log("Filtered results:", filtered);
     } else {
       setFilteredResults([]);
       setShowResults(false);
@@ -81,12 +87,12 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Searching for:", searchTerm);
+    //console.log("Searching for:", searchTerm);
     // Add your search logic here
   };
 
   const handleResultClick = (product: Product) => {
-    console.log("Selected product:", product);
+    //console.log("Selected product:", product);
     setSearchTerm(product.name);
     setShowResults(false);
 
@@ -144,22 +150,22 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                   <div
                     key={`${product.name}-${index}`}
                     className={`${styles.searchResultItem} ${
-                      !product.instock ? styles.outOfStock : ""
+                      !product.inStock ? styles.outOfStock : ""
                     }`}
                     onClick={() =>
                       {
                         handleResultClick(product)
-                        console.log("Clicked product:", product);
+                        //console.log("Clicked product:", product);
                       }
                     }
                   >
                     <div>
                       <div className={styles.resultTitle}>
                         {product.name}
-                        {!product.instock && (
+                        {!product.inStock && (
                           <span className={styles.outOfStockBadge}>
                             {" "}
-                            - غير متوفر
+                            {product.inStock}
                           </span>
                         )}
                       </div>
@@ -222,14 +228,14 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                 <div
                   key={`${product.name}-${index}`}
                   className={`${styles.searchResultItem} ${
-                    !product.instock ? styles.outOfStock : ""
+                    !product.inStock ? styles.outOfStock : ""
                   }`}
-                  onClick={() => product.instock && handleResultClick(product)}
+                  onClick={() => product.inStock && handleResultClick(product)}
                 >
                   <div>
                     <div className={styles.resultTitle}>
                       {product.name}
-                      {!product.instock && (
+                      {!product.inStock && (
                         <span className={styles.outOfStockBadge}>
                           {" "}
                           - غير متوفر

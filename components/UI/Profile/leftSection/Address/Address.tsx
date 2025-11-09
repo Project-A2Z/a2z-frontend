@@ -1,12 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from './../../../Buttons/Button';
-import Alert from './../../../Alert/alert';
-import styles from './address.module.css';
+
+//components
+import { Button } from '@/components/UI/Buttons/Button';
+import Alert from '@/components/UI/Alert/alert';
+
+//services
 import { useRouter } from 'next/navigation';
-import { AddressService, AddressError } from './../../../../../services/profile/address';
-import AlertHandler from './../../../../../services/Utils/alertHandler';
+import { AddressService, AddressError } from '@/services/profile/address';
+import AlertHandler from '@/services/Utils/alertHandler';
+
+//styles
+import styles from './address.module.css';
 
 // Icons
 import Edit from './../../../../../public/icons/Pen.svg'
@@ -112,11 +118,11 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
         address._id !== addressId && address.id?.toString() !== addressId
       ));
       
-      console.log('✅ Address deleted successfully:', addressId);
+      //console.log('✅ Address deleted successfully:', addressId);
       // Success message is already shown by AddressService
       
     } catch (err) {
-      console.error('❌ Error deleting address:', err);
+      //console.error('❌ Error deleting address:', err);
       
       if (err instanceof AddressError) {
         // Only show error if not already shown by service
@@ -148,7 +154,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       return;
     }
 
-    console.log('Add new address');
+    //console.log('Add new address');
     router.push('/addAddress');
   };
 
@@ -160,7 +166,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
 
     // If already default, don't do anything
     if (clickedAddress?.isDefault) {
-      console.log('Address is already default');
+      //console.log('Address is already default');
       return;
     }
 
@@ -195,11 +201,11 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
         }))
       );
       
-      console.log('✅ Default address set:', addressId);
+      //console.log('✅ Default address set:', addressId);
       // Success message is already shown by AddressService
       
     } catch (err) {
-      console.error('❌ Error setting default address:', err);
+      //console.error('❌ Error setting default address:', err);
       
       if (err instanceof AddressError) {
         // Only show error if not already shown by service

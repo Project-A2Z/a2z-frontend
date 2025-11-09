@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
-import SplitText from "../SpiltText/SpiltText";
+
+//components
+import SplitText from "@/components/UI/SpiltText/SpiltText";
 
 export type SlideItem = {
   src: string | StaticImageData;

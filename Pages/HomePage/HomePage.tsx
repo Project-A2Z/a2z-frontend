@@ -1,20 +1,16 @@
+// pages/index.tsx (for homepage at "/")
 import React from "react";
 import Footer from "./sections/FooterSection/Footer";
 import MainSection from "./sections/MainSection/MainSection";
 import Header from "@/components/Layout/Nav/Header";
 import ProductSection from "./sections/OurProductSection/ProductSection";
-// import { products } from "@/public/Test_data/products";
 import styles from './Home.module.css'
 
-const HomePage = () => {
+export default function HomePage() {
   return (
-    <div className={styles.conatiner} >
-        {/* <Header/> */}
-        <MainSection/>
-        <ProductSection />
-        {/* <Footer/> */}
+    <div className={styles.conatiner}>
+      <MainSection/>
+      <ProductSection />
     </div>
   );
-};
-
-export default React.memo(HomePage);
+}
