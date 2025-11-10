@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { error } from 'console';
 
 // Fallback to production backend if env is not set
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://a2z-backend.fly.dev/app/v1';
@@ -39,7 +38,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => {
     //console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
-    ret    // Create a safe error object that can be properly serialized
+    return response;
+  },
+  async (error) => {
+    // Create a safe error object that can be properly serialized
     const safeError = {
       // Basic error info
       name: error?.name,
@@ -79,16 +81,7 @@ apiClient.interceptors.response.use(
     // Don't log 409 (Conflict) and 404 (Not Found) as errors since they're handled gracefully
     const status = safeError.status;
     if (status !== 409 && status !== 404) {
-      console.log('❌ API Error Details:');
-      console.log('- Message:', error.message);
-      console.log('- Code:', error.code);
-      console.log('- Status:', error.response?.status);
-      console.log('- Status Text:', error.response?.statusText);
-      console.log('- URL:', error.config?.url);
-      console.log('- Method:', error.config?.method);
-      console.log('- Response Data:', error.response?.data);
-      console.log('- Is Axios Error:', error.isAxiosError);
-      console.log('- Full Error:', JSON.stringify(safeError, null, 2));
+      console.error('❌ API Error:', JSON.stringify(safeError, null, 2));
     } else {
       // Debug log instead of error for handled cases
       console.debug('API Notice:', {
@@ -105,30 +98,22 @@ apiClient.interceptors.response.use(
                        !config._retry && 
                        (error.message?.includes('socket hang up') ||
                         error.message?.includes('timeout') ||
-                        error.message?.includes('Network Error') ||
-                        error.code === 'ECONNABORTED' ||
-                        error.code === 'ECONNRESET' ||
-                        error.code === 'ERR_NETWORK');
+                        error.code === 'ECONNABORTED');
 
     if (shouldRetry) {
       config._retry = true;
       
       // Log retry attempt
-      console.log(`🔄 Retrying request (${config._retryCount || 1}): ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`🔄 Retrying request (${config._retry}): ${config.method?.toUpperCase()} ${config.url}`);
       
       // Wait before retrying with exponential backoff
       const retryDelay = Math.min(1000 * Math.pow(2, config._retryCount || 0), 10000);
       config._retryCount = (config._retryCount || 0) + 1;
       
       await new Promise(resolve => setTimeout(resolve, retryDelay));
-00));
-
-      console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
->>>>>>> 8ffc436af6b6f6ceb4a14a09d82e116bd1d2e548
       return apiClient(config);
     }
 
-    // Handle 401 unauthorized
     if (typeof window !== 'undefined' && error?.response?.status === 401) {
       try {
         // Optionally clear invalid token

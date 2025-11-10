@@ -4,6 +4,7 @@ import { buildUrl } from './endpoints';
 export interface CartItem {
   productId: string;
   quantity: number;
+  unit?: string; // Added unit property for tracking the selected unit
   // Additional fields like price, name, etc. will be populated from the server
 }
 
