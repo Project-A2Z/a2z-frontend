@@ -13,8 +13,8 @@ import Welcome from '@/components/UI/Profile/leftSection/Welcome/Welcome';
 import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 
 //interfaces and services
-import { logoutUser, AuthService } from './../../../../services/auth/login';
-import orderService, { OrderItem } from './../../../../services/profile/orders';
+import { logoutUser, AuthService } from '../../../../services/auth/login';
+import orderService, { OrderItem } from '../../../../services/profile/orders';
 import { updatePassword } from '../../../../services/profile/profile';
 import { signOut } from 'next-auth/react';
 

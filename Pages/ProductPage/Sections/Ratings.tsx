@@ -47,12 +47,21 @@ const Ratings: React.FC<Props> = React.memo(({
     return hoveredStars !== null ? hoveredStars : safeAverage;
   };
 
-  const getGoldColor = (count: number) => {
-    if (count >= 50) return 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600';
-    else if (count >= 30) return 'bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500';
-    else if (count >= 15) return 'bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400';
-    else if (count >= 5) return 'bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-300';
-    else return 'bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-200';
+  const getGoldColor = (count: number, stars: number) => {
+    // For 4+ star ratings, use gold colors
+    if (stars >= 4) {
+      if (count >= 50) return 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600';
+      if (count >= 30) return 'bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500';
+      if (count >= 15) return 'bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400';
+      if (count >= 5) return 'bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-300';
+      return 'bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-200';
+    }
+    // For 3 stars and below, use gray colors
+    if (count >= 50) return 'bg-gradient-to-r from-gray-300 via-gray-400 to-gray-500';
+    if (count >= 30) return 'bg-gradient-to-r from-gray-200 via-gray-300 to-gray-400';
+    if (count >= 15) return 'bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300';
+    if (count >= 5) return 'bg-gradient-to-r from-gray-50 via-gray-100 to-gray-200';
+    return 'bg-gradient-to-r from-gray-50 via-gray-50 to-gray-100';
   };
 
   const getGoldTextColor = (count: number) => {
@@ -141,7 +150,7 @@ const Ratings: React.FC<Props> = React.memo(({
 
                 <div className="flex-1 h-2 bg-black8 rounded-full overflow-hidden relative">
                   <div
-                    className={`h-full transition-all duration-300 ${getGoldColor(row.count)}`}
+                    className={`h-full transition-all duration-300 ${getGoldColor(row.count, row.stars)}`}
                     style={{
                       width: `${(row.count / maxCount) * 100}%`,
                       transform: isHighlighted ? 'scaleY(1.2)' : 'scaleY(1)'

@@ -7,9 +7,10 @@ import Alert from '@/components/UI/Alert/alert';
 
 type Props = {
   productId: string;
+  onReviewAdded?: () => void;
 };
 
-const Reviews: React.FC<Props> = ({ productId }) => {
+const Reviews: React.FC<Props> = ({ productId, onReviewAdded }) => {
   const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,9 +130,12 @@ const Reviews: React.FC<Props> = ({ productId }) => {
       setSubmitting(true);
       setError(null); // Clear any previous errors
       await reviewService.addReview(newReview, authToken);
-      // //console.log('✅ Review added successfully');
       setNewReview({ productId, description: '', rateNum: 5 });
       await refreshReviews();
+      // Call the onReviewAdded callback if provided
+      if (onReviewAdded) {
+        await onReviewAdded();
+      }
     } catch (err: any) {
       // console.error('❌ Add review error:', err);
       const errorMessage = err.message || 'فشل في إضافة التعليق';

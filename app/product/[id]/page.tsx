@@ -94,6 +94,8 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       reviews,
       stockQty: Number(apiProduct.stockQty ?? apiProduct.stockQuantity ?? 0),
       stockType: apiProduct.stockType || "unit",
+      _id: "",
+      name: ""
     };
 
     //console.log(`✅ Product page data prepared successfully`);

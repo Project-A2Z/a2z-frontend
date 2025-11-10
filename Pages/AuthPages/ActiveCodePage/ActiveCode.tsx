@@ -13,7 +13,7 @@ import {
   getCurrentUser,
 } from "../../../services/auth/register";
 import { verifyEmail } from "../../../services/auth/register";
-import Background from "@/components/UI/Background/Background";
+// import Background from "@/components/UI/Background/Background";
 import styles from "./sections/ActiveCode.module.css";
 
 class APIError extends Error {
