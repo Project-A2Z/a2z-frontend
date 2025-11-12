@@ -51,7 +51,7 @@ const mockPaymentRecords: PaymentRecord[] = [
 const PaymentRecords: React.FC = () => {
     const router = useRouter()
   const handleViewDetails = (orderNumber: string) => {
-    // console.log(`Viewing details for record: ${recordId}`);
+    // //console.log(`Viewing details for record: ${recordId}`);
     router.push(`/order/${orderNumber}`)
     
   };

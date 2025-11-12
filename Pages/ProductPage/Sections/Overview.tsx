@@ -5,7 +5,7 @@ import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
 import { Button } from "@/components/UI/Buttons";
-import { cartService } from "@/services/api/cart";
+import { cartService, checkProductUnitConflict } from "@/services/api/cart";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/utils/auth";
 import Alert from "@/components/UI/Alert/alert";
@@ -85,10 +85,15 @@ const Overview: React.FC<Props> = ({
   const [loved, setLoved] = useState(false);
   const [isFavoriteState, setIsFavoriteState] = useState(false);
   
-  // Initialize client-side state
+  // Initialize client-side state and fetch cart for validation
   useEffect(() => {
     setIsMounted(true);
     setIsClient(true);
+    
+    // Fetch cart items to populate client-side state for unit conflict validation
+    cartService.getCart().catch(error => {
+      console.error("Failed to fetch cart for validation:", error);
+    });
   }, []);
   
   // Always call useFavorites at the top level to maintain hook order
@@ -172,6 +177,14 @@ const Overview: React.FC<Props> = ({
 
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
+    
+    // 1. Check for unit conflict before proceeding
+    const hasConflict = checkProductUnitConflict(String(id), selectedUnit);
+    if (hasConflict) {
+      // The checkProductUnitConflict function already displays the alert (toast)
+      return;
+    }
+
     try {
       setIsAdding(true);
       if (!isAuthenticated()) {
@@ -191,9 +204,12 @@ const Overview: React.FC<Props> = ({
       await cartService.addToCart({
         productId: String(id),
         quantity: quantity,
-        unit: selectedUnit  // Send the selected unit to the backend
+        unit: selectedUnit, // Pass the unit for client-side conversion logic in cart.ts
+        // The 'unit' field is no longer sent to the backend based on API docs
       });
       
+      // Refresh client-side cart state after successful addition
+      await cartService.getCart();
       router.push("/cart");
     } catch (error) {
       console.error('Error adding to cart:', error);

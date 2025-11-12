@@ -53,7 +53,7 @@ const Address: React.FC<AddressProp> = ({
                     try {
                         await fetchAddresses()
                     } catch (error) {
-                        console.error('Error fetching addresses:', error)
+                        //console.error('Error fetching addresses:', error)
                     } finally {
                         setLoading(false)
                     }

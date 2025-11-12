@@ -20,7 +20,7 @@ export default async function ProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {products.map((product) => (
             <div key={product._id} className="border rounded-lg p-4">
-              <img src={product.image || '/placeholder.jpg'} alt={product.name} className="w-full h-48 object-cover" />
+              <img src={product.image || '/acessts/NoImage.jpg'} alt={product.name} className="w-full h-48 object-cover" />
               <h3 className="text-black87">{product.name}</h3>
               <p className="text-primary font-bold">{product.price} ج.م</p>
             </div>

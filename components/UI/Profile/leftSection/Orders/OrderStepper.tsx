@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from './order.module.css'
 
-export type OrderStatus = 'pending' | 'reviewed' | 'Under review' | 'shipped' | 'delivered';
+export type OrderStatus = "Under review" | "reviewed" | "prepared" | "shipped" | "delivered" | "cancelled";
 
 interface OrderStatusStepperProps {
   currentStatus: OrderStatus;
@@ -10,7 +10,7 @@ interface OrderStatusStepperProps {
 
 const statusSteps: { key: OrderStatus; label: string }[] = [
   {
-    key: 'pending',
+    key: 'Under review',
     label: 'قيد المراجعة'
   },
   {
@@ -18,7 +18,7 @@ const statusSteps: { key: OrderStatus; label: string }[] = [
     label: 'تمت المراجعة'
   },
   {
-    key: 'Under review',
+    key: 'prepared',
     label: 'تم التجهيز'
   },
   {
@@ -28,6 +28,10 @@ const statusSteps: { key: OrderStatus; label: string }[] = [
   {
     key: 'delivered',
     label: 'تم التسليم'
+  },
+  {
+    key: 'cancelled',
+    label: 'ملغي'
   }
 ];
 

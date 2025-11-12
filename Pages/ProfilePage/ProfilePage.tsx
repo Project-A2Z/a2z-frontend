@@ -336,12 +336,22 @@ const ProfilePage = () => {
             </div>
           )}
 
-          <EditProfileSection
-            box={box}
-            setBox={setBox}
-            user={user}
-            setUser={setUser}
-          />
+          {(() => {
+            const C = EditProfileSection as unknown as React.ComponentType<{
+              box: string;
+              setBox: React.Dispatch<React.SetStateAction<string>>;
+              user: User | null;
+              setUser: React.Dispatch<React.SetStateAction<User | null>>;
+            }>;
+            return (
+              <C
+                box={box}
+                setBox={setBox}
+                user={user}
+                setUser={setUser}
+              />
+            );
+          })()}
         </div>
       </div>
     </div>

@@ -2,14 +2,14 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./search.module.css";
-import SearchIcon from "./../../../public/icons/search.svg";
+import SearchIcon from "./../../../public/icons/Search.svg";
 
 interface Product {
   id: string;
   name: string;
   category: string;
   price: number;
-  instock: boolean;
+  inStock: boolean;
   img: any; // or string if it's a URL
 }
 
@@ -54,6 +54,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     () => ["مبيدات", "أسمدة", "بذور", "أدوات زراعية", "معدات الري"],
     []
   );
+
+  // console.log("Search Component Data:", data);
 
   // Filter results based on search term
   useEffect(() => {
@@ -144,7 +146,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                   <div
                     key={`${product.name}-${index}`}
                     className={`${styles.searchResultItem} ${
-                      !product.instock ? styles.outOfStock : ""
+                      !product.inStock ? styles.outOfStock : ""
                     }`}
                     onClick={() =>
                       {
@@ -156,10 +158,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                     <div>
                       <div className={styles.resultTitle}>
                         {product.name}
-                        {!product.instock && (
+                        {!product.inStock && (
                           <span className={styles.outOfStockBadge}>
                             {" "}
-                            - غير متوفر
+                            {product.inStock}
                           </span>
                         )}
                       </div>
@@ -222,14 +224,14 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                 <div
                   key={`${product.name}-${index}`}
                   className={`${styles.searchResultItem} ${
-                    !product.instock ? styles.outOfStock : ""
+                    !product.inStock ? styles.outOfStock : ""
                   }`}
-                  onClick={() => product.instock && handleResultClick(product)}
+                  onClick={() => product.inStock && handleResultClick(product)}
                 >
                   <div>
                     <div className={styles.resultTitle}>
                       {product.name}
-                      {!product.instock && (
+                      {!product.inStock && (
                         <span className={styles.outOfStockBadge}>
                           {" "}
                           - غير متوفر

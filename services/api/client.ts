@@ -60,7 +60,13 @@ apiClient.interceptors.response.use(
       statusText: error?.response?.statusText,
       headers: error?.response?.headers,
       
-      // Request/Response data (stringified to handle circular references)
+      // Additional context
+      isAxiosError: error?.isAxiosError,
+      isNetworkError: !error?.response,
+      isTimeout: error?.code === 'ECONNABORTED',
+      timestamp: new Date().toISOString(),
+      
+      // Stringified data for debugging
       requestData: typeof error?.config?.data === 'string' 
         ? error.config.data 
         : JSON.stringify(error?.config?.data || {}),
@@ -71,11 +77,7 @@ apiClient.interceptors.response.use(
         } catch (e) {
           return 'Could not stringify response data';
         }
-      })(),
-      
-      // Additional Axios specific properties
-      isAxiosError: error?.isAxiosError,
-      toJSON: undefined // Remove non-serializable function
+      })()
     };
 
     // Don't log 409 (Conflict) and 404 (Not Found) as errors since they're handled gracefully
@@ -92,25 +94,26 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Retry logic for network errors (socket hang up, timeout, etc.)
-    const config = error?.config;
+    // Enhanced retry logic for network errors
+    const config = error?.config || error.config;
     const shouldRetry = config && 
                        !config._retry && 
                        (error.message?.includes('socket hang up') ||
                         error.message?.includes('timeout') ||
-                        error.code === 'ECONNABORTED');
+                        error.message?.includes('Network Error') ||
+                        error.code === 'ECONNABORTED' ||
+                        error.code === 'ECONNRESET' ||
+                        error.code === 'ERR_NETWORK');
 
     if (shouldRetry) {
       config._retry = true;
-      
-      // Log retry attempt
-      console.log(`🔄 Retrying request (${config._retry}): ${config.method?.toUpperCase()} ${config.url}`);
-      
-      // Wait before retrying with exponential backoff
-      const retryDelay = Math.min(1000 * Math.pow(2, config._retryCount || 0), 10000);
       config._retryCount = (config._retryCount || 0) + 1;
       
+      // Wait before retrying with exponential backoff, max 10s
+      const retryDelay = Math.min(1000 * Math.pow(2, config._retryCount - 1), 10000);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      console.log(`🔄 Retrying request (${config._retryCount}): ${config.method?.toUpperCase()} ${config.url}`);
       return apiClient(config);
     }
 

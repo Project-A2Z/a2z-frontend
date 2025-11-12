@@ -11,7 +11,6 @@ import "../../../app/globals.css";
 import {
   getCurrentUser,
   isUserAuthenticated,
-  // logoutUser,
   UserStorage,
   AuthService,
 } from "../../../services/auth/login";
@@ -440,6 +439,26 @@ function Header({
       {/* Bottom Navigation for Mobile */}
       {showUserActions && user && (
         <nav className={styles.bottomNav}>
+          {/* Floating Chat Button */}
+          {/* <button 
+            onClick={handleChat} 
+            aria-label="فتح الدردشة" 
+            className={styles.MessageCircle}
+          > */}
+            {chat ? 
+            <MessIcon 
+              onClick={handleChat} 
+              aria-label="فتح الدردشة" 
+              className={styles.MessageCircle} 
+            /> : 
+            <MessageCircle 
+              onClick={handleChat} 
+              aria-label="فتح الدردشة" 
+              className={styles.MessageCircle}
+            />}
+          {/* </button> */}
+
+          {/* Navigation Items */}
           <div className={styles.bottomNavContent}>
             {isAuthenticated && user && (
               <>
@@ -447,14 +466,17 @@ function Header({
                   <button
                     onClick={handleSearchClick}
                     className={styles.bottomNavItem}
+                    aria-label="البحث"
                   >
                     <SearchIcon className={styles.bottomNavIcon} />
                     <span className={styles.bottomNavText}>البحث</span>
                   </button>
                 )}
+                
                 <button
                   onClick={handleNotificationClick}
                   className={styles.bottomNavItem}
+                  aria-label="الإشعارات"
                 >
                   <Notification className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>الإشعارات</span>
@@ -466,18 +488,20 @@ function Header({
                   )}
                 </button>
 
-                <NotificationsComponent
-                  isOpen={isNotificationsOpen}
-                  onClose={handleNotificationsClose}
-                  onUnreadCountChange={setUnreadCount}
-                />
-
-                <Link href="/favorites" className={styles.bottomNavItem}>
+                <Link 
+                  href="/favorites" 
+                  className={styles.bottomNavItem}
+                  aria-label="المفضلة"
+                >
                   <Heart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>المفضلة</span>
                 </Link>
 
-                <Link href="/cart" className={styles.bottomNavItem}>
+                <Link 
+                  href="/cart" 
+                  className={styles.bottomNavItem}
+                  aria-label="السلة"
+                >
                   <Cart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>السلة</span>
                 </Link>
@@ -485,93 +509,87 @@ function Header({
             )}
           </div>
 
-          <div className={styles.MessageCircle}>
-            {chat ? (
-              <MessIcon onClick={handleChat} />
-            ) : (
-              <MessageCircle onClick={handleChat} />
-            )}
-            {open && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                <div
-                  className="absolute inset-0 bg-black/50"
-                  onClick={() => setOpen(false)}
-                  aria-hidden="true"
-                />
+          {/* Chat Modal */}
+          {open && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+              />
 
-                <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-                  <div className="bg-primary text-white p-4 text-center relative">
-                    <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
-                    <button
-                      onClick={() => setOpen(false)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200"
-                      aria-label="إغلاق"
-                    >
-                      ✕
-                    </button>
-                  </div>
+              <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-primary text-white p-4 text-center relative">
+                  <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
+                    aria-label="إغلاق"
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                  <form className="p-6 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="الاسم"
-                          defaultValue={
-                            user
-                              ? getUserDisplayName(
-                                  user.firstName,
-                                  user.lastName
-                                )
-                              : ""
-                          }
-                          className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="tel"
-                          placeholder="رقم الهاتف"
-                          defaultValue={user?.phoneNumber || ""}
-                          className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
-                    </div>
-
+                <form className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <input
-                        type="email"
-                        placeholder="البريد الإلكتروني"
-                        defaultValue={user?.email || ""}
-                        className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        type="text"
+                        placeholder="الاسم"
+                        defaultValue={
+                          user
+                            ? getUserDisplayName(
+                                user.firstName,
+                                user.lastName
+                              )
+                            : ""
+                        }
+                        className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         required
                       />
                     </div>
-
                     <div>
-                      <textarea
-                        rows={4}
-                        placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
-                        className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      <input
+                        type="tel"
+                        placeholder="رقم الهاتف"
+                        defaultValue={user?.phoneNumber || ""}
+                        className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         required
                       />
                     </div>
+                  </div>
 
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
-                      >
-                        إرسال
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                  <div>
+                    <input
+                      type="email"
+                      placeholder="البريد الإلكتروني"
+                      defaultValue={user?.email || ""}
+                      className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <textarea
+                      rows={4}
+                      placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
+                      className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
+                    >
+                      إرسال
+                    </button>
+                  </div>
+                </form>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </nav>
       )}
 

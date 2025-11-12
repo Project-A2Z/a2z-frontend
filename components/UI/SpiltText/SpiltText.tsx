@@ -1,10 +1,26 @@
+'use client';
+
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { SplitText as GSAPSplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(ScrollTrigger, GSAPSplitText, useGSAP);
+// Dynamic imports for GSAP plugins to avoid SSR issues
+let ScrollTrigger: any;
+let GSAPSplitText: any;
+
+if (typeof window !== 'undefined') {
+  import('gsap/ScrollTrigger').then((module) => {
+    ScrollTrigger = module.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+  });
+  
+  import('gsap/SplitText').then((module) => {
+    GSAPSplitText = module.SplitText;
+    gsap.registerPlugin(GSAPSplitText);
+  });
+  
+  gsap.registerPlugin(useGSAP);
+}
 
 export interface SplitTextProps {
   text: string;
@@ -42,6 +58,7 @@ const SplitText: React.FC<SplitTextProps> = ({
   const ref = useRef<HTMLParagraphElement>(null);
   const animationCompletedRef = useRef(false);
   const [fontsLoaded, setFontsLoaded] = useState<boolean>(false);
+  const [pluginsLoaded, setPluginsLoaded] = useState<boolean>(false);
 
   // Function to detect if text contains Arabic characters
   const detectArabic = (text: string): boolean => {
@@ -52,6 +69,22 @@ const SplitText: React.FC<SplitTextProps> = ({
   const shouldUseArabicMode = isArabic || detectArabic(text);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Wait for GSAP plugins to load
+    const checkPlugins = setInterval(() => {
+      if (ScrollTrigger && GSAPSplitText) {
+        setPluginsLoaded(true);
+        clearInterval(checkPlugins);
+      }
+    }, 100);
+
+    return () => clearInterval(checkPlugins);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (document.fonts.status === 'loaded') {
       setFontsLoaded(true);
     } else {
@@ -63,9 +96,10 @@ const SplitText: React.FC<SplitTextProps> = ({
 
   useGSAP(
     () => {
-      if (!ref.current || !text || !fontsLoaded) return;
+      if (!ref.current || !text || !fontsLoaded || !pluginsLoaded || !GSAPSplitText || !ScrollTrigger) return;
+      
       const el = ref.current as HTMLElement & {
-        _rbsplitInstance?: GSAPSplitText;
+        _rbsplitInstance?: any;
       };
 
       if (el._rbsplitInstance) {
@@ -88,7 +122,7 @@ const SplitText: React.FC<SplitTextProps> = ({
       const start = `top ${startPct}%${sign}`;
       let targets: Element[] = [];
       
-      const assignTargets = (self: GSAPSplitText) => {
+      const assignTargets = (self: any) => {
         // For Arabic text, prefer words over chars to maintain letter connections
         if (shouldUseArabicMode) {
           if (splitType.includes('words') && self.words.length) targets = self.words;
@@ -96,8 +130,8 @@ const SplitText: React.FC<SplitTextProps> = ({
           else targets = self.words || self.lines || [];
         } else {
           // Original logic for non-Arabic text
-          if (splitType.includes('chars') && (self as GSAPSplitText).chars?.length)
-            targets = (self as GSAPSplitText).chars;
+          if (splitType.includes('chars') && self.chars?.length)
+            targets = self.chars;
           if (!targets.length && splitType.includes('words') && self.words.length) targets = self.words;
           if (!targets.length && splitType.includes('lines') && self.lines.length) targets = self.lines;
           if (!targets.length) targets = self.chars || self.words || self.lines;
@@ -115,7 +149,7 @@ const SplitText: React.FC<SplitTextProps> = ({
         wordsClass: 'split-word',
         charsClass: 'split-char',
         reduceWhiteSpace: false,
-        onSplit: (self: GSAPSplitText) => {
+        onSplit: (self: any) => {
           assignTargets(self);
           
           // Apply styles to maintain Arabic text appearance
@@ -159,7 +193,8 @@ const SplitText: React.FC<SplitTextProps> = ({
       el._rbsplitInstance = splitInstance;
       
       return () => {
-        ScrollTrigger.getAll().forEach(st => {
+        if (!ScrollTrigger) return;
+        ScrollTrigger.getAll().forEach((st: any) => {
           if (st.trigger === el) st.kill();
         });
         try {
@@ -180,6 +215,7 @@ const SplitText: React.FC<SplitTextProps> = ({
         threshold,
         rootMargin,
         fontsLoaded,
+        pluginsLoaded,
         onLetterAnimationComplete,
         shouldUseArabicMode
       ],

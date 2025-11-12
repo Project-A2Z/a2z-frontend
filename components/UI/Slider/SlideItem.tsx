@@ -28,7 +28,7 @@ const SlideItem = React.memo(({ slide, index, totalSlides, isCurrent }: SlideIte
         width={1920}
         height={90}
         quality={90}
-        fallbackSrc="/images/placeholder.jpg"
+        fallbackSrc="/acessts/NoImage.jpg"
       />
       <div className={styles.contentOverlay}>
         <div className={styles.contentContainer}>

@@ -79,7 +79,7 @@ export const useAuthMonitor = (options: UseAuthMonitorOptions = {}) => {
     try {
       await logoutUser();
     } catch (error) {
-      console.error('❌ Error during logout:', error);
+      //console.error('❌ Error during logout:', error);
     }
 
     // Redirect if enabled

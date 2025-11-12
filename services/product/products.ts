@@ -174,7 +174,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
     // Handle rate limiting gracefully with exponential backoff
     if (response.status === 429) {
-      console.warn('⏱️ Rate limited, using cached data if available');
+      //console.warn('⏱️ Rate limited, using cached data if available');
       if (globalProductsCache) {
         isLoadingProducts = false;
         pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
@@ -194,7 +194,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       });
 
       if (retryResponse.status === 429) {
-        console.warn('⏱️ Retry also rate limited, using cached data if available');
+        //console.warn('⏱️ Retry also rate limited, using cached data if available');
         if (globalProductsCache) {
           isLoadingProducts = false;
           pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
@@ -247,7 +247,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     return products;
 
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
+    //console.error('❌ Error fetching products:', error);
 
     // Return cached data as fallback, even if expired or partially loaded
     if (globalProductsCache) {
@@ -260,7 +260,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
     // If it's a rate limiting error, provide a more helpful message
     if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      console.warn('⚠️ Rate limiting error with no cached data available');
+      //console.warn('⚠️ Rate limiting error with no cached data available');
       isLoadingProducts = false;
       pendingPromises.forEach(({ reject }) => reject(new Error('Service temporarily unavailable due to high demand. Please try again in a few minutes.')));
       pendingPromises = [];
@@ -268,7 +268,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     }
 
     // For other errors, try to provide a graceful fallback
-    console.warn('⚠️ No cached data available for error fallback');
+    //console.warn('⚠️ No cached data available for error fallback');
     isLoadingProducts = false;
     pendingPromises.forEach(({ reject }) => reject(error));
     pendingPromises = [];
@@ -315,7 +315,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
       }
     };
   } catch (error) {
-    console.error('Error in fetchAllProducts:', error);
+    //console.error('Error in fetchAllProducts:', error);
 
     // Return cached data if available, even if it's expired
     if (globalProductsCache) {
@@ -341,7 +341,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 
     // If error is due to service unavailability, return empty response
     if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      console.warn('⚠️ Returning empty response due to service unavailability');
+      //console.warn('⚠️ Returning empty response due to service unavailability');
       return {
         data: [],
         pagination: {
@@ -418,7 +418,7 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
       }
     };
   } catch (error) {
-    console.error('Error in fetchProducts:', error);
+    //console.error('Error in fetchProducts:', error);
 
     // Return cached data if available, even if it's expired
     if (globalProductsCache) {
@@ -450,7 +450,7 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
 
     // If error is due to service unavailability, return empty response
     if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      console.warn('⚠️ Returning empty response due to service unavailability');
+      //console.warn('⚠️ Returning empty response due to service unavailability');
       const page = filters.page || 1;
       const limit = filters.limit || 20;
 
@@ -510,7 +510,7 @@ export const searchProducts = async (
   try {
     return await fetchProducts({ ...filters, search: query });
   } catch (error) {
-    console.error('Error searching products:', error);
+    //console.error('Error searching products:', error);
     throw error;
   }
 };
@@ -525,7 +525,7 @@ export const fetchProductsByCategory = async (
   try {
     return await fetchProducts({ ...filters, category: String(categoryId) });
   } catch (error) {
-    console.error('Error fetching products by category:', error);
+    //console.error('Error fetching products by category:', error);
     throw error;
   }
 };
@@ -539,7 +539,7 @@ export const fetchFeaturedProducts = async (
   try {
     return await fetchProducts({ ...filters, featured: true });
   } catch (error) {
-    console.error('Error fetching featured products:', error);
+    //console.error('Error fetching featured products:', error);
     throw error;
   }
 };

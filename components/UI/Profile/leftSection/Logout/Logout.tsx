@@ -30,7 +30,7 @@ export default function Logout({ onCancel, onLogout }: LogoutProps) {
       router.push('/login');
       
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      //console.error('❌ Logout error:', error);
       // Still try to redirect even if there's an error
       router.push('/login');
     }

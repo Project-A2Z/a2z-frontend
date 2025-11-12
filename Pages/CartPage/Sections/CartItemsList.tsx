@@ -89,16 +89,12 @@ const CartItemsList: React.FC<Props> = React.memo(({
   // Ensure items is always an array
   const cartItems = Array.isArray(items) ? items : [];
   
-  const handleUpdateQuantity = (id: string, newQuantity: number, currentUnit: string) => {
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
-    // If the unit is ton or liter, we need to handle the conversion
-    if (currentUnit === 'طن' || currentUnit === 'لتر') {
-      // Convert back to the base unit (kg for ton, ml for liter) when updating quantity
-      onUpdateQuantity(id, newQuantity * 1000);
-    } else {
-      onUpdateQuantity(id, newQuantity);
-    }
+    // The conversion logic (multiply by 1000) is now handled inside cart.ts's updateCartItem
+    // We only pass the display quantity here.
+    onUpdateQuantity(id, newQuantity);
   };
 
   if (cartItems.length === 0) {
@@ -168,20 +164,19 @@ const CartItemsList: React.FC<Props> = React.memo(({
                         aria-label="decrease quantity"
                         title="إنقاص الكمية"
                         className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1, item.unit)}
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                         disabled={item.quantity <= 1}
                         icon={<Minus className="w-4 h-4" />}
                       />
                       <span className="w-8 text-center">
-                        {item.unit === 'طن' || item.unit === 'لتر' 
-                          ? (item.quantity / 1000).toFixed(3) 
-                          : item.quantity}
+                        {/* item.quantity is already the display quantity after reverse conversion in cart.ts */}
+                        {Number(item.quantity.toFixed(3))} 
                       </span>
                       <IconButton
                         aria-label="increase quantity"
                         title="زيادة الكمية"
                         className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1, item.unit)}
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         icon={<Plus className="w-4 h-4" />}
                       />
                       <span className="text-gray-500 text-sm mr-2">{item.unit}</span>

@@ -51,7 +51,7 @@ class AlertHandlerService {
       return;
     }
 
-    console.warn('⚠️ No alert handler registered:', config);
+    //console.warn('⚠️ No alert handler registered:', config);
   }
 
   static success(message: string, options?: Omit<AlertConfig, 'message' | 'type'>) {

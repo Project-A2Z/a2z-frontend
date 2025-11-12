@@ -4,7 +4,6 @@
   margin-bottom: 2rem;
   height: fit-content;
   padding: 1.5rem 0;
-  /* background-color: #1a1a1a; */
 }
 
 .sliderHeader {
@@ -53,24 +52,23 @@
 .gridWrapper {
   width: 100%;
   overflow: hidden;
-  
+  height: fit-content;
 }
 
 .productGrid {
   width: 100%;
   margin-bottom: 2rem;
-  /* background-color: violet; */
+  height: fit-content;
 }
 
 .gridItem {
   display: flex;
   justify-content: center;
   align-items: stretch;
-  height: 100%; /* Ensure items fill the grid cell */
+  height: 100%;
 }
 
 .emptySlot {
-  /* Empty slot for incomplete grids */
   min-height: 1px;
 }
 
@@ -83,7 +81,6 @@
   align-items: center;
   padding: 3rem 1rem;
   min-height: 300px;
-  /* background-color: #1a1a1a; */
 }
 
 .loadingGrid {
@@ -91,7 +88,6 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   width: 100%;
-  /* background-color: #1a1a1a; */
 }
 
 .skeletonCard {
@@ -99,7 +95,6 @@
   border-radius: 12px;
   overflow: hidden;
   animation: pulse 1.5s ease-in-out infinite;
-
 }
 
 .skeletonImage {
@@ -254,7 +249,6 @@
 @media (max-width: 1024px) {
   .productGrid {
     grid-template-columns: repeat(3, 1fr) !important;
-    grid-template-rows: repeat(7, 1fr) !important;
   }
   
   .loadingGrid {
@@ -265,7 +259,6 @@
 @media (max-width: 768px) {
   .productGrid {
     grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: repeat(10, 1fr) !important;
   }
   
   .loadingGrid {
@@ -288,14 +281,13 @@
   }
   
   .sliderContainer {
-    padding: 1rem 0; /* Reduced padding for mobile */
+    padding: 1rem 0;
   }
 }
 
 @media (max-width: 480px) {
   .productGrid {
     grid-template-columns: 1fr !important;
-    grid-template-rows: repeat(20, 1fr) !important;
   }
   
   .loadingGrid {
@@ -303,6 +295,6 @@
   }
   
   .sliderContainer {
-    padding: 0.75rem 0; /* Further reduced for small screens */
+    padding: 0.75rem 0;
   }
 }

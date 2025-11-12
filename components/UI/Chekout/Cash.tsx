@@ -99,7 +99,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
                     onChange={() => handleClick('cash')}
                 />
                 <label className={styles.radioLabel}>
-                    الدفع كاش عند الاستلام + مبلغ أولي بقيمة 15% من إجمالي المبلغ
+                    الدفع كاش عند الاستلام + مبلغ أولي بقيمة 10% من إجمالي المبلغ
                 </label>
             </div>
             

@@ -89,7 +89,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       
       const errorMessage = err instanceof Error ? err.message : 'فشل في تحميل المنتجات';
       setError(errorMessage);
-      console.error('Error loading products:', err);
+      //console.error('Error loading products:', err);
     } finally {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -314,7 +314,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
           rightIcon={<FilterIcon/>}
           rounded={true}
         >
-          فيلتر ({activeFiltersCount})
+          فيلتر 
         </Button>
         
         {activeFiltersCount > 0 && (

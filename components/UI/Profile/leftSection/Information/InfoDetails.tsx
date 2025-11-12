@@ -169,7 +169,7 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       showAlert('تم تحديث بيانات الحساب بنجاح!', 'success');
       setEdit(false);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      //console.error('Error submitting form:', error);
       showAlert('فشل تحديث بيانات الحساب. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setIsLoading(false);

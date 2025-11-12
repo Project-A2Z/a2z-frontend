@@ -172,20 +172,24 @@ const Summary: React.FC<SummaryInter> = ({
 
                 {/* Row 1: Product count */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
-                    <span className={styles.details}>عدد المنتجات ({numberItems})</span>
-                    <span className={`${styles.price} notranslate`}>ج{Total}</span>
+                    <span className={styles.details}>عدد المنتجات </span>
+                    <span className={`${styles.price} notranslate `}>({numberItems})</span>
+                
+                    <span className={`${styles.price} `}>  {Total}  ج.م </span>
+                    {/* <span className={styles.currency}> ج.م </span> */}
                 </div>
 
                 {/* Row 2: Delivery */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
                     <span className={styles.details}>التوصيل</span>
-                    <span className={`${styles.price} notranslate`}>يتم التحديد من قبل أحد المسؤولين لاحقا</span>
+                    <span className={`${styles.price} `}>يتم التحديد من قبل أحد المسؤولين لاحقا</span>
                 </div>
 
                 {/* Row 3: Total */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingTop: '8px', borderTop: '1px solid var(--black16)', width: '100%' }}>
                     <span className={styles.details} style={{ fontWeight: 600 }}>الإجمالي</span>
-                    <span className={`${styles.price} notranslate`} style={{ fontWeight: 600, fontSize: '18px' }}>ج{Total + delivery}</span>
+                    <span className={`${styles.price} `} style={{ fontWeight: 600, fontSize: '18px' }}>{Total + delivery}  ج.م </span>
+                    {/* <span className={styles.currency} style={{ fontWeight: 600, fontSize: '18px' }}></span> */}
                 </div>
 
                 {error && (
