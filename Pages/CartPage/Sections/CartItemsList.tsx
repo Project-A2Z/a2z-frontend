@@ -154,6 +154,7 @@ const CartItemsList: React.FC<Props> = React.memo(({
                 <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center pr-[10px] sm:pr-3 justify-between gap-4">
                   <div className="text-left w-[100%] pl-2 sm:pl-3 ">
                     <div className="text-xl font-bold text-black60">
+                      {/* item.price is now the price per display unit (e.g., price per ton) after conversion in cart.ts */}
                       {(item.price * item.quantity).toLocaleString()} ج.م
                     </div>
                   </div>

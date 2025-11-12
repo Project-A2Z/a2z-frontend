@@ -73,17 +73,10 @@ export const cartService = {
         }
       }
 
-      let displayQuantity = i.itemQty;
-      
-      // Apply reverse conversion for display: divide by 1000 for 'ton' and 'cubic_meter'
-      if (unit === 'ton' || unit === 'cubic_meter') {
-        displayQuantity = i.itemQty / 1000;
-      }
-
       return {
         _id: i._id,
         productId: productId,
-        quantity: displayQuantity, // Use the converted quantity for display
+        quantity: i.itemQty, // itemQty is the quantity field from backend
         unit: unit, // The unit retrieved from localStorage
       };
     });
@@ -93,17 +86,9 @@ export const cartService = {
   },
 
   // Add item to cart
-  async addToCart(item: CartItem & { unit: string }) {
-    let itemQty = item.quantity;
-    
-    // Apply conversion logic: multiply by 1000 for 'kg' and 'cubic_meter'
-    if (item.unit === 'ton' || item.unit === 'cubic_meter') {
-      // Apply conversion and ensure it's an integer before sending to the backend
-      itemQty = Math.round(item.quantity * 1000);
-    }
-    
+  async addToCart(item: CartItem) {
     // The backend only accepts productId and itemQty based on cartitem-api.md
-    const payload = { productId: item.productId, itemQty: itemQty };
+    const payload = { productId: item.productId, itemQty: item.quantity };
     const response = await apiClient.post('/cartItems/', payload);
     
     // The calling component (Overview.tsx) is responsible for calling getCart()
@@ -113,25 +98,25 @@ export const cartService = {
   },
 
   // Update cart item quantity
-  async updateCartItem(cartItemId: string, quantity: number) {
-    // We need to know the unit to apply the conversion before sending to the backend
-    // This requires a more complex lookup, but for now, we'll assume the quantity
-    // being passed is the *display* quantity, and we need to convert it if it's a converted unit.
-    // Since the unit is not passed here, we must rely on the clientCartItems state to get the unit.
-    const existingItem = clientCartItems.find(item => item._id === cartItemId);
-    let itemQty = quantity;
-
-    if (existingItem && (existingItem.unit === 'ton' || existingItem.unit === 'cubic_meter')) {
-      // Apply conversion and ensure it's an integer before sending to the backend
-      itemQty = Math.round(quantity * 1000);
+  async updateCartItem(cartItemId: string, quantity: number | string) {
+    // Ensure quantity is a valid number
+    let safeQuantity = Number(quantity);
+    
+    // If conversion fails or results in NaN, default to 1
+    if (isNaN(safeQuantity) || !isFinite(safeQuantity)) {
+      safeQuantity = 1;
     }
     
+    // Ensure quantity is at least 1 and within safe bounds
+    safeQuantity = Math.max(1, Math.min(safeQuantity, Number.MAX_SAFE_INTEGER));
+    
+    // Ensure it's a whole number
+    safeQuantity = Math.floor(safeQuantity);
+    
     const url = buildUrl('/cartItems/:itemId', { itemId: cartItemId });
-    const response = await apiClient.put(url, { itemQty: itemQty });
-    
-    // After successful update, we should refresh the client-side state
-    await cartService.getCart();
-    
+    const response = await apiClient.put(url, { 
+      itemQty: safeQuantity 
+    });
     return response.data;
   },
 
