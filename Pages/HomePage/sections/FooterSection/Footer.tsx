@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './Footer.module.css';
 import ContactSection from './Sections/ContactSection/ContactSection';
 import QuickLinks from './Sections/QuickLinksSection/QuickLinks';
 import CategoriesSection from './Sections/CategoriesSection/CategoriesSection';
 import AboutUsSection from './Sections/AboutUsSection/AboutUsSection';
 import MobileNavigation from './Sections/MobileNavigation/MobileNavigation';
+import dynamic from 'next/dynamic';
+
+// Dynamically import FloatingChat with SSR disabled
+const FloatingChat = dynamic(
+  () => import('@/components/UI/FloatingChat/FloatingChat'),
+  { ssr: false }
+);
 
 const Footer = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const handleContactClick = () => {
+    setIsChatOpen(true);
+  };
+
+  const handleChatClose = () => {
+    setIsChatOpen(false);
+  };
+
   return (
     <footer className="relative w-full min-h-[300px] md:min-h-[400px] overflow-hidden">
       {/* Background Image */}
@@ -34,7 +51,7 @@ const Footer = () => {
         <div className="w-full lg:w-[93%] mx-auto flex-1 flex flex-col lg:flex-row justify-between items-start gap-8 lg:gap-4 py-8">
           <AboutUsSection /> 
           <CategoriesSection />
-          <QuickLinks />
+          <QuickLinks onContactClick={handleContactClick} />
           <ContactSection />
         </div>
            
@@ -47,8 +64,11 @@ const Footer = () => {
         </div>
       </div>
       
-      {/* Mobile Navigation */}
-      {/* <MobileNavigation /> */}
+      {/* Floating Chat */}
+      <FloatingChat 
+        isOpen={isChatOpen} 
+        onOpenChange={handleChatClose}
+      />
     </footer>
   );
 };

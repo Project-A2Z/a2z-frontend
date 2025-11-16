@@ -16,9 +16,25 @@ const getAuthToken = (): string | null => {
   return null;
 };
 
-export default function FloatingChat() {
+interface FloatingChatProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: FloatingChatProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use externalOpen if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  
+  const setOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',

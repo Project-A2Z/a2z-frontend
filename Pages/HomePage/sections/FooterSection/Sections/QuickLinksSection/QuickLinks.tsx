@@ -3,13 +3,17 @@ import React from 'react'
 import { useState } from "react";
 import Link from "next/link";
 
-const QuickLinks = ()=> {
+interface QuickLinksProps {
+  onContactClick?: () => void;
+}
+
+const QuickLinks = ({ onContactClick }: QuickLinksProps) => {
   const [links] = useState([
     { href: "/", label: "الرئيسية" },
     // { href: "/services", label: "الخدمات" },
     { href: "/", label: "المنتجات" },
     { href: "/about", label: "من نحن" },
-    { href: "/contact", label: "تواصل معنا" },
+    { href: "#", label: "تواصل معنا" }, 
   ]);
 
   return (
@@ -34,13 +38,26 @@ const QuickLinks = ()=> {
       </div>
       <nav className="w-full flex flex-row flex-wrap items-start justify-start gap-4 sm:gap-3 text-left sm:flex sm:flex-col">        
         {links.map((link, index) => (
-          <Link
-            key={index}
-            href={link.href}
-            className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer text-left block py-1 sm:py-0"
-          >
-            {link.label}
-          </Link>
+          <div key={index}>
+            {link.label === "تواصل معنا" ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onContactClick?.();
+                }}
+                className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer text-left block py-1 sm:py-0 w-full text-right"
+              >
+                {link.label}
+              </button>
+            ) : (
+              <Link
+                href={link.href}
+                className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer text-left block py-1 sm:py-0"
+              >
+                {link.label}
+              </Link>
+            )}
+          </div>
         ))}
       </nav>
     </div>
