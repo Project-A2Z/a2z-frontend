@@ -20,6 +20,8 @@ export type ProductData = {
   reviews: { id: string | number; author: string; rating: number; date: string; content: string }[];
   stockQty: number;
   stockType: 'unit' | 'kg' | 'ton';
+  _id : string;
+  name : string
 };
 
 const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {

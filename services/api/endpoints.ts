@@ -42,7 +42,7 @@ export const API_ENDPOINTS = {
     NEW_ARRIVALS: '/products/new-arrivals',
     BEST_SELLERS: '/products/best-sellers',
     SEARCH: '/products/search',
-    BY_CATEGORY: '/products/category/:categoryId',
+    BY_CATEGORY: '/products/category/:category',
     BY_BRAND: '/products/brand/:brandId',
     DETAILS: '/products/:id',
     VARIATIONS: '/products/:id/variations',
@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
     ADD_REVIEW: '/products/:id/reviews',
     RELATED: '/products/:id/related',
     SIMILAR: '/products/:id/similar',
+    CATEGORY: '/products/categories',
   },
 
   // Categories

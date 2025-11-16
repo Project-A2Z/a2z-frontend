@@ -1,12 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import CartHeader from '@/pages/CartPage/Sections/CartHeader';
-import CartItemsList from '@/pages/CartPage/Sections/CartItemsList';
-import OrderSummary from '@/pages/CartPage/Sections/OrderSummary';
-// import ContactHelp from './Sections/ContactHelp';
+import CartHeader from './Sections/CartHeader';
+import CartItemsList from './Sections/CartItemsList';
+import OrderSummary from './Sections/OrderSummary';
+import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 // import type { CartItem } from './Sections/types';
-import { div } from 'motion/react-client';
 import { cartService } from '@/services/api/cart';
 import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
@@ -38,6 +37,31 @@ const CartPage = () => {
         
         const mapped: CartItem[] = items.map((it: any) => {
           const p = it.productId || {};
+          const productId = p._id || '';
+          
+          // Try to get unit from localStorage first
+          const cartItemKey = `cart_item_${productId}`;
+          const storedItem = localStorage.getItem(cartItemKey);
+          let selectedUnit = 'قطعة'; // Default unit
+          
+          if (storedItem) {
+            try {
+              const { unit } = JSON.parse(storedItem);
+              if (unit) {
+                // Convert unit to display name
+                const unitMap: Record<string, string> = {
+                  'unit': 'قطعة',
+                  'kg': 'كيلو',
+                  'ton': 'طن',
+                  'liter': 'لتر',
+                  'cubic_meter': 'متر مكعب'
+                };
+                selectedUnit = unitMap[unit] || unit;
+              }
+            } catch (e) {
+              console.error('Error parsing cart item from localStorage:', e);
+            }
+          }
           
           let imageUrl = '/acessts/NoImage.jpg';
           const imageSources = p.imageList || p.images || p.image || [];
@@ -75,7 +99,6 @@ const CartPage = () => {
             }
           }
 
-          const unit = p.stockType || p.unit || 'قطعة';
           const availability = (p.stockQty ?? p.quantity ?? 0) > 0 ? 'متوفر' : 'غير متوفر';
 
           return {
@@ -84,7 +107,7 @@ const CartPage = () => {
             price: Number(p.price) || 0,
             quantity: Number(it.itemQty) || 0,
             image: imageUrl,
-            unit,
+            unit: selectedUnit,
             availability,
             category: p.category,
           };

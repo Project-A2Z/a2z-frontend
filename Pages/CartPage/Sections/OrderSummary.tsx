@@ -34,7 +34,7 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
       hasItems,
       order
     };
-    console.log('Checkout Data :from cart', checkoutData);
+    //console.log('Checkout Data :from cart', checkoutData);
     
     const encodedData = encodeURIComponent(JSON.stringify(checkoutData));
     router.push(`/checkout?data=${encodedData}`);
@@ -51,7 +51,7 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
         </div>
         <div className="flex justify-between items-baseline">
           <span className="text-black60">الإجمالي</span>
-          <span className="font-bold text-primary text-xl">{(total).toLocaleString()} ج</span>
+          <span className="font-bold text-primary text-xl">{(total).toLocaleString()} ج.م</span>
         </div>
       </div>
 

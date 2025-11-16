@@ -89,6 +89,14 @@ const CartItemsList: React.FC<Props> = React.memo(({
   // Ensure items is always an array
   const cartItems = Array.isArray(items) ? items : [];
   
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
+    // The conversion logic (multiply by 1000) is now handled inside cart.ts's updateCartItem
+    // We only pass the display quantity here.
+    onUpdateQuantity(id, newQuantity);
+  };
+
   if (cartItems.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border">
@@ -146,55 +154,35 @@ const CartItemsList: React.FC<Props> = React.memo(({
                 <div className="flex flex-col items-start justify-start w-[35%] sm:flex-col sm:items-center pr-[10px] sm:pr-3 justify-between gap-4">
                   <div className="text-left w-[100%] pl-2 sm:pl-3 ">
                     <div className="text-xl font-bold text-black60">
+                      {/* item.price is now the price per display unit (e.g., price per ton) after conversion in cart.ts */}
                       {(item.price * item.quantity).toLocaleString()} ج.م
                     </div>
                   </div>
                   
-                  {/* <div className="flex items-start justify-start gap-3 w-full sm:pr-[10px]" dir="ltr">
-                    <IconButton
-                      aria-label="increase quantity"
-                      title="زيادة الكمية"
-                      onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                      size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
-                      icon={<Plus className="w-4 h-4 sm:w-6 sm:h-6" />}
-                    />
-                    <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
-                      {item.quantity}
-                    </span>
-                    <IconButton
-                      aria-label="decrease quantity"
-                      title="إنقاص الكمية"
-                      onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                      size="sm"
-                      className="rounded-full border border-black16 hover:border-primary hover:text-primary w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center"
-                      icon={<Minus className="w-4 h-4 sm:w-6 sm:h-6" />}
-                    />
-                  </div> */}
-
-  <div className="w-full flex justify-end  pr-2 sm:pr-4">
+                  <div className="w-full flex justify-end  pr-2 sm:pr-4">
                     <div className="flex items-center justify-end gap-3" dir="ltr">
                       <IconButton
                         aria-label="decrease quantity"
                         title="إنقاص الكمية"
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                        size="sm"
-                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
                         icon={<Minus className="w-4 h-4" />}
                       />
-                      <span className="text-lg font-medium text-black87 min-w-[2rem] text-center">
-                        {item.quantity}
+                      <span className="w-8 text-center">
+                        {/* item.quantity is already the display quantity after reverse conversion in cart.ts */}
+                        {Number(item.quantity.toFixed(3))} 
                       </span>
                       <IconButton
                         aria-label="increase quantity"
                         title="زيادة الكمية"
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                        size="sm"
-                        className="rounded-full border border-black16 hover:border-primary hover:text-primary w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         icon={<Plus className="w-4 h-4" />}
                       />
+                      <span className="text-gray-500 text-sm mr-2">{item.unit}</span>
                     </div>
-</div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -17,16 +17,16 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
   const decodedId = decodeURIComponent(id);
 
   try {
-    console.log(`🔄 Loading product page for ID: ${decodedId}`);
+    //console.log(`🔄 Loading product page for ID: ${decodedId}`);
 
     // ✅ Fetch product details
     const res = await productService.getProductById(decodedId);
-    console.log(`📦 Product fetch result:`, res);
+    //console.log(`📦 Product fetch result:`, res);
 
     // Check if the response indicates an error
     if (res.status === 'error') {
       if (res.message?.includes('Product not found')) {
-        console.log(`❌ Product not found: ${decodedId}`);
+        //console.log(`❌ Product not found: ${decodedId}`);
         return notFound();
       }
 
@@ -43,11 +43,11 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
 
     const apiProduct: any = (res as any)?.data?.product || (res as any)?.product;
     if (!apiProduct) {
-      console.log(`❌ No product data received for ID: ${decodedId}`);
+      //console.log(`❌ No product data received for ID: ${decodedId}`);
       return notFound();
     }
 
-    console.log(`✅ Product data received:`, apiProduct.title || apiProduct.name);
+    //console.log(`✅ Product data received:`, apiProduct.title || apiProduct.name);
 
     // ✅ Fetch reviews for this product
     let reviews: Array<{ id: string; author: string; rating: number; date: string; content: string }> = [];
@@ -61,7 +61,7 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
         date: new Date(r.date || r.createdAt).toLocaleDateString("ar-EG"),
         content: r.description || "",
       }));
-      console.log(`📝 Loaded ${reviews.length} reviews`);
+      //console.log(`📝 Loaded ${reviews.length} reviews`);
     } catch (err: any) {
       console.warn("⚠️ No reviews found or failed to load reviews:", err.message);
       reviews = [];
@@ -94,9 +94,11 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       reviews,
       stockQty: Number(apiProduct.stockQty ?? apiProduct.stockQuantity ?? 0),
       stockType: apiProduct.stockType || "unit",
+      _id: "",
+      name: ""
     };
 
-    console.log(`✅ Product page data prepared successfully`);
+    //console.log(`✅ Product page data prepared successfully`);
     return <ProductPage data={data} />;
   } catch (e: any) {
     console.error("❌ Error fetching product:", e.message);

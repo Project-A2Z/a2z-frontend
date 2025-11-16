@@ -1,4 +1,4 @@
-// services/product/products.ts - Updated with proper pagination
+// services/product/products.ts - Updated with category-based caching
 
 import {Api , API_ENDPOINTS} from './../api/endpoints'
 
@@ -125,38 +125,50 @@ const getRequestConfig = () => ({
   },
 });
 
-// Global state for products with fallback mechanism
-let globalProductsCache: Product[] | null = null;
+// ============================================
+// CACHE STRUCTURE
+// ============================================
+interface CategoryCacheEntry {
+  categoryName: string;
+  products: Product[];
+  timestamp: number;
+}
+
+// Global caches
+let globalProductsCache: Product[] | null = null; // For all products
+let categoryCaches: Map<string, CategoryCacheEntry> = new Map(); // For individual categories
 let cacheTimestamp: number = 0;
 let isLoadingProducts = false;
 let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
 let lastRequestTime = 0;
 
-const CACHE_DURATION = 60 * 60 * 1000; // 60 minutes - increased for better performance
-const MIN_REQUEST_INTERVAL = 15000; // 15 seconds minimum between requests
+const CACHE_DURATION = 60 * 60 * 1000; 
+const MIN_REQUEST_INTERVAL = 15000; 
 
-// Centralized product fetching with state management and fallbacks
+// ============================================
+// FETCH ALL PRODUCTS (Global Cache)
+// ============================================
 export const getProductsWithState = async (): Promise<Product[]> => {
   const now = Date.now();
 
   // Return cached data if available and not expired
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    //console.log('✅ Using cached products');
+    console.log('✅ Using cached products');
     return globalProductsCache;
   }
 
   // If already loading, wait for the existing request
   if (isLoadingProducts) {
-    //console.log('⏳ Waiting for existing products request...');
+    console.log('⏳ Waiting for existing products request...');
     return new Promise((resolve, reject) => {
       pendingPromises.push({ resolve, reject });
     });
   }
 
-  // Rate limiting: don't make requests too frequently
+  // Rate limiting
   if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
-    //console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
+    console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 
@@ -165,16 +177,16 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   lastRequestTime = now;
 
   try {
-    //console.log('🔄 Fetching fresh products from API...');
+    console.log('🔄 Fetching fresh products from API...');
 
     const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
       method: 'GET',
       ...getRequestConfig(),
     });
 
-    // Handle rate limiting gracefully with exponential backoff
+    // Handle rate limiting
     if (response.status === 429) {
-      //console.warn('⏱️ Rate limited, using cached data if available');
+      console.warn('⏱️ Rate limited, using cached data if available');
       if (globalProductsCache) {
         isLoadingProducts = false;
         pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
@@ -182,26 +194,22 @@ export const getProductsWithState = async (): Promise<Product[]> => {
         return globalProductsCache;
       }
 
-      // Try again with exponential backoff
-      const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000); // Max 30 seconds
-      //console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
+      const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000);
+      console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
       await new Promise(resolve => setTimeout(resolve, retryAfter));
 
-      // Retry the request once
       const retryResponse = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
         method: 'GET',
         ...getRequestConfig(),
       });
 
       if (retryResponse.status === 429) {
-        //console.warn('⏱️ Retry also rate limited, using cached data if available');
         if (globalProductsCache) {
           isLoadingProducts = false;
           pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
           pendingPromises = [];
           return globalProductsCache;
         }
-        // If no cached data available, throw a more graceful error
         throw new Error('Service temporarily unavailable due to rate limiting. Please try again later.');
       }
 
@@ -212,13 +220,9 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       const data: ProductsResponse = await retryResponse.json();
       const products = (data.data || []).map(product => processProductImagesStatic(product));
 
-      // Update global cache
       globalProductsCache = products;
       cacheTimestamp = now;
 
-      //console.log(`✅ Successfully fetched ${products.length} products on retry`);
-
-      // Resolve all pending promises
       isLoadingProducts = false;
       pendingPromises.forEach(({ resolve }) => resolve(products));
       pendingPromises = [];
@@ -233,13 +237,11 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     const data: ProductsResponse = await response.json();
     const products = (data.data || []).map(product => processProductImagesStatic(product));
 
-    // Update global cache
     globalProductsCache = products;
     cacheTimestamp = now;
 
-    //console.log(`✅ Successfully fetched ${products.length} products`);
+    console.log(`✅ Successfully fetched ${products.length} products`);
 
-    // Resolve all pending promises
     isLoadingProducts = false;
     pendingPromises.forEach(({ resolve }) => resolve(products));
     pendingPromises = [];
@@ -247,28 +249,23 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     return products;
 
   } catch (error) {
-    //console.error('❌ Error fetching products:', error);
+    console.error('❌ Error fetching products:', error);
 
-    // Return cached data as fallback, even if expired or partially loaded
     if (globalProductsCache) {
-      //console.log('🔄 Using cached products as fallback');
+      console.log('🔄 Using cached products as fallback');
       isLoadingProducts = false;
       pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
       pendingPromises = [];
       return globalProductsCache;
     }
 
-    // If it's a rate limiting error, provide a more helpful message
     if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      //console.warn('⚠️ Rate limiting error with no cached data available');
       isLoadingProducts = false;
       pendingPromises.forEach(({ reject }) => reject(new Error('Service temporarily unavailable due to high demand. Please try again in a few minutes.')));
       pendingPromises = [];
-      return []; // Return empty array to maintain return type
+      return [];
     }
 
-    // For other errors, try to provide a graceful fallback
-    //console.warn('⚠️ No cached data available for error fallback');
     isLoadingProducts = false;
     pendingPromises.forEach(({ reject }) => reject(error));
     pendingPromises = [];
@@ -277,24 +274,113 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 };
 
 // ============================================
-// FETCH ALL PRODUCTS (No Pagination - for client-side pagination)
+// FETCH PRODUCTS BY CATEGORY (Smart Caching)
+// ============================================
+export const fetchProductsByCategory = async (categoryName: string): Promise<Product[]> => {
+  const now = Date.now();
+
+  // Check if we have a valid cache for this specific category
+  const cachedCategory = categoryCaches.get(categoryName);
+  if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
+    console.log(`✅ Using cached products for category: ${categoryName}`);
+    return cachedCategory.products;
+  }
+
+  // If there's a cache for a different category, clear it
+  if (categoryCaches.size > 0) {
+    const cachedCategoryName = Array.from(categoryCaches.keys())[0];
+    if (cachedCategoryName !== categoryName) {
+      console.log(`🗑️ Clearing cache for old category: ${cachedCategoryName}`);
+      categoryCaches.delete(cachedCategoryName);
+    }
+  }
+
+  try {
+    console.log(`🔄 Fetching products for category: ${categoryName}`);
+
+    // Build filter URL
+    const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
+
+    const response = await fetch(filterUrl, {
+      method: 'GET',
+      ...getRequestConfig(),
+    });
+
+    if (response.status === 429) {
+      console.warn('⏱️ Rate limited');
+      if (cachedCategory) {
+        return cachedCategory.products;
+      }
+      throw new Error('Service temporarily unavailable. Please try again later.');
+    }
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: ProductsResponse = await response.json();
+    const products = (data.data || []).map(product => processProductImagesStatic(product));
+
+    // Cache the products for this category
+    categoryCaches.set(categoryName, {
+      categoryName,
+      products,
+      timestamp: now
+    });
+
+    console.log(`✅ Cached ${products.length} products for category: ${categoryName}`);
+
+    return products;
+
+  } catch (error) {
+    console.error(`❌ Error fetching products for category ${categoryName}:`, error);
+
+    // Return cached data as fallback
+    if (cachedCategory) {
+      console.log('🔄 Using cached category data as fallback');
+      return cachedCategory.products;
+    }
+
+    throw error;
+  }
+};
+
+// ============================================
+// FETCH ALL PRODUCTS (with optional filtering)
 // ============================================
 export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'limit'> = {}): Promise<ProductsResponse> => {
   try {
-    // Use the centralized state management for products
-    const products = await getProductsWithState();
+    let products: Product[];
 
-    // Apply filters if provided
-    let filteredProducts = products;
-    if (filters.category) {
-      filteredProducts = filteredProducts.filter(p => p.category === filters.category);
+    // If category filter is specified, use category-specific cache
+    if (filters.category && typeof filters.category === 'string') {
+      products = await fetchProductsByCategory(filters.category);
+    } else {
+      // Otherwise, use global products cache
+      products = await getProductsWithState();
     }
+
+    // Apply additional filters
+    let filteredProducts = products;
+
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filteredProducts = filteredProducts.filter(p =>
         p.name.toLowerCase().includes(searchTerm) ||
         p.description?.toLowerCase().includes(searchTerm)
       );
+    }
+
+    if (filters.minPrice !== undefined) {
+      filteredProducts = filteredProducts.filter(p => p.price >= filters.minPrice!);
+    }
+
+    if (filters.maxPrice !== undefined) {
+      filteredProducts = filteredProducts.filter(p => p.price <= filters.maxPrice!);
+    }
+
+    if (filters.inStock !== undefined) {
+      filteredProducts = filteredProducts.filter(p => p.inStock === filters.inStock);
     }
 
     return {
@@ -315,11 +401,11 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
       }
     };
   } catch (error) {
-    //console.error('Error in fetchAllProducts:', error);
+    console.error('Error in fetchAllProducts:', error);
 
-    // Return cached data if available, even if it's expired
+    // Fallback to global cache
     if (globalProductsCache) {
-      //console.log('🔄 Using cached products as fallback in fetchAllProducts');
+      console.log('🔄 Using global cached products as fallback');
       return {
         data: globalProductsCache,
         pagination: {
@@ -339,9 +425,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
       };
     }
 
-    // If error is due to service unavailability, return empty response
     if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      //console.warn('⚠️ Returning empty response due to service unavailability');
       return {
         data: [],
         pagination: {
@@ -366,26 +450,26 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 };
 
 // ============================================
-// FETCH PRODUCTS WITH SERVER-SIDE PAGINATION
+// FETCH PRODUCTS WITH PAGINATION
 // ============================================
 export const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
   try {
-    // Use the centralized state management for products
-    const products = await getProductsWithState();
+    let products: Product[];
 
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 20;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = products.slice(startIndex, endIndex);
-
-    // Apply filters if provided
-    let filteredProducts = paginatedProducts;
-    if (filters.category) {
-      const categories = Array.isArray(filters.category) ? filters.category : [filters.category];
-      filteredProducts = filteredProducts.filter(p => categories.includes(p.category));
+    // Use category-specific cache if category filter is specified
+    if (filters.category && typeof filters.category === 'string') {
+      products = await fetchProductsByCategory(filters.category);
+    } else {
+      products = await getProductsWithState();
     }
+
+    // Apply filters
+    let filteredProducts = products;
+
+    if (filters.category && Array.isArray(filters.category)) {
+      filteredProducts = filteredProducts.filter(p => filters.category!.includes(p.category));
+    }
+
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filteredProducts = filteredProducts.filter(p =>
@@ -393,20 +477,29 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
         p.description?.toLowerCase().includes(searchTerm)
       );
     }
+
     if (filters.minPrice !== undefined) {
       filteredProducts = filteredProducts.filter(p => p.price >= filters.minPrice!);
     }
+
     if (filters.maxPrice !== undefined) {
       filteredProducts = filteredProducts.filter(p => p.price <= filters.maxPrice!);
     }
 
+    // Apply pagination
+    const page = filters.page || 1;
+    const limit = filters.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
     return {
-      data: filteredProducts,
+      data: paginatedProducts,
       pagination: {
         page,
         limit,
         total: filteredProducts.length,
-        totalPages: Math.ceil(products.length / limit)
+        totalPages: Math.ceil(filteredProducts.length / limit)
       },
       filters: {
         categories: [...new Set(products.map(p => p.category))],
@@ -418,61 +511,7 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
       }
     };
   } catch (error) {
-    //console.error('Error in fetchProducts:', error);
-
-    // Return cached data if available, even if it's expired
-    if (globalProductsCache) {
-      //console.log('🔄 Using cached products as fallback in fetchProducts');
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedProducts = globalProductsCache.slice(startIndex, endIndex);
-
-      return {
-        data: paginatedProducts,
-        pagination: {
-          page,
-          limit,
-          total: globalProductsCache.length,
-          totalPages: Math.ceil(globalProductsCache.length / limit)
-        },
-        filters: {
-          categories: [...new Set(globalProductsCache.map(p => p.category))],
-          brands: [],
-          priceRange: {
-            min: Math.min(...globalProductsCache.map(p => p.price)),
-            max: Math.max(...globalProductsCache.map(p => p.price))
-          }
-        }
-      };
-    }
-
-    // If error is due to service unavailability, return empty response
-    if (error instanceof Error && error.message.includes('temporarily unavailable')) {
-      //console.warn('⚠️ Returning empty response due to service unavailability');
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
-
-      return {
-        data: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0
-        },
-        filters: {
-          categories: [],
-          brands: [],
-          priceRange: {
-            min: 0,
-            max: 0
-          }
-        }
-      };
-    }
-
+    console.error('Error in fetchProducts:', error);
     throw error;
   }
 };
@@ -510,22 +549,7 @@ export const searchProducts = async (
   try {
     return await fetchProducts({ ...filters, search: query });
   } catch (error) {
-    //console.error('Error searching products:', error);
-    throw error;
-  }
-};
-
-// ============================================
-// FETCH BY CATEGORY
-// ============================================
-export const fetchProductsByCategory = async (
-  categoryId: string | number,
-  filters: Omit<ProductFilters, 'category'> = {}
-): Promise<ProductsResponse> => {
-  try {
-    return await fetchProducts({ ...filters, category: String(categoryId) });
-  } catch (error) {
-    //console.error('Error fetching products by category:', error);
+    console.error('Error searching products:', error);
     throw error;
   }
 };
@@ -539,7 +563,7 @@ export const fetchFeaturedProducts = async (
   try {
     return await fetchProducts({ ...filters, featured: true });
   } catch (error) {
-    //console.error('Error fetching featured products:', error);
+    console.error('Error fetching featured products:', error);
     throw error;
   }
 };
@@ -596,15 +620,41 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 export const clearProductsCache = () => {
   globalProductsCache = null;
   cacheTimestamp = 0;
-  //console.log('🗑️ Products cache cleared');
+  console.log('🗑️ Global products cache cleared');
+};
+
+export const clearCategoryCache = (categoryName?: string) => {
+  if (categoryName) {
+    categoryCaches.delete(categoryName);
+    console.log(`🗑️ Cache cleared for category: ${categoryName}`);
+  } else {
+    categoryCaches.clear();
+    console.log('🗑️ All category caches cleared');
+  }
+};
+
+export const clearAllCaches = () => {
+  clearProductsCache();
+  clearCategoryCache();
+  console.log('🗑️ All caches cleared');
 };
 
 export const getCacheInfo = () => {
   return {
-    hasCache: !!globalProductsCache,
-    cacheSize: globalProductsCache?.length || 0,
-    cacheAge: cacheTimestamp ? Date.now() - cacheTimestamp : 0,
-    isLoading: isLoadingProducts,
-    pendingRequests: pendingPromises.length
+    global: {
+      hasCache: !!globalProductsCache,
+      cacheSize: globalProductsCache?.length || 0,
+      cacheAge: cacheTimestamp ? Date.now() - cacheTimestamp : 0,
+      isLoading: isLoadingProducts,
+      pendingRequests: pendingPromises.length
+    },
+    categories: {
+      count: categoryCaches.size,
+      entries: Array.from(categoryCaches.entries()).map(([name, cache]) => ({
+        name,
+        productsCount: cache.products.length,
+        cacheAge: Date.now() - cache.timestamp
+      }))
+    }
   };
 };

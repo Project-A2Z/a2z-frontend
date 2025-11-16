@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Logo = () => {
+export const Logo = () => {
 	return(
 		<div className="flex flex-col items-center justify-center w-full max-w-[280px] xs:max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl gap-2 xs:gap-3 sm:gap-4">
 			{/* logo */}
