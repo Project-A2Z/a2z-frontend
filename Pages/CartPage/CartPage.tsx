@@ -162,29 +162,46 @@ const CartPage = () => {
       </div>
     );
   }
-
-  return (
-    <div className="min-h-screen bg-white font-beiruti mt-[93px]">
-      <div className="max-w-6xl mx-auto px-4 py-6 ">
-        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 ` }>
-          <div className={cartItems.length > 0 ? 'lg:col-span-2 space-y-4 sm:space-y-6 p-[10px]' : 'space-y-4 sm:space-y-6 p-[10px]'}>
-            <CartHeader itemCount={cartItems.length} />
-            <CartItemsList items={cartItems} onUpdateQuantity={updateQuantity} onRemove={removeItem} />
+return (
+    <div className="min-h-screen bg-gray-50 font-beiruti">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6">
+        {/* Main Grid Layout */}
+        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-12' : 'w-full'} gap-4 md:gap-6`}>
+          {/* Cart Items Section */}
+          <div className={`${cartItems.length > 0 ? 'lg:col-span-8 xl:col-span-9' : 'w-full'}`}>
+            <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 md:p-6">
+              <CartHeader itemCount={cartItems.length} />
+              <div className="mt-4">
+                <CartItemsList 
+                  items={cartItems} 
+                  onUpdateQuantity={updateQuantity} 
+                  onRemove={removeItem} 
+                />
+              </div>
+            </div>
           </div>
 
+          {/* Order Summary - Only shown when there are items */}
           {cartItems.length > 0 && (
-            <div className="lg:col-span-1">
-              <OrderSummary order={cartItems} itemCount={cartItems.length} total={subtotal} hasItems={cartItems.length > 0} />
+            <div className="lg:col-span-4 xl:col-span-3">
+              <div className="sticky top-24 space-y-4">
+                <OrderSummary 
+                  order={cartItems} 
+                  itemCount={cartItems.length} 
+                  total={subtotal} 
+                  hasItems={cartItems.length > 0} 
+                />
+              </div>
             </div>
           )}
         </div>
 
-        {(() => {
-          const primaryCategory = cartItems.find(ci => ci.category)?.category;
-          return (
-            <RelatedProducts  />
-          );
-        })()}
+        {/* Related Products */}
+        {cartItems.length > 0 && (
+          <div className="mt-8 md:mt-12">
+            <RelatedProducts />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -339,11 +339,14 @@
   bottom: -2.6%;
   left: 0;
   right: 0;
-  background: transparent;
-  z-index: 100;
+  z-index: 90;
+  padding: 0 10px 10px;
+  margin-bottom: 10px;
+  pointer-events: none;
   height: 80px;
   padding: 0 16px 8px;
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
 }
 
 /* Main curved container */
@@ -392,7 +395,7 @@
   justify-content: center;
   gap: 4px;
   text-decoration: none;
-  color: #9ca3af;
+  color: #9CA3AF;
   font-size: 11px;
   font-weight: 500;
   padding: 8px 12px;
@@ -411,7 +414,7 @@
 }
 
 .bottomNavItem:hover {
-  color: var(--primary, #22c55e);
+  color: var(--primary, #22C55E);
   background-color: rgba(34, 197, 94, 0.08);
 }
 
@@ -443,7 +446,7 @@
 
 /* Active state for current page */
 .bottomNavItem.active {
-  color: var(--primary, #22c55e);
+  color: var(--primary, #22C55E);
 }
 
 .bottomNavItem.active .bottomNavIcon svg {
@@ -461,7 +464,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 5px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -474,8 +477,7 @@
 }
 
 @keyframes badgePulse {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
   50% {
@@ -498,8 +500,8 @@
 .MessageCircle svg {
   width: 70px;
   height: 70px;
-  filter: drop-shadow(0 8px 24px rgba(34, 197, 94, 0.3))
-    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(0 8px 24px rgba(34, 197, 94, 0.3)) 
+          drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -508,8 +510,8 @@
 }
 
 .MessageCircle:hover svg {
-  filter: drop-shadow(0 12px 32px rgba(34, 197, 94, 0.4))
-    drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 12px 32px rgba(34, 197, 94, 0.4)) 
+          drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2));
 }
 
 .MessageCircle:active {
@@ -525,19 +527,14 @@
   transform: translate(-50%, -50%);
   width: 80px;
   height: 80px;
-  background: radial-gradient(
-    circle,
-    rgba(34, 197, 94, 0.2) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   z-index: -1;
   animation: glowPulse 3s infinite;
 }
 
 @keyframes glowPulse {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.5;
     transform: translate(-50%, -50%) scale(1);
   }
@@ -909,7 +906,7 @@
     transition: none;
     animation: none;
   }
-
+  
   .MessageCircle::after {
     animation: none;
   }
