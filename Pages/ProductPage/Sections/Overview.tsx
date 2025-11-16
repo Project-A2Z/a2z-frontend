@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
-import { cartService } from "@/services/api/cart";
+import { Button } from "@/components/UI/Buttons";
+import { cartService, checkProductUnitConflict } from "@/services/api/cart";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/utils/auth";
 import Alert from "@/components/UI/Alert/alert";
@@ -21,12 +23,16 @@ type Props = {
   title?: string;
   description?: string;
   price?: number;
-  imageList?: string[];
+  imageList?: string[]; 
   rating?: number;
   ratingCount?: number;
   category?: string;
   stockQty?: number;
-  stockType?: "unit" | "kg" | "ton";
+  isUNIT?: boolean;
+  isKG?: boolean;
+  isTON?: boolean;
+  isLITER?: boolean;
+  isCUBIC_METER?: boolean;
 };
 
 const Overview: React.FC<Props> = ({
@@ -34,16 +40,39 @@ const Overview: React.FC<Props> = ({
   title = "Product Title",
   description = "",
   price = 0,
-  imageList = ["/acessts/download (47).jpg"],
+  imageList = ["/placeholder-product.jpg"],
   rating = 0,
   ratingCount = 0,
   category = "غير محدد",
   stockQty = 0,
-  stockType = "unit",
+  isUNIT = false,
+  isKG = false,
+  isTON = false,
+  isLITER = false,
+  isCUBIC_METER = false,
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
-  const [selectedUnit, setSelectedUnit] = useState(stockType);
+  
+  // Define available units based on props
+  const unitOptions = React.useMemo(() => {
+    const options: Array<{key: string, label: string}> = [];
+    if (isUNIT) options.push({ key: 'unit', label: 'قطعة' });
+    if (isKG) options.push({ key: 'kg', label: 'كيلو' });
+    if (isTON) options.push({ key: 'ton', label: 'طن' });
+    if (isLITER) options.push({ key: 'liter', label: 'لتر' });
+    if (isCUBIC_METER) options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+    return options.length > 0 ? options : [{ key: 'unit', label: 'قطعة' }];
+  }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
+
+  const [selectedUnit, setSelectedUnit] = useState<string>(unitOptions[0]?.key || 'unit');
+  
+  // Update selected unit if the first unit changes
+  useEffect(() => {
+    if (unitOptions.length > 0 && !unitOptions.some(u => u.key === selectedUnit)) {
+      setSelectedUnit(unitOptions[0].key);
+    }
+  }, [unitOptions, selectedUnit]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isManualNavigation, setIsManualNavigation] = useState(false);
@@ -56,10 +85,15 @@ const Overview: React.FC<Props> = ({
   const [loved, setLoved] = useState(false);
   const [isFavoriteState, setIsFavoriteState] = useState(false);
   
-  // Initialize client-side state
+  // Initialize client-side state and fetch cart for validation
   useEffect(() => {
     setIsMounted(true);
     setIsClient(true);
+    
+    // Fetch cart items to populate client-side state for unit conflict validation
+    cartService.getCart().catch(error => {
+      console.error("Failed to fetch cart for validation:", error);
+    });
   }, []);
   
   // Always call useFavorites at the top level to maintain hook order
@@ -75,14 +109,21 @@ const Overview: React.FC<Props> = ({
     }
   }, [id, isClient, favoritesContext]);
 
-  const unitOptions = {
-    unit: "لتر",
-    kg: "كيلو",
-    ton: "طن",
-  };
+  // Define available units based on props
+  const availableUnits = React.useMemo(() => {
+    const units: { [key: string]: string } = {};
+    if (isUNIT) units.unit = 'قطعة';
+    if (isKG) units.kg = 'كيلو';
+    if (isTON) units.ton = 'طن';
+    if (isLITER) units.liter = 'لتر';
+    if (isCUBIC_METER) units.cubic_meter = 'متر مكعب';
+    return Object.keys(units).length > 0 ? units : { unit: 'قطعة' };
+  }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
-  const handleUnitSelect = (key: keyof typeof unitOptions) => {
-    setSelectedUnit(key);
+  const handleUnitSelect = (key: string) => {
+    if (key in availableUnits) {
+      setSelectedUnit(key);
+    }
   };
 
   const nextImage = () => {
@@ -136,17 +177,43 @@ const Overview: React.FC<Props> = ({
 
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
+    
+    // 1. Check for unit conflict before proceeding
+    const hasConflict = checkProductUnitConflict(String(id), selectedUnit);
+    if (hasConflict) {
+      // The checkProductUnitConflict function already displays the alert (toast)
+      return;
+    }
+
     try {
       setIsAdding(true);
       if (!isAuthenticated()) {
         router.push("/login");
         return;
       }
+
+      // Store the selected unit in localStorage to be used in the cart
+      const cartItemKey = `cart_item_${id}`;
+      localStorage.setItem(cartItemKey, JSON.stringify({
+        unit: selectedUnit,
+        quantity: quantity
+      }));
+
+      // Send the product ID and selected unit to the backend
+      // The backend will handle the unit conversion
       await cartService.addToCart({
         productId: String(id),
-        quantity,
+        quantity: quantity,
+        unit: selectedUnit, 
+        // The 'unit' field is no longer sent to the backend based on API docs
       });
+      
+      // Refresh client-side cart state after successful addition
+      await cartService.getCart();
       router.push("/cart");
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      // You might want to show an error message to the user here
     } finally {
       setIsAdding(false);
     }
@@ -320,12 +387,11 @@ const Overview: React.FC<Props> = ({
 
           <div className="flex flex-row justify-between flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 order-1">
-              {Object.entries(unitOptions).map(([key, label]) => (
+              {Object.entries(availableUnits).map(([key, label]) => (
                 <button
                   key={key}
-                  onClick={() =>
-                    handleUnitSelect(key as keyof typeof unitOptions)
-                  }
+                  type="button"
+                  onClick={() => handleUnitSelect(key)}
                   className={`w-[90px] h-[35px] px-4 py-1 rounded-full border text-sm transition-colors ${
                     selectedUnit === key
                       ? "border-primary text-primary bg-primary/10"

@@ -7,6 +7,7 @@ export interface CartItem {
   _id?: string; // Optional ID, as it might not be present before adding
   productId: string;
   quantity: number;
+  unit: string;
   // The unit is not returned by the API, so we must rely on client-side storage for validation
   // Additional fields like price, name, etc. will be populated from the server
 }
