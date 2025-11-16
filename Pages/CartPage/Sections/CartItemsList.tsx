@@ -180,7 +180,7 @@ const CartItemsList: React.FC<Props> = React.memo(({
                         onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         icon={<Plus className="w-4 h-4" />}
                       />
-                      <span className="text-gray-500 text-sm mr-2">{item.unit}</span>
+                      {/* <span className="text-gray-500 text-sm mr-2">{item.unit}</span> */}
                     </div>
                   </div>
                 </div>

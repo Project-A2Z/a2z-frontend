@@ -339,8 +339,10 @@
   bottom: -2.6%;
   left: 0;
   right: 0;
-  background: transparent;
-  z-index: 100;
+  z-index: 90;
+  padding: 0 10px 10px;
+  margin-bottom: 10px;
+  pointer-events: none;
   height: 80px;
   padding: 0 16px 8px;
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
