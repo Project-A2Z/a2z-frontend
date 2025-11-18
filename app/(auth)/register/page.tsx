@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "./../../../components/UI/Buttons/Button";
 import Input from "./../../../components/UI/Inputs/Input";
-import Logo from "./../../../public/icons/logo.svg";
+import Logo from "@/public/logo/logo2.webp.png";
 import Background from "./../../../components/UI/Background/Background";
 import Alert from "@/components/UI/Alert/alert";
 import styles from "./../auth.module.css";
@@ -283,7 +283,8 @@ export default function RegistrationForm() {
         <div className={styles.formWrapper}>
           {/* Logo and Title */}
           <div className={styles.header}>
-            <Logo className={styles.logo} />
+              <img src={Logo.src} alt="Logo" className={styles.logo} />
+
             <h2 className={styles.title}>إنشاء حساب جديد</h2>
           </div>
 

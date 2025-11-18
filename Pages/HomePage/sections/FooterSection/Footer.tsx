@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import styles from './Footer.module.css';
 import ContactSection from './Sections/ContactSection/ContactSection';
 import QuickLinks from './Sections/QuickLinksSection/QuickLinks';
 import CategoriesSection from './Sections/CategoriesSection/CategoriesSection';
 import AboutUsSection from './Sections/AboutUsSection/AboutUsSection';
-import MobileNavigation from './Sections/MobileNavigation/MobileNavigation';
 import dynamic from 'next/dynamic';
 
 // Dynamically import FloatingChat with SSR disabled

@@ -1,4 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200;300;400;500;600;700;800;900&display=swap');
+/* Self-hosted Beiruti font - FIXED format declarations */
+@font-face {
+  font-family: 'Beiruti';
+  src: url('/fonts/beiruti/static/Beiruti-Regular.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Beiruti';
+  src: url('/fonts/beiruti/static/Beiruti-Medium.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Beiruti';
+  src: url('/fonts/beiruti/static/Beiruti-SemiBold.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Beiruti';
+  src: url('/fonts/beiruti/static/Beiruti-Bold.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -21,8 +52,7 @@
   --error: #dd3d3d;
   --star: #f59e0b;
   
-  /* Font family variables */
-  --font-primary: 'Beiruti', 'Cairo', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-primary: 'Beiruti', 'Cairo', system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
@@ -32,60 +62,41 @@
   
   html {
     font-family: var(--font-primary);
+    line-height: 1.6;
+    direction: rtl;
   }
   
   body {
     @apply bg-white text-gray-900;
-    font-family: var(--font-primary);
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    direction: rtl;
   }
   
-  /* Apply Beiruti to all text elements */
-  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, label {
-    font-family: var(--font-primary);
-  }
-  
-  /* Specific font weights for headings */
   h1 {
     @apply text-4xl font-bold;
-    font-family: var(--font-primary);
-    font-weight: 700;
   }
   
   h2 {
     @apply text-3xl font-semibold;
-    font-family: var(--font-primary);
-    font-weight: 600;
   }
   
   h3 {
     @apply text-2xl font-medium;
-    font-family: var(--font-primary);
-    font-weight: 500;
   }
   
   h4 {
     @apply text-xl font-medium;
-    font-family: var(--font-primary);
-    font-weight: 500;
   }
   
   h5 {
     @apply text-lg font-normal;
-    font-family: var(--font-primary);
-    font-weight: 400;
   }
   
   h6 {
     @apply text-base font-normal;
-    font-family: var(--font-primary);
-    font-weight: 400;
   }
   
-  /* Custom scrollbar with brand colors */
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -102,43 +113,25 @@
     @apply bg-primary-500;
   }
   
-  /* Selection color */
   ::selection {
     @apply bg-primary-200 text-gray-900;
   }
   
-  /* Focus outline */
   :focus-visible {
     @apply outline-none ring-2 ring-primary-500 ring-offset-2;
   }
   
-  /* Input and form elements */
-  input, textarea, select {
-    font-family: var(--font-primary);
-    direction: rtl;
-  }
-  
-  /* Button elements */
-  button {
-    font-family: var(--font-primary);
-  }
-  
-  /* Placeholder text for RTL */
   input::placeholder,
   textarea::placeholder {
     text-align: right;
-    direction: rtl;
   }
 }
 
-
-/* Hide default password reveal/clear icons in Edge/IE to avoid double eyes */
 input[type='password']::-ms-reveal,
 input[type='password']::-ms-clear {
   display: none;
-  width: 0;
-  height: 0;
 }
+
 @layer components {
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
@@ -146,7 +139,6 @@ input[type='password']::-ms-clear {
 
   .btn {
     @apply px-4 py-2 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
-    font-family: var(--font-primary);
   }
 
   .btn-primary {
@@ -175,22 +167,12 @@ input[type='password']::-ms-clear {
   
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-    font-family: var(--font-primary);
-    direction: rtl;
     text-align: right;
-  }
-  
-  /* RTL-specific component classes */
-  .rtl-text {
-    direction: rtl;
-    text-align: right;
-    font-family: var(--font-primary);
   }
   
   .ltr-text {
     direction: ltr;
     text-align: left;
-    font-family: var(--font-primary);
   }
 }
 
@@ -204,100 +186,26 @@ input[type='password']::-ms-clear {
   }
   
   .shadow-brand {
-    @apply shadow-lg;
     box-shadow: 0 4px 14px 0 rgba(136, 190, 70, 0.15);
   }
-  
-  /* Font utility classes */
-  .font-beiruti {
-    font-family: var(--font-primary);
-  }
-  
-  .font-beiruti-light {
-    font-family: var(--font-primary);
-    font-weight: 300;
-  }
-  
-  .font-beiruti-regular {
-    font-family: var(--font-primary);
-    font-weight: 400;
-  }
-  
-  .font-beiruti-medium {
-    font-family: var(--font-primary);
-    font-weight: 500;
-  }
-  
-  .font-beiruti-semibold {
-    font-family: var(--font-primary);
-    font-weight: 600;
-  }
-  
-  .font-beiruti-bold {
-    font-family: var(--font-primary);
-    font-weight: 700;
-  }
-  
-  .font-beiruti-extrabold {
-    font-family: var(--font-primary);
-    font-weight: 800;
-  }
-  
-  .font-beiruti-black {
-    font-family: var(--font-primary);
-    font-weight: 900;
-  }
 }
 
-/* Performance optimization for font loading */
-.font-loading {
-  font-display: swap;
-}
-
-/* Ensure consistent line height for Arabic text */
-body, p, span, div {
-  line-height: 1.6;
-}
-
-/* Fix for Arabic text rendering in different browsers */
-@supports (font-variation-settings: normal) {
-  body {
-    font-variation-settings: normal;
-  }
-}
-
-/* Add to globals.css */
-
-/* Prevent Google Translate from breaking React */
 #__next {
   isolation: isolate;
 }
 
-/* Disable all transitions/animations during translation */
 body.translating * {
   transition: none !important;
   animation: none !important;
 }
 
-/* Prevent layout shifts from Google Translate */
 body {
   top: 0 !important;
   position: static !important;
 }
 
-.goog-te-banner-frame {
-  display: none !important;
-}
-
-.skiptranslate {
-  display: none !important;
-}
-
-/* Prevent Google Translate toolbar from affecting layout */
-.goog-te-banner-frame.skiptranslate {
-  display: none !important;
-}
-
+.goog-te-banner-frame,
+.skiptranslate,
 body > .skiptranslate {
   display: none !important;
 }

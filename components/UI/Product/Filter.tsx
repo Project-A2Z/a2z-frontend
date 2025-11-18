@@ -284,27 +284,8 @@ function Filter({
           </div>
         )}
 
-        {/* Selected categories display */}
-        {selectedCategories.length > 0 && (
-          <div className={styles.selectedCategoriesDisplay}>
-            <span className={styles.selectedLabel}>{t.selected}:</span>
-            <div className={styles.selectedTags}>
-              {selectedCategories.map(categoryId => {
-                const category = categories.find(cat => cat.id === categoryId);
-                return category ? (
-                  <span 
-                    key={categoryId} 
-                    className={styles.selectedTag}
-                    onClick={() => !disabled && handleCategoryChange(categoryId)}
-                  >
-                    {category.label}
-                    <span className={styles.removeTag}>×</span>
-                  </span>
-                ) : null;
-              })}
-            </div>
-          </div>
-        )}
+      
+       
       </div>
 
       {/* Letters Section */}

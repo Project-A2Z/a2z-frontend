@@ -31,7 +31,7 @@ import { Button } from "../../UI/Buttons/Button";
 import { getUnreadNotificationsCount } from "../../../services/notifications/notification";
 
 // Icons
-import Logo from "./../../../public/icons/logo.svg";
+import Logo from "@/public/logo/logo2.webp.png";
 import Heart from "./../../../public/icons/Header/Heart.svg";
 import Cart from "./../../../public/icons/Header/Cart Large 2.svg";
 import Notification from "./../../../public/icons/Header/Bell Bing.svg";
@@ -328,7 +328,8 @@ function Header({
       <header className={headerClasses} style={customStyles}>
         <div className={styles.left}>
           <Link href="/" className={styles.logoLink}>
-            <Logo className={styles.logo} />
+            <img src={Logo.src} alt="Logo" className={styles.logo} />
+
           </Link>
           <LanguageSelector />
         </div>

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import ProductSlider from "@/components/UI/Product/ProductSlider";
-import Filter from "@/components/UI/Product/Filter";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { Button } from "@/components/UI/Buttons/Button"; 
 import { 
   fetchAllProducts,
@@ -13,36 +13,60 @@ import {
 import style from './Product.module.css';
 import FilterIcon from '@/public/icons/Filter.svg'; 
 
+// Lazy load heavy components
+const ProductSlider = dynamic(() => import("@/components/UI/Product/ProductSlider"), {
+  loading: () => <ProductSliderSkeleton />,
+  ssr: false // Client-side only if it uses browser APIs
+});
+
+const Filter = dynamic(() => import("@/components/UI/Product/Filter"), {
+  loading: () => <FilterSkeleton />,
+  ssr: true
+});
+
 interface OptimizedProductSectionProps {
   initialData?: ProductsResponse;
 }
 
 const PRODUCTS_PER_PAGE = 20;
 
+// Skeleton components for loading states
+function ProductSliderSkeleton() {
+  return (
+    <div className={style.sliderContainer}>
+      <div className={style.skeletonGrid}>
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className={style.skeletonCard} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FilterSkeleton() {
+  return (
+    <div className={style.filterContainer}>
+      <div className={style.skeletonFilter} />
+    </div>
+  );
+}
+
 function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) {
-  // All products (fetched once)
+  // State management
   const [allProducts, setAllProducts] = useState<Product[]>(initialData?.data || []);
-  
-  // Filtered products (after applying filters)
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialData?.data || []);
-  
-  // Paginated products (current page display)
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   
-  // Filter states
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<string>('الكل');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
-  // Loading and error states
   const [isLoading, setIsLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
   
-  // Mobile filter modal states
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<string[]>([]);
   const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('الكل');
@@ -50,7 +74,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   const mountedRef = useRef(true);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
       mountedRef.current = false;
@@ -60,7 +84,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     };
   }, []);
 
-  // Helper function to check if "All" is selected
+  // Helper to check if "All" is selected
   const isAllLetter = useCallback((letter: string): boolean => {
     const normalizedLetter = letter.toLowerCase().trim();
     return normalizedLetter === 'all' || 
@@ -68,20 +92,16 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
            normalizedLetter === 'كل';
   }, []);
 
-  // ============================================
-  // FETCH ALL PRODUCTS ONCE
-  // ============================================
+  // Load all products (only if not provided via SSR)
   const loadAllProducts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      //console.log('🔄 Loading all products...');
       const response = await fetchAllProducts();
       
       if (!mountedRef.current) return;
       
-      //console.log(`✅ Loaded ${response.data.length} products`);
       setAllProducts(response.data);
       
     } catch (err: any) {
@@ -89,7 +109,6 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       
       const errorMessage = err instanceof Error ? err.message : 'فشل في تحميل المنتجات';
       setError(errorMessage);
-      //console.error('Error loading products:', err);
     } finally {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -97,16 +116,14 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }
   }, []);
 
-  // Initial load
+  // Initial load only if no SSR data
   useEffect(() => {
     if (!initialData) {
       loadAllProducts();
     }
   }, [initialData, loadAllProducts]);
 
-  // ============================================
-  // AVAILABLE CATEGORIES
-  // ============================================
+  // Available categories memoization
   const availableCategories = useMemo(() => {
     const categories = new Set<string>();
     allProducts.forEach(product => {
@@ -117,15 +134,13 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     return Array.from(categories);
   }, [allProducts]);
 
-  // ============================================
-  // CLIENT-SIDE FILTERING
-  // ============================================
+  // Client-side filtering with useMemo for performance
   const applyFilters = useMemo(() => {
     if (!allProducts.length) return [];
     
     let filtered = allProducts;
 
-    // Apply category filter
+    // Category filter
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(product => 
         selectedCategories.some(category => 
@@ -134,12 +149,12 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       );
     }
 
-    // Apply letter filter - ONLY if it's not "All"/"الكل"
+    // Letter filter (skip if "All")
     if (selectedLetter && !isAllLetter(selectedLetter)) {
       filtered = getByFirstLetter(selectedLetter, filtered);
     }
 
-    // Apply search filter
+    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(product => {
@@ -155,30 +170,25 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     return filtered;
   }, [allProducts, selectedCategories, selectedLetter, searchQuery, isAllLetter]);
 
-  // Update filtered products whenever filters change
+  // Update filtered products
   useEffect(() => {
     setFilteredProducts(applyFilters);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [applyFilters]);
 
-  // ============================================
-  // CLIENT-SIDE PAGINATION
-  // ============================================
+  // Client-side pagination
   useEffect(() => {
     const paginated = paginateProducts(filteredProducts, currentPage, PRODUCTS_PER_PAGE);
     setDisplayedProducts(paginated.data);
     setTotalPages(paginated.pagination?.totalPages || 1);
   }, [filteredProducts, currentPage]);
 
-  // ============================================
-  // FILTER HANDLERS
-  // ============================================
+  // Filter handlers
   const handleCategoryFilter = useCallback((categories: string[] | null | undefined) => {
     setSelectedCategories(categories || []);
   }, []);
 
   const handleLetterFilter = useCallback((letter: string | null | undefined) => {
-    // Store the letter as-is (including "All"/"الكل")
     setSelectedLetter(letter || 'الكل');
   }, []);
 
@@ -193,9 +203,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }, 300);
   }, []);
 
-  // ============================================
-  // PAGINATION HANDLERS
-  // ============================================
+  // Pagination handlers
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
       setCurrentPage(page);
@@ -203,12 +211,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }
   }, [currentPage, totalPages]);
 
-  const goToFirstPage = useCallback(() => handlePageChange(1), [handlePageChange]);
-  const goToLastPage = useCallback(() => handlePageChange(totalPages), [handlePageChange, totalPages]);
-
-  // ============================================
-  // MODAL HANDLERS
-  // ============================================
+  // Modal handlers
   const openFilterModal = useCallback(() => {
     setTempSelectedCategories([...selectedCategories]);
     setTempSelectedLetter(selectedLetter);
@@ -235,9 +238,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     setTempSelectedLetter(letter || 'الكل');
   }, []);
 
-  // ============================================
-  // CLEAR FILTERS
-  // ============================================
+  // Clear all filters
   const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
     setSelectedLetter('الكل');
@@ -249,14 +250,12 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }
   }, []);
 
-  // ============================================
-  // REFRESH DATA
-  // ============================================
+  // Refresh data
   const refreshData = useCallback(() => {
     loadAllProducts();
   }, [loadAllProducts]);
 
-  // Active filters count - don't count "All" as an active filter
+  // Active filters count
   const activeFiltersCount = useMemo(() => 
     selectedCategories.length + 
     (!isAllLetter(selectedLetter) ? 1 : 0) + 
@@ -264,9 +263,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     [selectedCategories.length, selectedLetter, searchQuery, isAllLetter]
   );
 
-  // ============================================
-  // LOADING STATE
-  // ============================================
+  // Loading state
   if (isLoading && allProducts.length === 0) {
     return (
       <div className={style.containerSection}>
@@ -278,9 +275,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     );
   }
 
-  // ============================================
-  // ERROR STATE
-  // ============================================
+  // Error state
   if (error && allProducts.length === 0) {
     return (
       <div className={style.containerSection}>
@@ -300,9 +295,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     );
   }
 
-  // ============================================
-  // MAIN RENDER
-  // ============================================
+  // Main render
   return (
     <div className={style.containerSection}>
       {/* Mobile Filter Button */}
@@ -330,32 +323,34 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
       {/* Products Display */}
       <div className={style.container}>
-        <ProductSlider 
-          products={displayedProducts} 
-          isLoading={isLoading}
-          error={error}
-        />
-        <Filter 
-          getByCategory={handleCategoryFilter} 
-          getByLetter={handleLetterFilter}
-          selectedCategories={selectedCategories}
-          selectedLetter={selectedLetter}
-        />
+        <Suspense fallback={<ProductSliderSkeleton />}>
+          <ProductSlider 
+            products={displayedProducts} 
+            isLoading={isLoading}
+            error={error}
+          />
+        </Suspense>
+        
+        <Suspense fallback={<FilterSkeleton />}>
+          <Filter 
+            getByCategory={handleCategoryFilter} 
+            getByLetter={handleLetterFilter}
+            selectedCategories={selectedCategories}
+            selectedLetter={selectedLetter}
+          />
+        </Suspense>
       </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className={style.paginationContainer}>
-          {/* Page Numbers */}
           <div className={style.pageNumbers}>
-             {/* Products Count Info */}
             <div className={style.paginationInfo}>
               <span className={style.productsCount}>
                 عرض {filteredProducts.length} من إجمالي المنتجات
               </span>
             </div>
 
-            {/* Previous Page Arrow */}
             <button
               className={`${style.pageNumber} ${style.arrowButton}`}
               disabled={currentPage === 1}
@@ -365,7 +360,6 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
               ‹
             </button>
 
-            {/* Page Number Buttons */}
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const pageNum = Math.max(1, currentPage - 2) + i;
               if (pageNum > totalPages) return null;
@@ -381,7 +375,6 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
               );
             })}
 
-            {/* Next Page Arrow */}
             <button
               className={`${style.pageNumber} ${style.arrowButton}`}
               disabled={currentPage === totalPages}

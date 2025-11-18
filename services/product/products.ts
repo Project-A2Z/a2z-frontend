@@ -117,12 +117,16 @@ const processProductImagesStatic = (product: any): Product => {
 };
 
 // Request config
-const getRequestConfig = () => ({
+const getRequestConfig = (revalidate: number = 60) => ({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...(process.env.API_KEY && { 'Authorization': `Bearer ${process.env.API_KEY}` }),
   },
+  next: { 
+        revalidate, 
+        tags: ['products'] 
+      },
 });
 
 // ============================================
@@ -153,13 +157,13 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
   // Return cached data if available and not expired
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    console.log('✅ Using cached products');
+    // console.log('✅ Using cached products');
     return globalProductsCache;
   }
 
   // If already loading, wait for the existing request
   if (isLoadingProducts) {
-    console.log('⏳ Waiting for existing products request...');
+    // console.log('⏳ Waiting for existing products request...');
     return new Promise((resolve, reject) => {
       pendingPromises.push({ resolve, reject });
     });
@@ -168,7 +172,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   // Rate limiting
   if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
-    console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
+    // console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 
@@ -177,7 +181,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   lastRequestTime = now;
 
   try {
-    console.log('🔄 Fetching fresh products from API...');
+    // // console.log('🔄 Fetching fresh products from API...');
 
     const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
       method: 'GET',
@@ -186,7 +190,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
     // Handle rate limiting
     if (response.status === 429) {
-      console.warn('⏱️ Rate limited, using cached data if available');
+      // console.warn('⏱️ Rate limited, using cached data if available');
       if (globalProductsCache) {
         isLoadingProducts = false;
         pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
@@ -195,7 +199,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       }
 
       const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000);
-      console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
+      // console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
       await new Promise(resolve => setTimeout(resolve, retryAfter));
 
       const retryResponse = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
@@ -240,7 +244,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     globalProductsCache = products;
     cacheTimestamp = now;
 
-    console.log(`✅ Successfully fetched ${products.length} products`);
+    // console.log(`✅ Successfully fetched ${products.length} products`);
 
     isLoadingProducts = false;
     pendingPromises.forEach(({ resolve }) => resolve(products));
@@ -252,7 +256,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     console.error('❌ Error fetching products:', error);
 
     if (globalProductsCache) {
-      console.log('🔄 Using cached products as fallback');
+      // console.log('🔄 Using cached products as fallback');
       isLoadingProducts = false;
       pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
       pendingPromises = [];
@@ -282,7 +286,7 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
   // Check if we have a valid cache for this specific category
   const cachedCategory = categoryCaches.get(categoryName);
   if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
-    console.log(`✅ Using cached products for category: ${categoryName}`);
+    // console.log(`✅ Using cached products for category: ${categoryName}`);
     return cachedCategory.products;
   }
 
@@ -290,13 +294,13 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
   if (categoryCaches.size > 0) {
     const cachedCategoryName = Array.from(categoryCaches.keys())[0];
     if (cachedCategoryName !== categoryName) {
-      console.log(`🗑️ Clearing cache for old category: ${cachedCategoryName}`);
+      // console.log(`🗑️ Clearing cache for old category: ${cachedCategoryName}`);
       categoryCaches.delete(cachedCategoryName);
     }
   }
 
   try {
-    console.log(`🔄 Fetching products for category: ${categoryName}`);
+    // console.log(`🔄 Fetching products for category: ${categoryName}`);
 
     // Build filter URL
     const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
@@ -328,7 +332,7 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
       timestamp: now
     });
 
-    console.log(`✅ Cached ${products.length} products for category: ${categoryName}`);
+    // console.log(`✅ Cached ${products.length} products for category: ${categoryName}`);
 
     return products;
 
@@ -337,7 +341,7 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
 
     // Return cached data as fallback
     if (cachedCategory) {
-      console.log('🔄 Using cached category data as fallback');
+      // console.log('🔄 Using cached category data as fallback');
       return cachedCategory.products;
     }
 
@@ -405,7 +409,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 
     // Fallback to global cache
     if (globalProductsCache) {
-      console.log('🔄 Using global cached products as fallback');
+      // console.log('🔄 Using global cached products as fallback');
       return {
         data: globalProductsCache,
         pagination: {
@@ -620,23 +624,23 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 export const clearProductsCache = () => {
   globalProductsCache = null;
   cacheTimestamp = 0;
-  console.log('🗑️ Global products cache cleared');
+  // console.log('🗑️ Global products cache cleared');
 };
 
 export const clearCategoryCache = (categoryName?: string) => {
   if (categoryName) {
     categoryCaches.delete(categoryName);
-    console.log(`🗑️ Cache cleared for category: ${categoryName}`);
+    // console.log(`🗑️ Cache cleared for category: ${categoryName}`);
   } else {
     categoryCaches.clear();
-    console.log('🗑️ All category caches cleared');
+    // console.log('🗑️ All category caches cleared');
   }
 };
 
 export const clearAllCaches = () => {
   clearProductsCache();
   clearCategoryCache();
-  console.log('🗑️ All caches cleared');
+  // console.log('🗑️ All caches cleared');
 };
 
 export const getCacheInfo = () => {

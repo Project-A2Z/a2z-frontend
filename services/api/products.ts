@@ -112,10 +112,9 @@ if (typeof window !== 'undefined') {
     productsCache.cleanup();
     productDetailCache.cleanup();
   }, 5 * 60 * 1000);
-
 }
 
-// Global cache instances
+// Global cache instances (client-side only)
 const productsCache = new ClientCache<ApiResponse<Product[]>>();
 const productDetailCache = new ClientCache<ApiResponse<Product>>();
 
@@ -203,19 +202,145 @@ const getProductsClient = async (filters: ProductFilters) => {
   }
 };
 
-export const productService = {
-  async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
-    const cacheKey = getProductsCacheKey(filters);
-    const cachedData = productsCache.get(cacheKey);
+// ===========================
+// ISR-compatible fetch functions
+// ===========================
 
-    if (cachedData) {
+/**
+ * Fetch products with Next.js fetch API for ISR support
+ * Use this in getStaticProps or Server Components
+ * @param filters - Product filters
+ * @param revalidate - Revalidation time in seconds (default: 60)
+ */
+export async function fetchProductsISR(
+  filters: ProductFilters = {},
+  revalidate: number = 60
+): Promise<ApiResponse<Product[]>> {
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://a2z-backend.fly.dev/app/v1';
+  
+  const params = new URLSearchParams();
+  params.set('lang', 'en');
+  
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      if (typeof value === 'object') {
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          if (subValue !== undefined) {
+            params.append(`${key}[${subKey}]`, String(subValue));
+          }
+        });
+      } else {
+        params.append(key, String(value));
+      }
+    }
+  });
 
-      return cachedData;
+  const url = `${BASE_URL}/products?${params.toString()}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      next: { 
+        revalidate, // ISR revalidation time
+        tags: ['products'] // Optional: for on-demand revalidation
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const result = await getProductsClient(filters);
-    productsCache.set(cacheKey, result, 5 * 60 * 1000);
-    return result;
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('Error fetching products (ISR):', error);
+    return {
+      status: 'error',
+      data: [],
+      message: 'Unable to load products. Please try again later.'
+    };
+  }
+}
+
+/**
+ * Fetch single product with Next.js fetch API for ISR support
+ * Use this in getStaticProps or Server Components
+ * @param id - Product ID
+ * @param revalidate - Revalidation time in seconds (default: 60)
+ */
+export async function fetchProductByIdISR(
+  id: string,
+  revalidate: number = 60
+): Promise<ApiResponse<Product>> {
+  if (!id) {
+    throw new Error('Product ID is required');
+  }
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://a2z-backend.fly.dev/app/v1';
+  const url = `${BASE_URL}/products/${id}?lang=en`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      next: { 
+        revalidate, // ISR revalidation time
+        tags: ['products', `product-${id}`] // Optional: for on-demand revalidation
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return {
+          status: 'error',
+          data: {} as Product,
+          message: 'Product not found.'
+        };
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error(`Error fetching product ${id} (ISR):`, error);
+    return {
+      status: 'error',
+      data: {} as Product,
+      message: 'Unable to load product details. Please try again later.'
+    };
+  }
+}
+
+// ===========================
+// Original service (client-side with cache)
+// ===========================
+
+export const productService = {
+  async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<Product[]>> {
+    // Client-side: use cache
+    if (!isServer) {
+      const cacheKey = getProductsCacheKey(filters);
+      const cachedData = productsCache.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const result = await getProductsClient(filters);
+      productsCache.set(cacheKey, result, 5 * 60 * 1000);
+      return result;
+    }
+
+    // Server-side: direct fetch (no cache needed, ISR handles it)
+    return await getProductsClient(filters);
   },
 
   async getProductById(id: string): Promise<ApiResponse<Product>> {
@@ -223,21 +348,25 @@ export const productService = {
       throw new Error('Product ID is required');
     }
 
-    const cacheKey = getProductCacheKey(id);
-
-    // Check regular cache
-    const cachedData = productDetailCache.get(cacheKey);
-    if (cachedData) {
-
-      return cachedData;
+    // Client-side: use cache
+    if (!isServer) {
+      const cacheKey = getProductCacheKey(id);
+      const cachedData = productDetailCache.get(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
     }
 
     try {
-
       const request = () => apiClient.get<ApiResponse<Product>>(`/products/${id}`);
       const result = await fetchWithRetry(() => request().then(res => res.data));
 
-      productDetailCache.set(cacheKey, result, 10 * 60 * 1000);
+      // Cache on client-side only
+      if (!isServer) {
+        const cacheKey = getProductCacheKey(id);
+        productDetailCache.set(cacheKey, result, 10 * 60 * 1000);
+      }
 
       return result;
     } catch (error: any) {
@@ -271,25 +400,30 @@ export const productService = {
 
   // Method to update product cache directly (called by review service)
   updateProductCache(id: string, data: ApiResponse<Product>) {
-    const cacheKey = getProductCacheKey(id);
-    productDetailCache.set(cacheKey, data, 10 * 60 * 1000);
+    if (!isServer) {
+      const cacheKey = getProductCacheKey(id);
+      productDetailCache.set(cacheKey, data, 10 * 60 * 1000);
+    }
   },
 
   // Method to get cached product data without fetching
   getCachedProduct(id: string): ApiResponse<Product> | null {
+    if (isServer) return null;
     const cacheKey = getProductCacheKey(id);
     return productDetailCache.get(cacheKey);
   },
 
   clearCache() {
-    productsCache.clear();
-    productDetailCache.clear();
-
+    if (!isServer) {
+      productsCache.clear();
+      productDetailCache.clear();
+    }
   },
 
   clearProductCache(id: string) {
-    productDetailCache.delete(getProductCacheKey(id));
-
+    if (!isServer) {
+      productDetailCache.delete(getProductCacheKey(id));
+    }
   }
 };
 

@@ -188,6 +188,7 @@ const Slider: React.FC<SliderProps> = ({
                   priority={idx === 0}
                   className="object-cover object-center w-full h-full"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+                  // loading="lazy"
                 />
               )}
 

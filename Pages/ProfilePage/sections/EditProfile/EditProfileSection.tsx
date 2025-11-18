@@ -8,7 +8,7 @@ import PassChange from '../../../../components/UI/Profile/leftSection/PassChange
 import Address from '@/components/UI/Profile/leftSection/Address/Address';
 import Orders from '@/components/UI/Profile/leftSection/Orders/Orders';
 import MessagesList from '@/components/UI/Profile/leftSection/Messages/MessagesList';
-import Payments from '@/components/UI/Profile/leftSection/Payments/Payments';
+
 import Welcome from '@/components/UI/Profile/leftSection/Welcome/Welcome';
 import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 

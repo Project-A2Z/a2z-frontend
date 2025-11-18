@@ -33,6 +33,9 @@
 
 .logo {
   margin: 0 auto 0.6rem auto;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: block;
 }
 
 .title {

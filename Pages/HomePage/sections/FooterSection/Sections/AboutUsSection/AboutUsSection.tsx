@@ -1,5 +1,4 @@
 import React from 'react'
-import LogoSection from "@/pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
 
 const AboutUsSection = () => {
     return (
@@ -13,7 +12,7 @@ const AboutUsSection = () => {
           {/* logo - positioned on the right */}
           <div className="w-[40%] sm:w-[30%] md:w-[40%]   lg:w-[40%] h-[4vh] sm:h-[4.5vh] md:h-[5vh] lg:h-[90%] flex  ">
             <img
-            src="/acessts/Logo-picsart.png"
+            src="/logo/logo2.webp.png"
             alt="A2Z Logo"
             className="w-full h-full object-contain "
             />

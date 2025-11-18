@@ -105,6 +105,7 @@ export function CustomImage({
           objectFit === 'scale-down' && 'object-scale-down',
           isLoading ? 'opacity-0' : 'opacity-100'
         )}
+        
         {...props}
       />
       

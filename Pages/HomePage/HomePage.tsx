@@ -1,10 +1,17 @@
 // pages/index.tsx (for homepage at "/")
 import React from "react";
-import Footer from "./sections/FooterSection/Footer";
+
 import MainSection from "./sections/MainSection/MainSection";
-import Header from "@/components/Layout/Nav/Header";
+
 import ProductSection from "./sections/OurProductSection/ProductSection";
 import styles from './Home.module.css'
+import { generateSEO } from "@/config/seo.config";
+
+export const metadata = generateSEO({
+  title: 'الرئيسية|A2Z',
+  description: 'الصفحة الرئيسية لموقع -A2Z',
+  url: '/',
+});
 
 export default function HomePage() {
   return (

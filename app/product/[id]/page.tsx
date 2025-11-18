@@ -1,7 +1,15 @@
 import { notFound } from "next/navigation";
 import ProductPage, { ProductData } from "@/pages/ProductPage/ProductPage";
-import productService from "@/services/api/products";
+import  { fetchProductByIdISR } from "@/services/api/products";
 import { reviewService } from "@/services/api/reviews";
+
+import { generateSEO } from '@/config/seo.config';
+
+export const metadata = generateSEO({
+  title: ' صفحة المنتج',
+  description: 'شركة A2Z متخصصة في جميع أنواع الكيماويات',
+  keywords: ['كيماويات', 'تجارة'],
+});
 
 function getImageList(p?: { imageList?: string[]; images?: string[]; image?: string } | null): string[] {
   const list = (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0)
@@ -20,7 +28,7 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     //console.log(`🔄 Loading product page for ID: ${decodedId}`);
 
     // ✅ Fetch product details
-    const res = await productService.getProductById(decodedId);
+    const res = await fetchProductByIdISR(decodedId , 120);
     //console.log(`📦 Product fetch result:`, res);
 
     // Check if the response indicates an error

@@ -1,5 +1,13 @@
 import AboutPage from "@/pages/AboutPage/Aboutpage";
 
+import { generateSEO } from '@/config/seo.config';
+
+export const metadata = generateSEO({
+  title: 'من نحن',
+  description: 'شركة A2Z متخصصة في جميع أنواع الكيماويات',
+  keywords: ['كيماويات', 'تجارة'],
+});
+
 export default function Page() {
   return (
     <div className="w-full min-h-screen bg-white">

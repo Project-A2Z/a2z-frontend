@@ -37,12 +37,16 @@ const MIN_REQUEST_INTERVAL = 10000; // 10 seconds
 let lastCategoryRequestTime = 0;
 
 // Request config
-const getRequestConfig = () => ({
+const getRequestConfig = (revalidate: number = 60) => ({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...(process.env.API_KEY && { 'Authorization': `Bearer ${process.env.API_KEY}` }),
   },
+  next: { 
+        revalidate, 
+        tags: ['categories'] 
+      },
 });
 
 // ============================================
@@ -53,13 +57,13 @@ export const fetchCategories = async (): Promise<string[]> => {
 
   // Return cached data if available and not expired
   if (categoriesCache && (now - categoriesCache.timestamp) < CACHE_DURATION) {
-    console.log('✅ Using cached categories');
+    // console.log('✅ Using cached categories');
     return [...categoriesCache.categories]; // Return a copy
   }
 
   // If already loading, wait for the existing request
   if (isLoadingCategories) {
-    console.log('⏳ Waiting for existing categories request...');
+    // console.log('⏳ Waiting for existing categories request...');
     return new Promise((resolve, reject) => {
       pendingCategoryPromises.push({ resolve, reject });
     });
@@ -68,7 +72,7 @@ export const fetchCategories = async (): Promise<string[]> => {
   // Rate limiting
   if (lastCategoryRequestTime && (now - lastCategoryRequestTime) < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - (now - lastCategoryRequestTime);
-    console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
+    // console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 
@@ -77,7 +81,7 @@ export const fetchCategories = async (): Promise<string[]> => {
   lastCategoryRequestTime = now;
 
   try {
-    console.log('🔄 Fetching categories from API...');
+    // console.log('🔄 Fetching categories from API...');
 
     const response = await fetch(`${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`, {
       method: 'GET',
@@ -97,7 +101,7 @@ export const fetchCategories = async (): Promise<string[]> => {
 
       // Retry with exponential backoff
       const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000);
-      console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
+      // console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
       await new Promise(resolve => setTimeout(resolve, retryAfter));
 
       const retryResponse = await fetch(`${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`, {
@@ -126,7 +130,7 @@ export const fetchCategories = async (): Promise<string[]> => {
         timestamp: now
       };
 
-      console.log(`✅ Successfully fetched ${categories.length} categories on retry`);
+      // console.log(`✅ Successfully fetched ${categories.length} categories on retry`);
 
       isLoadingCategories = false;
       pendingCategoryPromises.forEach(({ resolve }) => resolve(categories));
@@ -148,7 +152,7 @@ export const fetchCategories = async (): Promise<string[]> => {
       timestamp: now
     };
 
-    console.log(`✅ Successfully fetched ${categories.length} categories`);
+    // console.log(`✅ Successfully fetched ${categories.length} categories`);
 
     isLoadingCategories = false;
     pendingCategoryPromises.forEach(({ resolve }) => resolve(categories));
@@ -161,7 +165,7 @@ export const fetchCategories = async (): Promise<string[]> => {
 
     // Return cached data as fallback
     if (categoriesCache && categoriesCache.categories) {
-      console.log('🔄 Using cached categories as fallback');
+      // console.log('🔄 Using cached categories as fallback');
       isLoadingCategories = false;
       const cachedData = [...categoriesCache.categories];
       pendingCategoryPromises.forEach(({ resolve }) => resolve(cachedData));
@@ -181,7 +185,7 @@ export const fetchCategories = async (): Promise<string[]> => {
 // ============================================
 export const clearCategoriesCache = () => {
   categoriesCache = null;
-  console.log('🗑️ Categories cache cleared');
+  // console.log('🗑️ Categories cache cleared');
 };
 
 // ============================================

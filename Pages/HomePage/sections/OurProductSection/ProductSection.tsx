@@ -1,19 +1,55 @@
-// app/products/page.tsx (For Next.js 13+ App Router)
+// app/products/page.tsx - OPTIMIZED WITH ISR
 import { Metadata } from 'next';
-import OptimizedProductSection from '@/pages/HomePage/sections/OurProductSection/optimizer';
+import dynamic from 'next/dynamic';
 import { fetchAllProducts, ProductsResponse } from '@/services/product/products';
 
-// Metadata for SEO
-export const metadata: Metadata = {
-  title: 'المنتجات | A2Z',
-  description: 'تصفح جميع منتجاتنا المتاحة',
-  keywords: ['منتجات', 'تسوق', 'A2Z'],
-  icons : '/favicon.ico',
-};
+// Lazy load the product section
+const OptimizedProductSection = dynamic(
+  () => import('@/pages/HomePage/sections/OurProductSection/optimizer'),
+  {
+    loading: () => <ProductSectionSkeleton />,
+    ssr: true // Enable SSR for better SEO
+  }
+);
 
-// Enable ISR with revalidation
-export const revalidate = 600; // Revalidate every 10 minutes
+// ✅ ISR Configuration - Revalidate every 1 hour
+export const revalidate = 3600;
 
+// ✅ Enable static generation - RENAMED to avoid conflict
+export const dynamicParams = false; // Changed from 'dynamic' to 'dynamicParams'
+
+
+// Skeleton component for loading state
+function ProductSectionSkeleton() {
+  return (
+    <div style={{ 
+      padding: '40px 20px',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px'
+      }}>
+        {[...Array(8)].map((_, i) => (
+          <div 
+            key={i}
+            style={{
+              height: '300px',
+              background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite',
+              borderRadius: '8px'
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ Optimized data fetching with error handling
 async function getProducts(): Promise<{
   data: ProductsResponse;
   buildTime: string;
@@ -22,32 +58,17 @@ async function getProducts(): Promise<{
   const startTime = Date.now();
   
   try {
-    //console.log('🏗️  Fetching products for page...');
+    console.log('🏗️ [ISR] Fetching products at build time...');
+    
+    // Fetch with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
     
     const productsData = await fetchAllProducts();
+    clearTimeout(timeoutId);
     
     const loadTime = Date.now() - startTime;
-    //console.log(`✅ Fetched ${productsData.data.length} products in ${loadTime}ms`);
-    
-    if (!productsData.data || productsData.data.length === 0) {
-      //console.warn('⚠️  No products found');
-      
-      return {
-        data: {
-          data: [],
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 0,
-            totalPages: 1
-          }
-        },
-        buildTime: new Date().toISOString(),
-        error: 'No products available'
-      };
-    }
-    
-    //console.log(`📦 Successfully loaded ${productsData.data.length} products`);
+    console.log(`✅ [ISR] Fetched ${productsData.data.length} products in ${loadTime}ms`);
     
     return {
       data: productsData,
@@ -55,31 +76,26 @@ async function getProducts(): Promise<{
       error: null
     };
   } catch (error) {
-    const loadTime = Date.now() - startTime;
-    //console.error(`❌ Error fetching products (after ${loadTime}ms):`, error);
+    console.error('❌ [ISR] Error fetching products:', error);
     
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
+    // Return empty data structure on error
     return {
       data: {
         data: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          totalPages: 1
+        pagination: { 
+          page: 1, 
+          limit: 20, 
+          total: 0, 
+          totalPages: 1 
         },
-        filters: {
-          categories: [],
-          brands: [],
-          priceRange: {
-            min: 0,
-            max: 0
-          }
+        filters: { 
+          categories: [], 
+          brands: [], 
+          priceRange: { min: 0, max: 0 } 
         }
       },
       buildTime: new Date().toISOString(),
-      error: errorMessage
+      error: error instanceof Error ? error.message : 'فشل في تحميل المنتجات'
     };
   }
 }
@@ -88,13 +104,27 @@ export default async function ProductsPage() {
   const { data: initialData, buildTime, error } = await getProducts();
   
   return (
-    <div>
+    <>
+      {/* Add structured data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "المنتجات",
+            "description": "تصفح جميع المنتجات المتاحة",
+            "url": "/products",
+            "numberOfItems": initialData.data.length,
+          }),
+        }}
+      />
       
-      
-      {/* Main Product Section */}
-      <OptimizedProductSection initialData={initialData} />
-      
-     
-    </div>
+      <main className="products-page">
+        <OptimizedProductSection initialData={initialData} />
+       
+        
+      </main>
+    </>
   );
 }
