@@ -1,7 +1,7 @@
 .profile_page {
   padding: 4%;
   width: 100vw;
-  margin: 0 auto;
+  margin: 20% auto;
   position: relative;
 }
 
@@ -62,9 +62,10 @@
 }
 .mid {
   position: relative;
-  margin-bottom: 50%;
+  margin-bottom: 60%;
   padding-top: 10%;
   /* width: 80%; */
+
 }
 
 /* Mobile Back Button */
