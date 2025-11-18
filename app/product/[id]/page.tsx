@@ -1,26 +1,35 @@
 import { notFound } from "next/navigation";
-import ProductPage, { ProductData } from "@/pages/ProductPage/ProductPage";
-import  { fetchProductByIdISR } from "@/services/api/products";
+import ProductPage, { ProductData } from "@/Pages/ProductPage/ProductPage";
+import { fetchProductByIdISR } from "@/services/api/products";
 import { reviewService } from "@/services/api/reviews";
 
-import { generateSEO } from '@/config/seo.config';
+import { generateSEO } from "@/config/seo.config";
 
 export const metadata = generateSEO({
-  title: ' صفحة المنتج',
-  description: 'شركة A2Z متخصصة في جميع أنواع الكيماويات',
-  keywords: ['كيماويات', 'تجارة'],
+  title: " صفحة المنتج",
+  description: "شركة A2Z متخصصة في جميع أنواع الكيماويات",
+  keywords: ["كيماويات", "تجارة"],
 });
 
-function getImageList(p?: { imageList?: string[]; images?: string[]; image?: string } | null): string[] {
-  const list = (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0)
-    ? p.imageList
-    : (Array.isArray(p?.images) ? p.images : []);
+function getImageList(
+  p?: { imageList?: string[]; images?: string[]; image?: string } | null
+): string[] {
+  const list =
+    p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0
+      ? p.imageList
+      : Array.isArray(p?.images)
+      ? p.images
+      : [];
   if (list.length > 0) return list;
   if (p?.image) return [p.image];
-  return ['/acessts/NoImage.jpg']; // Fixed placeholder path
+  return ["/acessts/NoImage.jpg"]; // Fixed placeholder path
 }
 
-export default async function ProductByIdPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductByIdPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params; // Await params in Next.js 15
   const decodedId = decodeURIComponent(id);
 
@@ -28,28 +37,39 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     //console.log(`🔄 Loading product page for ID: ${decodedId}`);
 
     // ✅ Fetch product details
-    const res = await fetchProductByIdISR(decodedId , 120);
+    const res = await fetchProductByIdISR(decodedId, 120);
     //console.log(`📦 Product fetch result:`, res);
 
     // Check if the response indicates an error
-    if (res.status === 'error') {
-      if (res.message?.includes('Product not found')) {
+    if (res.status === "error") {
+      if (res.message?.includes("Product not found")) {
         //console.log(`❌ Product not found: ${decodedId}`);
         return notFound();
       }
 
-      if (res.message?.includes('Connection timeout') || res.message?.includes('socket hang up')) {
-        console.error(`🌐 Network error loading product ${decodedId}:`, res.message);
-        throw new Error('Connection timeout. Please check your internet connection and try again.');
+      if (
+        res.message?.includes("Connection timeout") ||
+        res.message?.includes("socket hang up")
+      ) {
+        console.error(
+          `🌐 Network error loading product ${decodedId}:`,
+          res.message
+        );
+        throw new Error(
+          "Connection timeout. Please check your internet connection and try again."
+        );
       }
 
-      if (res.message?.includes('temporarily unavailable')) {
+      if (res.message?.includes("temporarily unavailable")) {
         console.error(`⏱️ Product temporarily unavailable: ${decodedId}`);
-        throw new Error('Product temporarily unavailable. Please try again in a few minutes.');
+        throw new Error(
+          "Product temporarily unavailable. Please try again in a few minutes."
+        );
       }
     }
 
-    const apiProduct: any = (res as any)?.data?.product || (res as any)?.product;
+    const apiProduct: any =
+      (res as any)?.data?.product || (res as any)?.product;
     if (!apiProduct) {
       //console.log(`❌ No product data received for ID: ${decodedId}`);
       return notFound();
@@ -58,20 +78,31 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     //console.log(`✅ Product data received:`, apiProduct.title || apiProduct.name);
 
     // ✅ Fetch reviews for this product
-    let reviews: Array<{ id: string; author: string; rating: number; date: string; content: string }> = [];
+    let reviews: Array<{
+      id: string;
+      author: string;
+      rating: number;
+      date: string;
+      content: string;
+    }> = [];
     try {
       const reviewsRes = await reviewService.getProductReviews(decodedId);
       const apiReviews = (reviewsRes as any)?.data?.reviews || [];
       reviews = apiReviews.map((r: any) => ({
         id: r._id,
-        author: `${r.userId?.firstName || "مستخدم"} ${r.userId?.lastName || ""}`.trim(),
+        author: `${r.userId?.firstName || "مستخدم"} ${
+          r.userId?.lastName || ""
+        }`.trim(),
         rating: Number(r.rateNum || 0),
         date: new Date(r.date || r.createdAt).toLocaleDateString("ar-EG"),
         content: r.description || "",
       }));
       //console.log(`📝 Loaded ${reviews.length} reviews`);
     } catch (err: any) {
-      console.warn("⚠️ No reviews found or failed to load reviews:", err.message);
+      console.warn(
+        "⚠️ No reviews found or failed to load reviews:",
+        err.message
+      );
       reviews = [];
     }
 
@@ -90,7 +121,9 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       category: apiProduct.category || "",
       specs: [
         { label: "التصنيف", value: apiProduct.category || "غير محدد" },
-        ...(apiProduct.brand ? [{ label: "العلامة التجارية", value: String(apiProduct.brand) }] : []),
+        ...(apiProduct.brand
+          ? [{ label: "العلامة التجارية", value: String(apiProduct.brand) }]
+          : []),
       ],
       ratingsDistribution: [
         { stars: 5, count: 0 },
@@ -103,7 +136,7 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
       stockQty: Number(apiProduct.stockQty ?? apiProduct.stockQuantity ?? 0),
       stockType: apiProduct.stockType || "unit",
       _id: "",
-      name: ""
+      name: "",
     };
 
     //console.log(`✅ Product page data prepared successfully`);
@@ -112,13 +145,21 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     console.error("❌ Error fetching product:", e.message);
 
     // Enhanced error handling for different types of errors
-    if (e.message?.includes("Connection timeout") || e.message?.includes("socket hang up")) {
+    if (
+      e.message?.includes("Connection timeout") ||
+      e.message?.includes("socket hang up")
+    ) {
       return (
         <div className="min-h-screen bg-background font-beiruti mt-[93px] flex items-center justify-center">
           <div className="text-center max-w-md px-4">
             <div className="mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-8 h-8 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -127,8 +168,12 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">مشكلة في الاتصال</h1>
-              <p className="text-gray-600 mb-6">انقطع الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                مشكلة في الاتصال
+              </h1>
+              <p className="text-gray-600 mb-6">
+                انقطع الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.
+              </p>
             </div>
             <div className="space-y-3">
               <button
@@ -150,13 +195,21 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
     }
 
     // Rate limit or server busy
-    if (e.message?.includes("temporarily unavailable") || e.message?.includes("high demand")) {
+    if (
+      e.message?.includes("temporarily unavailable") ||
+      e.message?.includes("high demand")
+    ) {
       return (
         <div className="min-h-screen bg-background font-beiruti mt-[93px] flex items-center justify-center">
           <div className="text-center max-w-md px-4">
             <div className="mb-6">
               <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-8 h-8 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -165,8 +218,12 @@ export default async function ProductByIdPage({ params }: { params: Promise<{ id
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">الخدمة غير متاحة مؤقتاً</h1>
-              <p className="text-gray-600 mb-6">الخادم مشغول حالياً. يُرجى الانتظار قليلاً ثم المحاولة مرة أخرى.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                الخدمة غير متاحة مؤقتاً
+              </h1>
+              <p className="text-gray-600 mb-6">
+                الخادم مشغول حالياً. يُرجى الانتظار قليلاً ثم المحاولة مرة أخرى.
+              </p>
             </div>
             <div className="space-y-3">
               <button

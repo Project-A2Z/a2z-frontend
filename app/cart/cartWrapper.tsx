@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Dynamically import the CartPage component with SSR disabled
-const CartPage = dynamic(() => import('@/pages/CartPage/CartPage'), {
+const CartPage = dynamic(() => import("@/Pages/CartPage/CartPage"), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-white font-beiruti mt-[93px] flex items-center justify-center">

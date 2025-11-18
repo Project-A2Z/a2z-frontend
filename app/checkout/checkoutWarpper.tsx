@@ -1,9 +1,7 @@
 "use client";
 
-import Checkout from "@/pages/CheckoutPage/CheckoutPage";
-
-
+import Checkout from "@/Pages/CheckoutPage/CheckoutPage";
 
 export default function CheckoutWrapper() {
-  return <Checkout/>;
+  return <Checkout />;
 }

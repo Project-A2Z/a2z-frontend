@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import LogoSection from '@/pages/AuthPages/ForgetPasswordPage/sections/LogoSection/Logo';
-import InstructionSection from '@/pages/AuthPages/ForgetPasswordPage/sections/InstructionSection/InstructionSection';
-import NextButtonSection from '@/pages/AuthPages/ForgetPasswordPage/sections/NextButtonSection/NextButtonSection';
-import InputsFieldsSection from '@/pages/AuthPages/ForgetPasswordPage/sections/InputsFieldsSection/InputsFieldsSection';
-import CodeInputSection from '@/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection';
-import VerifyButtonSection from '@/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection';
-import ResendTimerSection from '@/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection';
+import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import LogoSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/LogoSection/Logo";
+import InstructionSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/InstructionSection/InstructionSection";
+import NextButtonSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/NextButtonSection/NextButtonSection";
+import InputsFieldsSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/InputsFieldsSection/InputsFieldsSection";
+import CodeInputSection from "@/Pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
+import VerifyButtonSection from "@/Pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
+import ResendTimerSection from "@/Pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
 
 type FormState = { password: string; confirmPassword: string };
 
@@ -16,16 +16,16 @@ export default function ForgetPasswordPage() {
   const router = useRouter();
   // Steps: 1) get email, 2) enter active code, 3) set new password
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60); // 60 seconds
   const [canResend, setCanResend] = useState(false);
   const [formData, setFormData] = useState<FormState>({
-    password: '',
-    confirmPassword: ''
+    password: "",
+    confirmPassword: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Helper: fetch with timeout to avoid hanging requests
@@ -54,16 +54,17 @@ export default function ForgetPasswordPage() {
   }, [step, timeLeft]);
 
   const handleInputChange = (field: keyof FormState, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    setError('');
+    setError("");
   };
 
   const isPwdDisabled = useMemo(() => {
     // Allow common special characters including '#'
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    const strongPasswordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     return (
       submitting ||
       !formData.password ||
@@ -83,7 +84,7 @@ export default function ForgetPasswordPage() {
       const newCode = [...code];
       newCode[index] = value;
       setCode(newCode);
-      if (error) setError('');
+      if (error) setError("");
       if (value && index < 5) {
         const nextInput = document.getElementById(`code-${index + 1}`);
         if (nextInput) nextInput.focus();
@@ -91,9 +92,14 @@ export default function ForgetPasswordPage() {
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      const prevInput = document.getElementById(`code-${index - 1}`) as HTMLInputElement | null;
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      const prevInput = document.getElementById(
+        `code-${index - 1}`
+      ) as HTMLInputElement | null;
       if (prevInput) prevInput.focus();
     }
   };
@@ -101,23 +107,30 @@ export default function ForgetPasswordPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleVerify = async () => {
     if (submitting) return;
-    const normal = code.join('');
+    const normal = code.join("");
     const emailTrimmed = email.trim();
     if (normal.length !== 6) {
-      setError('يرجى إدخال الرمز الكامل (6 أرقام)');
+      setError("يرجى إدخال الرمز الكامل (6 أرقام)");
       return;
     }
-    const reversed = [...code].reverse().join('');
+    const reversed = [...code].reverse().join("");
     try {
       setSubmitting(true);
-      setError('');
+      setError("");
       // Try multiple payload variants to match backend expectations
-      const typeVariants = ['passwordReset', 'resetPassword', 'PasswordReset', 'Passwordreset'];
+      const typeVariants = [
+        "passwordReset",
+        "resetPassword",
+        "PasswordReset",
+        "Passwordreset",
+      ];
       const variants: Array<Record<string, any>> = [];
       for (const t of typeVariants) {
         variants.push(
@@ -134,25 +147,51 @@ export default function ForgetPasswordPage() {
           { email: emailTrimmed, otp: Number(normal), type: t },
           { email: emailTrimmed, otp: Number(reversed), type: t },
           { email: emailTrimmed, otp: normal, Type: t },
-          { email: emailTrimmed, OTP: normal, Type: t },
+          { email: emailTrimmed, OTP: normal, Type: t }
         );
       }
 
       let success = false;
-      let lastErrorMessage = 'فشل التحقق من الرمز. تأكد من ترتيب الأرقام من اليسار إلى اليمين.';
+      let lastErrorMessage =
+        "فشل التحقق من الرمز. تأكد من ترتيب الأرقام من اليسار إلى اليمين.";
       for (const body of variants) {
-        const res = await fetchWithTimeout('https://a2z-backend.fly.dev/app/v1/users/OTPVerification?lang=en', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        if (res.ok) { success = true; break; }
-        try { const data = await res.json(); if (data?.message) lastErrorMessage = data.message as string; console.warn('[OTPVerification] attempt failed with body:', body, 'response:', data); } catch (e) { console.warn('[OTPVerification] attempt failed and response not JSON. Body:', body); }
+        const res = await fetchWithTimeout(
+          "https://a2z-backend.fly.dev/app/v1/users/OTPVerification?lang=en",
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(body),
+          }
+        );
+        if (res.ok) {
+          success = true;
+          break;
+        }
+        try {
+          const data = await res.json();
+          if (data?.message) lastErrorMessage = data.message as string;
+          console.warn(
+            "[OTPVerification] attempt failed with body:",
+            body,
+            "response:",
+            data
+          );
+        } catch (e) {
+          console.warn(
+            "[OTPVerification] attempt failed and response not JSON. Body:",
+            body
+          );
+        }
       }
       if (!success) throw new Error(lastErrorMessage);
       setStep(3);
     } catch (err: any) {
-      setError(typeof err?.message === 'string' ? err.message : 'حدث خطأ غير متوقع');
+      setError(
+        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -163,57 +202,82 @@ export default function ForgetPasswordPage() {
     const emailTrimmed = email.trim();
     try {
       setSubmitting(true);
-      setError('');
-      const res = await fetchWithTimeout('https://a2z-backend.fly.dev/app/v1/users/OTPResend', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email: emailTrimmed, type: 'passwordReset' })
-      });
+      setError("");
+      const res = await fetchWithTimeout(
+        "https://a2z-backend.fly.dev/app/v1/users/OTPResend",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ email: emailTrimmed, type: "passwordReset" }),
+        }
+      );
       if (!res.ok) {
-        let message = 'فشل إرسال الرمز. حاول مرة أخرى.';
-        try { const data = await res.json(); if (data?.message) message = data.message as string; console.warn('OTPResend error:', data); } catch {}
+        let message = "فشل إرسال الرمز. حاول مرة أخرى.";
+        try {
+          const data = await res.json();
+          if (data?.message) message = data.message as string;
+          console.warn("OTPResend error:", data);
+        } catch {}
         throw new Error(message);
       }
-      setCode(['', '', '', '', '', '']);
+      setCode(["", "", "", "", "", ""]);
       setTimeLeft(60);
       setCanResend(false);
     } catch (err: any) {
-      setError(typeof err?.message === 'string' ? err.message : 'حدث خطأ غير متوقع');
+      setError(
+        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleNextFromEmail = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleNextFromEmail = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     if (!email) {
-      setEmailError('يرجى إدخال البريد الإلكتروني');
+      setEmailError("يرجى إدخال البريد الإلكتروني");
       return;
     }
     if (!isValidEmail(email)) {
-      setEmailError('بريد إلكتروني غير صالح');
+      setEmailError("بريد إلكتروني غير صالح");
       return;
     }
     try {
       setSubmitting(true);
-      setEmailError('');
+      setEmailError("");
       const emailTrimmed = email.trim();
-      const res = await fetchWithTimeout('https://a2z-backend.fly.dev/app/v1/users/forgetPassword?lang=en', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email: emailTrimmed })
-      });
+      const res = await fetchWithTimeout(
+        "https://a2z-backend.fly.dev/app/v1/users/forgetPassword?lang=en",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ email: emailTrimmed }),
+        }
+      );
       if (!res.ok) {
-        let message = 'تعذر إرسال رمز التحقق.';
-        try { const data = await res.json(); if (data?.message) message = data.message as string; } catch {}
+        let message = "تعذر إرسال رمز التحقق.";
+        try {
+          const data = await res.json();
+          if (data?.message) message = data.message as string;
+        } catch {}
         throw new Error(message);
       }
       setStep(2);
       setTimeLeft(60);
       setCanResend(false);
-      setCode(['', '', '', '', '', '']);
+      setCode(["", "", "", "", "", ""]);
     } catch (err: any) {
-      setEmailError(typeof err?.message === 'string' ? err.message : 'حدث خطأ غير متوقع');
+      setEmailError(
+        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -224,21 +288,36 @@ export default function ForgetPasswordPage() {
     if (isPwdDisabled) return;
     try {
       setSubmitting(true);
-      setError('');
+      setError("");
       const emailTrimmed = email.trim();
-      const res = await fetchWithTimeout('https://a2z-backend.fly.dev/app/v1/users/ResetPassword?lang=en', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email: emailTrimmed, Newpassword: formData.password })
-      });
+      const res = await fetchWithTimeout(
+        "https://a2z-backend.fly.dev/app/v1/users/ResetPassword?lang=en",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            email: emailTrimmed,
+            Newpassword: formData.password,
+          }),
+        }
+      );
       if (!res.ok) {
-        let message = 'تعذر إعادة تعيين كلمة المرور';
-        try { const data = await res.json(); if (data?.message) message = data.message as string; console.warn('ResetPassword error:', data); } catch {}
+        let message = "تعذر إعادة تعيين كلمة المرور";
+        try {
+          const data = await res.json();
+          if (data?.message) message = data.message as string;
+          console.warn("ResetPassword error:", data);
+        } catch {}
         throw new Error(message);
       }
-      router.push('/login');
+      router.push("/login");
     } catch (err: any) {
-      setError(typeof err?.message === 'string' ? err.message : 'حدث خطأ غير متوقع');
+      setError(
+        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -252,7 +331,10 @@ export default function ForgetPasswordPage() {
       </div>
       {step === 1 ? (
         <div className="w-full max-w-[420px]">
-          <label htmlFor="email" className="block text-sm font-medium text-black87 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-black87 mb-2"
+          >
             البريد الإلكتروني
           </label>
           <input
@@ -261,7 +343,7 @@ export default function ForgetPasswordPage() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              setEmailError('');
+              setEmailError("");
             }}
             placeholder="example@mail.com"
             className="w-full rounded-lg border border-black16 bg-white px-3 py-2 text-black87 placeholder-black60 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -285,9 +367,7 @@ export default function ForgetPasswordPage() {
             onCodeChange={handleCodeChange}
             onKeyDown={handleKeyDown}
           />
-          {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
-          )}
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           <VerifyButtonSection
             onVerify={handleVerify}
             isDisabled={code.some((c) => !c) || submitting}
@@ -301,15 +381,12 @@ export default function ForgetPasswordPage() {
         </>
       ) : (
         <>
-          <InputsFieldsSection 
+          <InputsFieldsSection
             formData={formData}
             onInputChange={handleInputChange}
             error={error}
           />
-          <NextButtonSection
-            onClick={handleSubmit}
-            disabled={isPwdDisabled}
-          />
+          <NextButtonSection onClick={handleSubmit} disabled={isPwdDisabled} />
         </>
       )}
     </div>

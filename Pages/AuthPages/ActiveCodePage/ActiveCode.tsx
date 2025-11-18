@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import LogoSection from "@/pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
-import InstructionSection from "@/pages/AuthPages/ActiveCodePage/sections/InstructionSection/InstructionSection";
-import CodeInputSection from "@/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
-import VerifyButtonSection from "@/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
-import ResendTimerSection from "@/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
+import LogoSection from "@/Pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
+import InstructionSection from "@/Pages/AuthPages/ActiveCodePage/sections/InstructionSection/InstructionSection";
+import CodeInputSection from "@/Pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
+import VerifyButtonSection from "@/Pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
+import ResendTimerSection from "@/Pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
 import {
   resendVerificationCode,
   getCurrentUser,
