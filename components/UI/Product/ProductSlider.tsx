@@ -9,7 +9,7 @@ import styles from '@/components/UI/Product/ProductSlider.module.css';
 
 
 export interface Product {
-  id: string | number;
+   id: string | number;
   name: string;
   nameAr?: string;
   nameEn?: string;
@@ -21,7 +21,7 @@ export interface Product {
   discount?: number;
   image: string;
   images?: (string)[];
-  imageList?: (string)[];
+  imageList?: (string)[]; 
   category: string;
   categoryId?: string | number;
   brand?: string;

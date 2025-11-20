@@ -282,6 +282,7 @@ const Overview: React.FC<Props> = ({
               fallbackSrc="/acessts/download (47).jpg"
               className="w-full h-full transition-all duration-700 ease-in-out"
               sizes="(max-width: 768px) 100vw, 50vw"
+              
             />
 
             {/* Navigation Arrows - Only show if there are multiple images */}
@@ -345,7 +346,7 @@ const Overview: React.FC<Props> = ({
           </div>
 
           <div className="flex flex-col items-start justify-between gap-4 mb-3">
-            <span className="px-3 py-1 rounded-full text-xs border text-sm hover:border-primary hover:text-primary">
+            <span className="px-3 py-1 rounded-full  border text-sm hover:border-primary hover:text-primary">
               {category}
             </span>
             <div className="text-2xl font-extrabold text-primary">

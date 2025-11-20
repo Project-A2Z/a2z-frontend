@@ -1,7 +1,8 @@
 import axios from 'axios';
+import {Api ,  API_ENDPOINTS } from './endpoints';
 
 // Fallback to production backend if env is not set
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://a2z-backend.fly.dev/app/v1';
+const BASE_URL =Api ?? 'https://a2z-backend.fly.dev/app/v1';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -11,6 +12,20 @@ const apiClient = axios.create({
     'Accept': 'application/json',
   },
 });
+
+// Public endpoints that don't require authentication
+const PUBLIC_ENDPOINTS = [
+  '/products',
+  '/categories',
+  '/brands',
+  // Add other public endpoints here
+];
+
+// Check if endpoint is public
+const isPublicEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return PUBLIC_ENDPOINTS.some(endpoint => url.startsWith(endpoint));
+};
 
 // Enhanced request interceptor with timeout and error handling
 apiClient.interceptors.request.use((config) => {
@@ -30,19 +45,18 @@ apiClient.interceptors.request.use((config) => {
     config.params = params;
   }
 
-  //console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
 
 // Enhanced response interceptor with retry logic for network errors
 apiClient.interceptors.response.use(
   (response) => {
-    //console.log(`✅ API Response: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
     return response;
   },
   async (error) => {
-    
     const config = error.config;
+
+    // Retry logic for network errors
     if (config && !config._retry && (
       error.message?.includes('socket hang up') ||
       error.message?.includes('timeout') ||
@@ -52,23 +66,21 @@ apiClient.interceptors.response.use(
       error.code === 'ERR_NETWORK'
     )) {
       config._retry = true;
-
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // console.log(`🔄 Retrying request: ${config.method?.toUpperCase()} ${config.url}`);
       return apiClient(config);
     }
 
-    // Handle 401 unauthorized
-    if (typeof window !== 'undefined' && error?.response?.status === 401) {
-      try {
-        // Optionally clear invalid token
-        localStorage.removeItem('auth_token');
-      } catch {}
-      // Redirect to login
-      window.location.href = '/login';
-    }
+    // Handle 401 unauthorized - but only for protected endpoints
+    // In your response interceptor, change this section:
+if (typeof window !== 'undefined' && error?.response?.status === 401) {
+  const endpoint = config?.url;
+  
+  if (!isPublicEndpoint(endpoint)) {
+    localStorage.removeItem('auth_token');
+    
+  }
+}
 
     return Promise.reject(error);
   }

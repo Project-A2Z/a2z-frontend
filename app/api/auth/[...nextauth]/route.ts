@@ -5,7 +5,6 @@ import FacebookProvider from "next-auth/providers/facebook";
 import { JWT } from "next-auth/jwt";
 
 import { socialLogin, UserStorage } from "@/services/auth/login";
-import { Api, API_ENDPOINTS } from "@/services/api/endpoints";
 
 declare module "next-auth" {
   interface Session {

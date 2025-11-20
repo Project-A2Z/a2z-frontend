@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 

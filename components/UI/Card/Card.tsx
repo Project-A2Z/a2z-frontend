@@ -54,33 +54,33 @@ const calculateDiscountPercentage = (originalPrice: number, currentPrice: number
 };
 
 // Star rating component
-const StarRating = ({ rating, reviewsCount }: { rating?: number, reviewsCount?: number }) => {
-    if (!rating) return null;
+// const StarRating = ({ rating, reviewsCount }: { rating?: number, reviewsCount?: number }) => {
+//     if (!rating) return null;
 
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+//     const fullStars = Math.floor(rating);
+//     const hasHalfStar = rating % 1 !== 0;
+//     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-    return (
-        <div className={styles.ratingContainer}>
-            <div className={styles.stars}>
-                {/* Full stars */}
-                {Array.from({ length: fullStars }, (_, i) => (
-                    <span key={`full-${i}`} className={styles.starFull}>★</span>
-                ))}
-                {/* Half star */}
-                {hasHalfStar && <span className={styles.starHalf}>★</span>}
-                {/* Empty stars */}
-                {Array.from({ length: emptyStars }, (_, i) => (
-                    <span key={`empty-${i}`} className={styles.starEmpty}>☆</span>
-                ))}
-            </div>
-            {reviewsCount && reviewsCount > 0 && (
-                <span className={styles.reviewsCount}>({reviewsCount})</span>
-            )}
-        </div>
-    );
-};
+//     return (
+//         <div className={styles.ratingContainer}>
+//             <div className={styles.stars}>
+//                 {/* Full stars */}
+//                 {Array.from({ length: fullStars }, (_, i) => (
+//                     <span key={`full-${i}`} className={styles.starFull}>★</span>
+//                 ))}
+//                 {/* Half star */}
+//                 {hasHalfStar && <span className={styles.starHalf}>★</span>}
+//                 {/* Empty stars */}
+//                 {Array.from({ length: emptyStars }, (_, i) => (
+//                     <span key={`empty-${i}`} className={styles.starEmpty}>☆</span>
+//                 ))}
+//             </div>
+//             {reviewsCount && reviewsCount > 0 && (
+//                 <span className={styles.reviewsCount}>({reviewsCount})</span>
+//             )}
+//         </div>
+//     );
+// };
 
 // This is already a function component, but here's a cleaner version
 function Card({ 
@@ -269,7 +269,7 @@ function Card({
                     </h2>
                     
                     {/* Rating */}
-                    <StarRating rating={rating} reviewsCount={reviewsCount} />
+                    {/* <StarRating rating={rating} reviewsCount={reviewsCount} /> */}
                     
                     {/* Price section */}
                     <div className={styles.priceSection}>
