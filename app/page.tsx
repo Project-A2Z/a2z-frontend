@@ -1,4 +1,4 @@
-import HomePage from "@/Pages/HomePage/HomePage";
+import HomePage from "@/pages/HomePage/HomePage";
 
 import style from "./page.module.css";
 import { generateSEO } from "@/config/seo.config";

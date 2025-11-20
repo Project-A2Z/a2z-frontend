@@ -1,5 +1,3 @@
-// app/products/page.tsx - OPTIMIZED WITH ISR
-import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import {
   fetchAllProducts,
@@ -8,10 +6,10 @@ import {
 
 // Lazy load the product section
 const OptimizedProductSection = dynamic(
-  () => import("@/Pages/HomePage/sections/OurProductSection/optimizer"),
+  () => import("@/pages/HomePage/sections/OurProductSection/optimizer"),
   {
     loading: () => <ProductSectionSkeleton />,
-    ssr: true, // Enable SSR for better SEO
+    ssr: true,
   }
 );
 

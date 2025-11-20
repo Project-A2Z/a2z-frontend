@@ -274,7 +274,7 @@ export async function fetchProductsISR(
  */
 export async function fetchProductByIdISR(
   id: string,
-  revalidate: number = 60
+  revalidate: number = 3600
 ): Promise<ApiResponse<Product>> {
   if (!id) {
     throw new Error('Product ID is required');

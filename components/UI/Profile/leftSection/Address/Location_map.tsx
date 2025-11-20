@@ -162,7 +162,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     // Debounce the geocoding request
     geocodingTimeoutRef.current = setTimeout(() => {
       handleLocationSelect(lat, lng);
-    }, 800); // Wait 800ms before making the API call
+    }, 800); 
   };
 
   // Reverse geocoding using Nominatim (FREE OpenStreetMap service)

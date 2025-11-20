@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import FavoritesPage from "@/Pages/FavoritesPage/FavoritesPage";
+import FavoritesPage from "@/pages/FavoritesPage/FavoritesPage";
 
 export default function FavoritesWrapperPage() {
   return <FavoritesPage />;

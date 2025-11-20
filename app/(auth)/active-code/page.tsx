@@ -1,5 +1,5 @@
 import Background from '@/components/UI/Background/Background';
-import ActiveCodePage from '@/Pages/AuthPages/ActiveCodePage/ActiveCode';
+import ActiveCodePage from '@/pages/AuthPages/ActiveCodePage/ActiveCode';
 import { Suspense } from 'react';
 
 export default function Page() {

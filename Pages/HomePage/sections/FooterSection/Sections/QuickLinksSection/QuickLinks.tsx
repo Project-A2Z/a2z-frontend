@@ -45,7 +45,7 @@ const QuickLinks = ({ onContactClick }: QuickLinksProps) => {
                   e.preventDefault();
                   onContactClick?.();
                 }}
-                className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer text-left block py-1 sm:py-0 w-full text-right"
+                className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer  block py-1 sm:py-0 w-full text-right"
               >
                 {link.label}
               </button>

@@ -1,9 +1,9 @@
 // pages/index.tsx (for homepage at "/")
 import React from "react";
 
-import MainSection from "./sections/MainSection/MainSection";
+import MainSection from "@/pages/HomePage/sections/MainSection/MainSection";
 
-import ProductSection from "./sections/OurProductSection/ProductSection";
+import ProductSection from "@/pages/HomePage/sections/OurProductSection/ProductSection";
 import styles from './Home.module.css'
 import { generateSEO } from "@/config/seo.config";
 

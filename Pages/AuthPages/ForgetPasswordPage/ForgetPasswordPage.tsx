@@ -2,13 +2,13 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import LogoSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/LogoSection/Logo";
-import InstructionSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/InstructionSection/InstructionSection";
-import NextButtonSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/NextButtonSection/NextButtonSection";
-import InputsFieldsSection from "@/Pages/AuthPages/ForgetPasswordPage/sections/InputsFieldsSection/InputsFieldsSection";
-import CodeInputSection from "@/Pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
-import VerifyButtonSection from "@/Pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
-import ResendTimerSection from "@/Pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
+import LogoSection from "@/pages/AuthPages/ForgetPasswordPage/sections/LogoSection/Logo";
+import InstructionSection from "@/pages/AuthPages/ForgetPasswordPage/sections/InstructionSection/InstructionSection";
+import NextButtonSection from "@/pages/AuthPages/ForgetPasswordPage/sections/NextButtonSection/NextButtonSection";
+import InputsFieldsSection from "@/pages/AuthPages/ForgetPasswordPage/sections/InputsFieldsSection/InputsFieldsSection";
+import CodeInputSection from "@/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
+import VerifyButtonSection from "@/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
+import ResendTimerSection from "@/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
 
 type FormState = { password: string; confirmPassword: string };
 

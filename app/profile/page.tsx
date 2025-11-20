@@ -1,5 +1,5 @@
 // import React from 'react';
-import Profile from "@/Pages/ProfilePage/ProfilePage";
+import Profile from "@/pages/ProfilePage/ProfilePage";
 
 import { generateSEO } from "@/config/seo.config";
 

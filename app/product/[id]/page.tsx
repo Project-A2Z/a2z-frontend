@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import ProductPage, { ProductData } from "@/Pages/ProductPage/ProductPage";
+import ProductPage, { ProductData } from "@/pages/ProductPage/ProductPage";
 import { fetchProductByIdISR } from "@/services/api/products";
 import { reviewService } from "@/services/api/reviews";
 
@@ -37,7 +37,7 @@ export default async function ProductByIdPage({
     //console.log(`🔄 Loading product page for ID: ${decodedId}`);
 
     // ✅ Fetch product details
-    const res = await fetchProductByIdISR(decodedId, 120);
+    const res = await fetchProductByIdISR(decodedId, 3600);
     //console.log(`📦 Product fetch result:`, res);
 
     // Check if the response indicates an error

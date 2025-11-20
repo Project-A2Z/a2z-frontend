@@ -4,10 +4,10 @@ import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 
 // Components
-import TopMetrics from "@/Pages/ProfilePage/sections/TopScetion/Top";
-import InformationSection from "@/Pages/ProfilePage/sections/InformationSection/InformationSection";
+import TopMetrics from "@/pages/ProfilePage/sections/TopScetion/Top";
+import InformationSection from "@/pages/ProfilePage/sections/InformationSection/InformationSection";
 import AccountList from "@/components/UI/Profile/RightSection/List";
-import EditProfileSection from "@/Pages/ProfilePage/sections/EditProfile/EditProfileSection";
+import EditProfileSection from "@/pages/ProfilePage/sections/EditProfile/EditProfileSection";
 
 // Services
 import { getCurrentUser } from "../../services/auth/login";

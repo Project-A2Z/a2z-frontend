@@ -23,13 +23,13 @@ const LanguageSelector = () => {
         if (selectElement) {
           setTimeout(() => {
             triggerTranslation(savedLang);
-          }, 500);
+          }, 3000);
         } else {
-          setTimeout(attemptTranslation, 500);
+          setTimeout(attemptTranslation, 3000);
         }
       };
       
-      setTimeout(attemptTranslation, 2000);
+      setTimeout(attemptTranslation, 3000);
     }
   }, []);
 
@@ -78,7 +78,7 @@ const LanguageSelector = () => {
       // IMPROVED: Use proper navigation instead of reload
       setTimeout(() => {
         window.location.href = window.location.pathname;
-      }, 100);
+      }, 3000);
     } else {
       html.setAttribute('dir', langCode === 'ar' ? 'rtl' : 'ltr');
       html.setAttribute('lang', langCode);
@@ -88,7 +88,7 @@ const LanguageSelector = () => {
         if (selectElement) {
           triggerTranslation(langCode);
         } else {
-          setTimeout(checkAndTranslate, 100);
+          setTimeout(checkAndTranslate, 3000);
         }
       };
       

@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { Button } from "@/components/UI/Buttons/Button"; 
 import { 
   fetchAllProducts,
@@ -16,7 +15,7 @@ import FilterIcon from '@/public/icons/Filter.svg';
 // Lazy load heavy components
 const ProductSlider = dynamic(() => import("@/components/UI/Product/ProductSlider"), {
   loading: () => <ProductSliderSkeleton />,
-  ssr: false // Client-side only if it uses browser APIs
+  ssr: false 
 });
 
 const Filter = dynamic(() => import("@/components/UI/Product/Filter"), {

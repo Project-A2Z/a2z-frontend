@@ -1,10 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
-import { Button } from "@/components/UI/Buttons";
 import { cartService, checkProductUnitConflict } from "@/services/api/cart";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/utils/auth";
@@ -282,7 +280,7 @@ const Overview: React.FC<Props> = ({
               fallbackSrc="/acessts/download (47).jpg"
               className="w-full h-full transition-all duration-700 ease-in-out"
               sizes="(max-width: 768px) 100vw, 50vw"
-              
+
             />
 
             {/* Navigation Arrows - Only show if there are multiple images */}

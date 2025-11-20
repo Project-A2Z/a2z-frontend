@@ -151,7 +151,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
     // Small delay to prevent rapid successive calls
     const timeoutId = setTimeout(() => {
       fetchNotifications(1, false);
-    }, 100);
+    }, 5000);
 
     return () => clearTimeout(timeoutId);
   }, [filter, isOpen, fetchNotifications]);
