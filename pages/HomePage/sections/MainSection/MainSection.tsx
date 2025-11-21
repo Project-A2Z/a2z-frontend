@@ -7,28 +7,28 @@ const MainSection = React.memo(() => {
   useEffect(() => {
     const data: SlideItem[] = [
       {
-        src: '/slider/main.png',
+        src: '/slider/main.webp',
         alt: '',
         title: '',
         caption: '',
         isArabic: true,
       },
       {
-        src: '/slider/1.png',
+        src: '/slider/1.webp',
         alt: '',
         title: '',
         caption: '',
         isArabic: true,
       },
       {
-        src: '/slider/2.png',
+        src: '/slider/2.webp',
         alt: '',
         title: '',
         caption: '',
         isArabic: true,
       },
       {
-        src: '/slider/3.png',
+        src: '/slider/3.webp',
         alt: '',
         title: '',
         caption: '',
