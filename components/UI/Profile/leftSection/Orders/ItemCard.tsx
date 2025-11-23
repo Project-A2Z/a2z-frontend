@@ -3,9 +3,10 @@ import React, { useState } from "react";
 
 //styles
 import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
+import Image, { StaticImageData } from "next/image";
 
 interface ItemCardProps {
-  image: string | string[];
+  image: string | string[] ;
   name: string;
   price: string;
 }
@@ -24,7 +25,7 @@ const ItemCard: React.FC<ItemCardProps> = ({ image, name, price }) => {
   const src = getImageSrc();
 
   // Fallback placeholder
-  const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23e0e0e0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+  const placeholderImage = '/acessts/NoImage.jpg';
 
   const handleImageError = () => {
     setImageError(true);
@@ -32,11 +33,15 @@ const ItemCard: React.FC<ItemCardProps> = ({ image, name, price }) => {
 
   return (
     <div className={styles.item_card}>
-      <img 
+      <Image 
         src={imageError ? placeholderImage : src} 
         alt={name} 
         className={styles.item_image}
         onError={handleImageError}
+        width={100}
+        height={100}
+        priority
+        quality={100}
       />
       <div className={styles.item_details}>
         <span className={styles.item_name}>{name}</span>

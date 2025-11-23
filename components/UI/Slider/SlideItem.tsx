@@ -31,7 +31,7 @@ const SlideItem = React.memo(({ slide, index, totalSlides, isCurrent }: SlideIte
         priority={index === 0 || isCurrent}
         width={1920}
         height={90}
-        quality={90}
+        // quality={90}
         fallbackSrc="/acessts/NoImage.jpg"
       />
       <div className={styles.contentOverlay}>

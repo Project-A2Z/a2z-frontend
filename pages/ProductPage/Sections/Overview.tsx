@@ -279,7 +279,7 @@ const Overview: React.FC<Props> = ({
               priority={true}
               fallbackSrc="/acessts/download (47).jpg"
               className="w-full h-full transition-all duration-700 ease-in-out"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              // sizes="(max-width: 768px) 100vw, 50vw"
 
             />
 

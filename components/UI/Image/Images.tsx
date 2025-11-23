@@ -1,19 +1,18 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-// import type { StaticImport } from 'next/image';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from "react";
+import Image, { StaticImageData } from "next/image";
+import { cn } from "@/lib/utils";
 
 interface ImageProps {
-  src: string | any;
+  src: string | StaticImageData;
   alt: string;
   width?: number;
   height?: number;
   className?: string;
-  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  objectFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
   priority?: boolean;
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
+  rounded?: "none" | "sm" | "md" | "lg" | "full";
   fallbackSrc?: string;
   fill?: boolean;
   onClick?: () => void;
@@ -22,117 +21,58 @@ interface ImageProps {
 export function CustomImage({
   src,
   alt,
-  width = 0,
-  height = 0,
-  className = '',
-  objectFit = 'cover',
-  priority = false,
-  rounded = 'none',
-  fallbackSrc = '/acessts/NoImage.jpg',
-  fill = false,
+  width,
+  height,
+  className,
+  objectFit = "cover",
+  priority,
+  rounded = "none",
+  fallbackSrc = "/acessts/NoImage.jpg",
+  fill,
   onClick,
   ...props
-}: ImageProps & Omit<React.ComponentPropsWithoutRef<typeof Image>, keyof ImageProps>) {
-  // Helper function to get string src from import object or string
-  const getSrcString = (source: string | { src: string; [key: string]: any }): string => {
-    if (typeof source === 'string') {
-      return source;
-    }
-    return source.src;
-  };
-
-  const [imgSrc, setImgSrc] = useState<string | { src: string; [key: string]: any }>(src);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<boolean>(false);
-
-  useEffect(() => {
-    setImgSrc(src);
-    setError(false);
-    setIsLoading(true);
-  }, [src]);
+}: ImageProps) {
+  const [imgSrc, setImgSrc] = useState(src);
 
   const handleError = () => {
-    setError(true);
-    if (fallbackSrc) {
-      setImgSrc(fallbackSrc);
-    }
-  };
-
-  const handleLoad = () => {
-    setIsLoading(false);
+    if (imgSrc !== fallbackSrc) setImgSrc(fallbackSrc);
   };
 
   const roundedClasses = {
-    'none': '',
-    'sm': 'rounded-sm',
-    'md': 'rounded-md',
-    'lg': 'rounded-lg',
-    'full': 'rounded-full'
+    none: "",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    full: "rounded-full",
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        'relative overflow-hidden',
+        "relative overflow-hidden",
         roundedClasses[rounded],
-        fill ? 'w-full h-full' : '',
-        onClick ? 'cursor-pointer' : '',
         className
       )}
       onClick={onClick}
     >
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600"></div>
-        </div>
-      )}
-      
       <Image
-        src={getSrcString(imgSrc)}
+        src={imgSrc}
         alt={alt}
-        width={!fill ? width || undefined : undefined}
-        height={!fill ? height || undefined : undefined}
         fill={fill}
+        width={!fill ? width : undefined}
+        height={!fill ? height : undefined}
         onError={handleError}
-        onLoad={handleLoad}
         priority={priority}
         className={cn(
-          'transition-opacity duration-300',
-          objectFit === 'cover' && 'object-cover',
-          objectFit === 'contain' && 'object-contain',
-          objectFit === 'fill' && 'object-fill',
-          objectFit === 'none' && 'object-none',
-          objectFit === 'scale-down' && 'object-scale-down',
-          isLoading ? 'opacity-0' : 'opacity-100'
+          objectFit === "cover" && "object-cover",
+          objectFit === "contain" && "object-contain",
+          objectFit === "fill" && "object-fill",
+          objectFit === "none" && "object-none",
+          objectFit === "scale-down" && "object-scale-down",
+          "transition-opacity duration-300"
         )}
-        
         {...props}
       />
-      
-      {error && !fallbackSrc && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800">
-          <svg
-            className="h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 8h16"
-            />
-          </svg>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Image failed to load</p>
-        </div>
-      )}
     </div>
   );
 }

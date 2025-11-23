@@ -4,6 +4,7 @@ import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import Link from 'next/link';
 import { Product, productService, ProductFilters } from '@/services/api/products';
+import { CustomImage } from '../Image/Images';
 
 const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProductId }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -130,15 +131,13 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
           <div key={product._id} className="keen-slider__slide">
             <Link href={`/product/${product._id}`} className="block">
               <div className="bg-white rounded-[20px] shadow-sm border p-4 mx-1 hover:shadow-md transition-shadow cursor-pointer" role="link" aria-label={product.name}>
-                <div className="aspect-square bg-card rounded-lg mb-3 overflow-hidden">
-                  <img
+                <div className="relative w-full aspect-square bg-card rounded-lg mb-3 overflow-hidden">
+                  <CustomImage
                     src={getPrimaryImage(product)}
                     alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = PLACEHOLDER_SRC;
-                    }}
-                    loading="lazy"
+                    fill
+                    objectFit="cover"
+                    fallbackSrc={PLACEHOLDER_SRC}
                   />
                 </div>
                 <h3 className="font-medium text-black87 text-sm mb-2 truncate" title={product.name}>

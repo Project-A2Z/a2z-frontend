@@ -1,13 +1,20 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import Overview from '@/pages/ProductPage/Sections/Overview';
-import Specs from '@/pages/ProductPage/Sections/Specs';
-import Ratings from '@/pages/ProductPage/Sections/Ratings';
-import Reviews from '@/pages/ProductPage/Sections/Reviews';
-import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Product } from '@/services/api/products';
 
+// Lazy load heavy components
+const Overview = lazy(() => import('@/pages/ProductPage/Sections/Overview'));
+const Specs = lazy(() => import('@/pages/ProductPage/Sections/Specs'));
+const Ratings = lazy(() => import('@/pages/ProductPage/Sections/Ratings'));
+const Reviews = lazy(() => import('@/pages/ProductPage/Sections/Reviews'));
+const RelatedProducts = lazy(() => import('@/components/UI/RelatedProducts/RelatedProducts'));
+
 export type ProductData = Product;
+
+// Loading component
+const SectionLoader = () => (
+  <div className="animate-pulse bg-gray-200 rounded-lg h-32 w-full" />
+);
 
 const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [product, setProduct] = useState<ProductData | null>(data || null);
@@ -28,7 +35,6 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
 
       try {
         setLoading(true);
-        // If we don't have data but have an ID in the URL, fetch the product
         const productId = window.location.pathname.split('/').pop();
         if (!productId) {
           throw new Error('Product ID is missing');
@@ -81,7 +87,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
       }
       return null;
     };
-    setToken(getToken());
+    // setToken(getToken());
   }, []);
 
   const handleReviewAction = async () => {
@@ -130,41 +136,52 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   return (
     <div className="min-h-screen bg-background font-beiruti mt-[93px]">
       <div className="mx-auto max-w-[95%] px-4 py-6 space-y-6">
-        <Overview
-          id={product._id}
-          title={product.name}
-          description={product.description || 'لا يوجد وصف متاح'}
-          price={product.price}
-          imageList={product.imageList?.length ? product.imageList : ['/placeholder-product.jpg']}
-          rating={product.averageRate || 0}
-          ratingCount={product.reviewSummary?.totalReviews || 0}
-          category={product.category}
-          stockQty={product.stockQty}
-          isUNIT={product.IsUNIT}
-          isKG={product.IsKG}
-          isTON={product.IsTON}
-          isLITER={product.IsLITER}
-          isCUBIC_METER={product.IsCUBIC_METER}
-        />
+        <Suspense fallback={<SectionLoader />}>
+          <Overview
+            id={product._id}
+            title={product.name}
+            description={product.description || 'لا يوجد وصف متاح'}
+            price={product.price}
+            imageList={product.imageList?.length ? product.imageList : ['/placeholder-product.jpg']}
+            rating={product.averageRate || 0}
+            ratingCount={product.reviewSummary?.totalReviews || 0}
+            category={product.category}
+            stockQty={product.stockQty}
+            isUNIT={product.IsUNIT}
+            isKG={product.IsKG}
+            isTON={product.IsTON}
+            isLITER={product.IsLITER}
+            isCUBIC_METER={product.IsCUBIC_METER}
+          />
+        </Suspense>
 
         <div className="flex flex-col lg:flex-row gap-6 max-w-[95%] mx-auto">
           <div className="flex flex-col order-2 lg:order-1 flex-1 space-y-6">
-            <Specs specs={[]} />
-            <Ratings
-              average={currentRating}
-              total={currentRatingCount}
-
-              distribution={ratingsDistribution}
-              interactive={true}
-            />
-            <Reviews 
-              productId={product._id} 
-              onReviewAdded={handleReviewAction}
-            />
+            <Suspense fallback={<SectionLoader />}>
+              <Specs specs={[]} />
+            </Suspense>
+            
+            <Suspense fallback={<SectionLoader />}>
+              <Ratings
+                average={currentRating}
+                total={currentRatingCount}
+                distribution={ratingsDistribution}
+                interactive={true}
+              />
+            </Suspense>
+            
+            <Suspense fallback={<SectionLoader />}>
+              <Reviews 
+                productId={product._id} 
+                onReviewAdded={handleReviewAction}
+              />
+            </Suspense>
           </div>
         </div>
 
-        <RelatedProducts />
+        <Suspense fallback={<SectionLoader />}>
+          <RelatedProducts />
+        </Suspense>
       </div>
     </div>
   );

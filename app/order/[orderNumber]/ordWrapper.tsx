@@ -13,8 +13,6 @@ import img from "@/public/acessts/Frame.png";
 // Import order service
 import orderService, { OrderItem } from "@/services/profile/orders";
 
-
-
 // Status mapping from API to component
 const mapOrderStatus = (apiStatus: OrderItem["status"]): OrderStatus => {
   const statusMap: Record<OrderItem["status"], OrderStatus> = {
@@ -29,7 +27,7 @@ const mapOrderStatus = (apiStatus: OrderItem["status"]): OrderStatus => {
   return statusMap[apiStatus] || "pending";
 };
 
-export default function ordWrapper  ()  {
+export default function ordWrapper() {
   const router = useRouter();
   const params = useParams();
   const orderId = params?.orderNumber as string;
@@ -58,17 +56,15 @@ export default function ordWrapper  ()  {
         );
 
         if (foundOrder) {
-          // console.log('✅ Order found in cache:', foundOrder);
+          console.log('✅ Order found in cache:', foundOrder);
           setOrder(foundOrder);
         } else {
           // If not found in list, try to fetch specific order details
-          //console.log('⚠️ Order not found in list, fetching details...');
           const orderDetails = await orderService.getOrderDetails(orderId);
-          // console.log('✅ Order details fetched:', orderDetails);
+          console.log('✅ Order details fetched:', orderDetails);
           setOrder(orderDetails);
         }
       } catch (err) {
-        //console.error('❌ Error fetching order:', err);
         setError(
           err instanceof Error
             ? err.message
@@ -148,42 +144,6 @@ export default function ordWrapper  ()  {
   const fullAddress = `${order.address.address}, ${order.address.city}, ${order.address.region}`;
   const fullName = `${order.address.firstName} ${order.address.lastName}`;
 
-  // This is the corrected mapping based on your actual API response structure
-  //console.log('Order items:', order.cartId);
-  const orderItems =
-    order.cartId &&
-    typeof order.cartId === "object" &&
-    order.cartId.items &&
-    Array.isArray(order.cartId.items)
-      ? order.cartId.items.map((item) => {
-          // item.productId is an object containing: name, imageList, price, etc.
-          const product = item.productId;
-
-          // console.log('📦 Mapping order item:', item);
-
-          //console.log('Mapping item:', item);
-          //console.log('Product details:', product);
-
-          return {
-            id: item._id,
-            name: product?.name || "منتج",
-            image: product?.imageList?.[0] || img,
-            price: `${(product?.price || 0) * (item.itemQty || 1)}`,
-            quantity: item.itemQty || 1,
-          };
-        })
-      : [
-          {
-            id: order._id,
-            name: "منتج من الطلب",
-            image: img,
-
-            price: `${order.paymentDetails?.totalPrice || 0}  ج.م`,
-
-            quantity: 1,
-          },
-        ];
-
   return (
     <div className={styles.container}>
       <div className={styles.content_wrapper}>
@@ -199,7 +159,7 @@ export default function ordWrapper  ()  {
               orderNumber={order.orderId}
               orderPrice={`${
                 order.deliveryPrice + (order.paymentDetails?.totalPrice ?? 0)
-              } ج ` }
+              } ج`}
               orderDate={formatDate(order.createdAt)}
               address={fullAddress}
               phone={order.address.phoneNumber}
@@ -208,24 +168,26 @@ export default function ordWrapper  ()  {
           </div>
 
           <div className={styles.Items_container}>
-            <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
-            <div className={styles.items_list}>
-              {order.cartId.items.map((item) => (
-                <ItemCard
-                  key={item._id}
-                  image={item.productId.imageList}
-                  name={item.productId.name}
-
-                  price={`${item.productId.price} ج.م`}
-
-                />
-              ))}
-            </div>
-          </div>
+  <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
+  <div className={styles.items_list}>
+    {order.cartId?.items?.length > 0 ? (
+      order.cartId.items
+        .filter((item) => item?.productId !== null && item?.productId !== undefined)
+        .map((item) => (
+          <ItemCard
+            key={item._id}
+            image={item.productId.imageList == null ? ['/acessts/NoImage.jpg'] : item.productId.imageList }
+            name={item.productId?.name || 'منتج غير متوفر'}
+            price={`${item.productId?.price || 0} ج.م`}
+          />
+        ))
+    ) : (
+      <p className={styles.no_items}>لا توجد منتجات في هذا الطلب</p>
+    )}
+  </div>
+</div>
         </div>
       </div>
     </div>
   );
-};
-
-// export default OrderDetails;
+}

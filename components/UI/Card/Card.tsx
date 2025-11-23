@@ -242,6 +242,7 @@ function Card({
                             rounded="md"
                             className={styles.img}
                             objectFit="cover" 
+                            priority
                         />
                         
                         {/* Hover overlay */}
