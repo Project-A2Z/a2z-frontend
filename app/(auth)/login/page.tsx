@@ -11,10 +11,8 @@ import Background from './../../../components/UI/Background/Background';
 import Alert from '@/components/UI/Alert/alert';
 import styles from './../auth.module.css';
 import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
-import FacebookBtn from '@/components/UI/Buttons/FacebookBtn';
+import { s } from 'motion/react-client';
 
-
-// Component that uses useSearchParams
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,58 +33,120 @@ function LoginFormContent() {
   const [showVerificationAlert, setShowVerificationAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  
+  // ✅ NEW: Track if we've already processed this session
+  const [processedSession, setProcessedSession] = useState<string | null>(null);
+  const[ allowAutoLogin, setAllowAutoLogin ] = useState(false);
 
-  // Better session handling with event dispatch
-  useEffect(() => {
-    const handleSocialAuth = async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const storedToken = localStorage.getItem('auth_token');
-      const storedUser = localStorage.getItem('user_data');
-      const storedExpiry = localStorage.getItem('token_expiry');
-      
-      if (storedToken && storedUser && storedExpiry) {
-        const isValid = Date.now() < parseInt(storedExpiry, 10);
-        if (isValid) {
-          router.push('/');
-          return;
-        } else {
-          UserStorage.removeUser();
-        }
-      }
-      
-      if (session?.backendToken && session?.user?.backendUser) {
-        UserStorage.saveUser(session.user.backendUser);
-        UserStorage.saveToken(session.backendToken);
-        
-        // Dispatch custom event to notify Header
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('authUpdated'));
-        }
-        
-        AuthService.startTokenMonitoring(() => {
-          router.push('/login');
-        });
-        
+  // ✅ FIXED: Better session handling with logout detection
+  // In LoginFormContent component - replace the main useEffect
+
+useEffect(() => {
+  const handleSocialAuth = async () => {
+    // ✅ CRITICAL: Check if user just logged out
+    const justLoggedOut = localStorage.getItem('just_logged_out');
+    if (justLoggedOut) {
+      console.log('🚪 [LoginForm] User just logged out, skipping auto-login');
+      localStorage.removeItem('just_logged_out');
+      return;
+    }
+
+    // ✅ Check if user is coming back FROM a social login callback
+    console.log('🔍 [LoginForm] Checking for OAuth callback parameters...' , searchParams);
+    const isOAuthCallback = searchParams?.get('code') || searchParams?.get('state');
+    console.log('🔍 [LoginForm] isOAuthCallback:', !!isOAuthCallback);
+    
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('user_data');
+    const storedExpiry = localStorage.getItem('token_expiry');
+    
+    // Check if user already has valid token in localStorage
+    if (storedToken && storedUser && storedExpiry) {
+      const isValid = Date.now() < parseInt(storedExpiry, 10);
+      if (isValid) {
+        console.log('✅ [LoginForm] User already logged in from localStorage, redirecting...');
         router.push('/');
         return;
+      } else {
+        console.log('⚠️ [LoginForm] Token expired, clearing...');
+        UserStorage.removeUser();
       }
-    };
-
-    if (status !== 'loading') {
-      handleSocialAuth();
     }
-  }, [session, status, router]);
+    
+    // ✅ Only auto-login with social if coming back from OAuth callback
+    if (!isOAuthCallback) {
+      console.log('🔍 [LoginForm] Not an OAuth callback, skipping auto-login');
+      return;
+    }
+    
+    console.log('🔍 [LoginForm] OAuth callback detected, processing session...');
+    
+    // ✅ Handle social login session and save to localStorage
+    console.log('👤 [LoginForm] Session:', session);
+    console.log('🔄 [LoginForm] allowAutoLogin:', allowAutoLogin);
+    if (allowAutoLogin && session?.backendToken && session?.user?.backendUser) {
+      console.log('✅ [LoginForm] Social login session detected!');
+      console.log('👤 [LoginForm] User:', session.user.backendUser.email);
+      
+      // Save to localStorage
+      UserStorage.saveUser(session.user.backendUser);
+      UserStorage.saveToken(session.backendToken);
+      
+      const savedUser = localStorage.getItem('user_data');
+      const savedToken = localStorage.getItem('auth_token');
+      setAllowAutoLogin(false);
+      
+      if (savedUser && savedToken) {
+        console.log('✅ [LoginForm] localStorage save successful!');
+      } else {
+        console.error('❌ [LoginForm] localStorage save FAILED!');
+        return;
+      }
+      
+      // Dispatch auth update event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('authUpdated'));
+      }
+      
+      // Start token monitoring
+      AuthService.startTokenMonitoring(() => {
+        console.log('🔒 [LoginForm] Token expired, redirecting to login...');
+        router.push('/login');
+      });
+      
+      console.log('✅ [LoginForm] Redirecting to home...');
+      await new Promise(resolve => setTimeout(resolve, 150));
+      router.push('/');
+      return;
+    }
+    
+    // Check for errors in session
+    if ((session as any)?.error) {
+      console.error('❌ [LoginForm] Error in session:', (session as any).error);
+      setAlertMessage('فشل تسجيل الدخول: ' + (session as any).error);
+      setShowErrorAlert(true);
+      setIsLoading(false);
+    }
+  };
 
+  if (status !== 'loading') {
+    handleSocialAuth();
+  }
+}, [session, status, router, searchParams]);
+
+  // Handle OAuth errors from URL
   useEffect(() => {
     const error = searchParams?.get('error');
     if (error) {
+      console.error('❌ [LoginForm] OAuth error from URL:', error);
       let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
       
       if (error === 'OAuthCallback') {
         errorMessage = 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
       } else if (error === 'AccessDenied') {
         errorMessage = 'تم إلغاء تسجيل الدخول';
+      } else if (error === 'Configuration') {
+        errorMessage = 'خطأ في إعدادات تسجيل الدخول';
       }
       
       setAlertMessage(errorMessage);
@@ -94,6 +154,21 @@ function LoginFormContent() {
       setIsLoading(false);
     }
   }, [searchParams]);
+
+  // ✅ NEW: Listen for logout events
+  useEffect(() => {
+    const handleLogout = () => {
+      console.log('🚪 [LoginForm] Logout event detected');
+      setProcessedSession(null);
+      localStorage.setItem('just_logged_out', 'true');
+    };
+
+    window.addEventListener('userLoggedOut', handleLogout);
+    
+    return () => {
+      window.removeEventListener('userLoggedOut', handleLogout);
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -152,7 +227,6 @@ function LoginFormContent() {
     try {
       const response = await AuthService.login(formData);
       
-      // Dispatch event after successful login
       if (response.status === 'success') {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('authUpdated'));
@@ -176,21 +250,21 @@ function LoginFormContent() {
 
   const handleGoogleLogin = async () => {
     try {
+      console.log('🔵 [LoginForm] Starting Google login...');
       setIsLoading(true);
       setErrors({});
+      setAllowAutoLogin(true);
       
-      const result = await signIn('google', { 
+      // ✅ Clear the logout flag before starting new login
+      localStorage.removeItem('just_logged_out');
+      
+      await signIn('google', { 
         redirect: true,
-        callbackUrl: '/'  
+        callbackUrl: '/'
       });
       
-      if (result?.error) {
-        setAlertMessage('فشل تسجيل الدخول عبر Google');
-        setShowErrorAlert(true);
-        setIsLoading(false);
-      }
-      
     } catch (error) {
+      console.error('❌ [LoginForm] Google login error:', error);
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
       setShowErrorAlert(true);
       setIsLoading(false);
@@ -199,21 +273,20 @@ function LoginFormContent() {
 
   const handleFacebookLogin = async () => {
     try {
+      console.log('🔵 [LoginForm] Starting Facebook login...');
       setIsLoading(true);
       setErrors({});
       
-      const result = await signIn('facebook', { 
+      // ✅ Clear the logout flag before starting new login
+      localStorage.removeItem('just_logged_out');
+      
+      await signIn('facebook', { 
         redirect: true,
-        callbackUrl: '/'  
+        callbackUrl: '/login'
       });
       
-      if (result?.error) {
-        setAlertMessage('فشل تسجيل الدخول عبر Facebook');
-        setShowErrorAlert(true);
-        setIsLoading(false);
-      }
-      
     } catch (error) {
+      console.error('❌ [LoginForm] Facebook login error:', error);
       setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
       setShowErrorAlert(true);
       setIsLoading(false);
@@ -348,7 +421,18 @@ function LoginFormContent() {
                   </svg>
                 </button>
 
-                <FacebookBtn className={styles.socialButton} onSuccess={handleFacebookLogin}/>
+                <button
+                  type="button"
+                  className={styles.socialButton}
+                  onClick={handleFacebookLogin}
+                  disabled={isLoading}
+                  title="تسجيل الدخول باستخدام Facebook"
+                  aria-label="تسجيل الدخول باستخدام Facebook"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -388,7 +472,6 @@ function LoginFormContent() {
   );
 }
 
-// Main component with Suspense
 export default function LoginForm() {
   return (
     <Suspense fallback={

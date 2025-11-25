@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import { JWT } from "next-auth/jwt";
 
-import { socialLogin, UserStorage } from "@/services/auth/login";
+import { socialLogin } from "@/services/auth/login";
 
 declare module "next-auth" {
   interface Session {
@@ -29,7 +29,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-// Function to send token to your backend and save auth data
+// ✅ FIXED: Removed localStorage saves - this runs on SERVER where localStorage doesn't exist
 async function loginWithBackend(accessToken: string, provider: 'google' | 'facebook'): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
   try {
     console.log('🔄 [NextAuth] Calling backend with access token...');
@@ -47,28 +47,8 @@ async function loginWithBackend(accessToken: string, provider: 'google' | 'faceb
     if (response.status === 'success') {
       console.log('✅ [NextAuth] Backend login successful');
       
-      // CRITICAL: Save user data and token to localStorage
-      if (response.data && response.data.user && response.data.token) {
-        console.log('💾 [NextAuth] Saving user data and token to localStorage...');
-        
-        // Save user data
-        UserStorage.saveUser(response.data.user);
-        console.log('✅ [NextAuth] User data saved:', response.data.user.email);
-        
-        // Save auth token
-        UserStorage.saveToken(response.data.token);
-        console.log('✅ [NextAuth] Auth token saved');
-        
-        // Save refresh token if present
-        if (response.data.refreshToken) {
-          UserStorage.saveRefreshToken(response.data.refreshToken);
-          console.log('✅ [NextAuth] Refresh token saved');
-        }
-        
-        console.log('✅ [NextAuth] All authentication data saved successfully');
-      } else {
-        console.warn('⚠️ [NextAuth] Missing user or token in backend response');
-      }
+      // ✅ FIXED: Just return the data - localStorage saves will happen on CLIENT side
+      // Don't try to save to localStorage here - it doesn't exist on the server!
       
       return {
         success: true,
@@ -91,7 +71,6 @@ async function loginWithBackend(accessToken: string, provider: 'google' | 'faceb
   }
 }
 
-// Don't export this - keep it internal to the route
 const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -113,7 +92,7 @@ const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
     error: "/login",
-    signOut: "/login",
+    signOut: "/",
     verifyRequest: "/login",
   },
   session: {
@@ -182,7 +161,6 @@ const authOptions: NextAuthOptions = {
           console.log('✅ [NextAuth] User email:', backendResult.user?.email);
         } else {
           console.error('❌ [NextAuth] Backend authentication failed:', backendResult.error);
-          // Don't throw error - let user see the error page
           token.error = backendResult.error;
         }
       }
@@ -205,6 +183,11 @@ const authOptions: NextAuthOptions = {
         console.log('👤 [NextAuth] Backend user email:', token.backendUser?.email);
       }
       
+      // ✅ ADDED: Pass error to session if exists
+      if (token.error) {
+        (session as any).error = token.error;
+      }
+      
       console.log('✅ [NextAuth] Session built:', {
         hasBackendToken: !!session.backendToken,
         hasBackendUser: !!session.user?.backendUser,
@@ -219,18 +202,16 @@ const authOptions: NextAuthOptions = {
       console.log('📍 [NextAuth] URL:', url);
       console.log('📍 [NextAuth] Base URL:', baseUrl);
       
-      // Always redirect to home page after successful login
-      // This ensures the client-side can check localStorage
-      const redirectUrl = baseUrl + '/';
+      // ✅ FIXED: Redirect to /login so client-side can save to localStorage
+      const redirectUrl = baseUrl + '/login';
       console.log('✅ [NextAuth] Redirecting to:', redirectUrl);
       return redirectUrl;
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true, // Keep debug on to see what's happening
+  debug: true,
 };
 
 const handler = NextAuth(authOptions);
 
-// Only export the HTTP handlers
 export { handler as GET, handler as POST };

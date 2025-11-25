@@ -1,6 +1,7 @@
 // services/auth/login.ts
 import { API_ENDPOINTS, Api } from './../api/endpoints';
 import { saveAuthToken } from '@/utils/auth';
+import { signOut } from 'next-auth/react';
 
 // Types
 export interface LoginCredentials {
@@ -473,10 +474,10 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
 
 // Social login function
 export const socialLogin = async (socialData: SocialLoginData): Promise<LoginResponse> => {
-  //console.log('🚀 Starting social login...');
-  //console.log('🔧 Provider:', socialData.provider);
-  //console.log('🔧 API Base URL:', API_BASE_URL);
-  //console.log('🔧 Social login endpoint:', API_ENDPOINTS.AUTH.LOGIN_SOCIAL);
+  // console.log('🚀 Starting social login...');
+  // console.log('🔧 Provider:', socialData.provider);
+  // console.log('🔧 API Base URL:', API_BASE_URL);
+  // console.log('🔧 Social login endpoint:', API_ENDPOINTS.AUTH.LOGIN_SOCIAL);
 
   try {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN_SOCIAL}`, {
@@ -574,22 +575,33 @@ export const socialLogin = async (socialData: SocialLoginData): Promise<LoginRes
   }
 };
 
-// Logout function
+// In login.ts logout function
 export const logoutUser = async (): Promise<void> => {
-  //console.log('🚪 Starting logout process...');
-  
   try {
+    console.log('🚪 [Logout] Starting logout process...');
+    
     // Stop token monitoring
     tokenMonitor.stop();
     
-    // Clear all authentication data
+    // Clear localStorage
     UserStorage.removeUser();
     
-    //console.log('✅ User logged out successfully');
+    // ✅ CRITICAL: Mark that user explicitly logged out
+    sessionStorage.setItem('user_logged_out', 'true');
+    
+    // ✅ Clear social login pending flag
+    sessionStorage.removeItem('social_login_pending');
+    
+    console.log('✅ [Logout] User logged out successfully');
     
   } catch (error) {
-    //console.error('❌ Error during logout:', error);
+    console.error('❌ [Logout] Error during logout:', error);
+    
+    // Even if error, still clear data
     UserStorage.removeUser();
+    sessionStorage.setItem('user_logged_out', 'true');
+    sessionStorage.removeItem('social_login_pending');
+    
     throw new Error('حدث خطأ أثناء تسجيل الخروج');
   }
 };

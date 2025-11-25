@@ -111,7 +111,7 @@ function Header({
     if (status !== "loading") {
       handleSocialAuth();
     }
-  }, [session, status, router]);
+  }, [session, status]);
 
   // Load user data from localStorage when component mounts
   useEffect(() => {

@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react'; // Import NextAuth signOut
 
+import { AuthService } from '@/services/auth/login';
+
 //styles
 import styles from '@/components/UI/Profile/leftSection/Logout/Logout.module.css';
 
@@ -14,29 +16,33 @@ export default function Logout({ onCancel, onLogout }: LogoutProps) {
   const router = useRouter();
   
   const handleLogout = async () => {
-    try {
-      // Call your custom logout function (clears localStorage)
-      if (onLogout) {
-        await onLogout();
-      }
-      
-      // Sign out from NextAuth (clears Google/Facebook session)
-      //console.log('🚪 Signing out from NextAuth...');
-      await signOut({ 
-        redirect: false // Don't redirect automatically
-      });
-      
-      //console.log('✅ NextAuth signout complete');
-      
-      // Redirect to login page
-      router.push('/login');
-      
-    } catch (error) {
-      //console.error('❌ Logout error:', error);
-      // Still try to redirect even if there's an error
-      router.push('/login');
-    }
-  };
+  try {
+    console.log('🚪 Starting logout...');
+    
+    // 1. Mark user as logged out
+    sessionStorage.setItem('user_logged_out', 'true');
+    sessionStorage.removeItem('social_login_pending');
+    
+    // 2. Clear localStorage
+    await AuthService.logout();
+    
+    // 3. Sign out from NextAuth (this clears the session)
+    await signOut({ 
+      redirect: true, 
+      callbackUrl: '/' 
+    });
+    
+    console.log('✅ Logout complete');
+    
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    
+    // Force logout even if error
+    sessionStorage.setItem('user_logged_out', 'true');
+    AuthService.clearAuthData();
+    window.location.href = '/';
+  }
+};
   
   const handleCancel = () => {
     if (onCancel) {

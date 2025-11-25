@@ -12,7 +12,7 @@ const HeroSection = () => {
           <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] animate-fade-in">
             <div className="relative w-full h-full">
               <Image
-                src="/acessts/a4977424745865a04a6dc3074c7c2a97cdec003d.png"
+                src="/logo/logo2.webp.png"
                 alt="A2Z Company Logo - Improve People Life"
                 fill
                 priority
