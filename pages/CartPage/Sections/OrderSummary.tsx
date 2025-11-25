@@ -27,10 +27,18 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
   // Calculate total quantity of all items
   const totalItemQuantity = order.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Calculate total price with multiplication for ton and cubic_meter
+  const calculatedTotal = order.reduce((sum, item) => {
+    const itemTotal = (item.unit === 'طن' || item.unit === 'متر مكعب') 
+      ? (item.price  * item.quantity) 
+      : (item.price * item.quantity);
+    return sum + itemTotal;
+  }, 0);
+
   const handleCheckout = () => {
     const checkoutData = {
       totalItemQuantity,
-      total,
+      total: calculatedTotal,
       hasItems,
       order
     };
@@ -51,7 +59,7 @@ const OrderSummary: React.FC<Props> = ({ itemCount, total, hasItems, order }) =>
         </div>
         <div className="flex justify-between items-baseline">
           <span className="text-black60">الإجمالي</span>
-          <span className="font-bold text-primary text-xl">{(total).toLocaleString()} ج.م</span>
+          <span className="font-bold text-primary text-xl">{(calculatedTotal).toLocaleString()} ج.م</span>
         </div>
       </div>
 
