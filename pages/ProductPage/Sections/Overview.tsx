@@ -49,7 +49,7 @@ const Overview: React.FC<Props> = ({
   isLITER = false,
   isCUBIC_METER = false,
 }) => {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | string>(1);
   const [isAdding, setIsAdding] = useState(false);
   
   // Define available units based on props
@@ -347,8 +347,22 @@ const Overview: React.FC<Props> = ({
             <span className="px-3 py-1 rounded-full  border text-sm hover:border-primary hover:text-primary">
               {category}
             </span>
-            <div className="text-2xl font-extrabold text-primary">
-              {price.toLocaleString()} ج.م
+             <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-extrabold text-primary">
+                {(() => {
+                  // Calculate price based on selected unit
+                  let calculatedPrice = price;
+                  if (selectedUnit === 'ton') {
+                    calculatedPrice = price * 1000; // 1 ton = 1000 kg
+                  } else if (selectedUnit === 'cubic_meter') {
+                    calculatedPrice = price * 1000; // 1 cubic meter = 1000 liters
+                  }
+                  return calculatedPrice.toLocaleString();
+                })()} ج.م
+              </span>
+              <span className="text-sm font-normal text-gray-500">
+                / {unitOptions.find(u => u.key === selectedUnit)?.label}
+              </span>
             </div>
             <span
               className={`px-3 py-1 rounded-full text-xs border ${
@@ -384,8 +398,8 @@ const Overview: React.FC<Props> = ({
             <span className="text-black60 text-sm">({ratingCount})</span>
           </div>
 
-          <div className="flex flex-row justify-between flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 order-1">
+          <div className="flex flex-row justify-between flex-wrap items-center gap-3 ">
+            <div className="flex items-center gap-2 order-1  ">
               {Object.entries(availableUnits).map(([key, label]) => (
                 <button
                   key={key}
@@ -402,8 +416,8 @@ const Overview: React.FC<Props> = ({
               ))}
             </div>
 
-            <div className="flex items-center gap-2 order-2">
-              <div className="flex items-center gap-3 border rounded-full px-3 py-1 order-2">
+            {/*<div className="flex items-center gap-2 order-2">
+               <div className="flex items-center gap-3 border rounded-full px-3 py-1 order-2">
                 <button
                   aria-label="decrease"
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
@@ -422,7 +436,47 @@ const Overview: React.FC<Props> = ({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
+              
 
+            <div className="flex items-center gap-3 border rounded-full px-3 py-1 order-2">
+                <button
+                  aria-label="decrease"
+                  onClick={() => setQuantity((prev) => {
+                    const current = typeof prev === 'number' ? prev : (parseFloat(prev) || 0);
+                    return Math.max(0, current - 1);
+                  })}
+                  className="p-1 rounded-full hover:bg-black8"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                 <input
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="0"
+                  className="w-20 text-center border-0 focus:ring-0 focus:outline-none p-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={quantity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || /^\d*$/.test(value)) {
+                      setQuantity(value === '' ? '' : parseInt(value) || 0);
+                    }
+                  }}
+                />
+                <span className="text-sm text-gray-600">
+                  {unitOptions.find(u => u.key === selectedUnit)?.label || ''}
+                </span>
+                <button
+                  aria-label="increase"
+                  onClick={() => setQuantity((prev) => {
+                    const current = typeof prev === 'number' ? prev : (parseFloat(prev) || 0);
+                    return Math.min(stockQty, current + 1);
+                  })}
+                  className="p-1 rounded-full hover:bg-black8"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
               <div className="order-3 sm:ml-auto">
                 <button
                   className="px-5 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2"
@@ -433,7 +487,66 @@ const Overview: React.FC<Props> = ({
                   أضف إلى سلة التسوق
                 </button>
               </div>
-            </div>
+            </div> */}
+
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto order-2">
+                <div className="flex items-center gap-2 border rounded-full px-3 py-1.5 w-full sm:w-auto">
+                  <button
+                    aria-label="decrease"
+                    onClick={() => setQuantity(prev => {
+                      const current = typeof prev === 'number' ? prev : (parseInt(prev) || 0);
+                      return Math.max(0, current - 1);
+                    })}
+                    className="p-1.5 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  
+                  <div className="flex items-center gap-1 flex-1 min-w-0">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min="0"
+                      className="w-16 sm:w-20 text-center border-0 focus:ring-0 focus:outline-none p-0 bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={quantity}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '' || /^\d*$/.test(value)) {
+                          setQuantity(value === '' ? '' : parseInt(value) || 0);
+                        }
+                      }}
+                    />
+                    <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap flex-shrink-0">
+                      {unitOptions.find(u => u.key === selectedUnit)?.label || ''}
+                    </span>
+                  </div>
+                  
+                  <button
+                    aria-label="increase"
+                    onClick={() => setQuantity(prev => {
+                      const current = typeof prev === 'number' ? prev : (parseInt(prev) || 0);
+                      return Math.min(stockQty, current + 1);
+                    })}
+                    className="p-1.5 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="w-full sm:w-auto">
+                  <button
+                    className="w-full sm:w-auto px-5 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                    disabled={stockQty === 0 || isAdding}
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    أضف إلى سلة التسوق
+                  </button>
+                </div>
+              </div>
+            
           </div>
         </div>
       </div>
