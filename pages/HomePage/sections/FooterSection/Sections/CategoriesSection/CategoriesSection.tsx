@@ -21,13 +21,13 @@ const  CategoriesMenu = () =>{
       <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none text-secondary1 text-left">فئات</h3>
       <nav className="w-full flex flex-row flex-wrap justify-start items-start gap-x-4 gap-y-2 sm:gap-y-3 md:flex md:flex-col md:items-start md:justify-start md:gap-2">
         {categories.map((cat, index) => (
-          <Link
+          <p
             key={index}
-            href={cat.href}
+            // href={cat.href}
             className="hover:text-green-400 transition-colors text-left text-sm cursor-pointer text-black87"
           >
             {cat.label}
-          </Link>
+          </p>
         ))}
       </nav>
     </div>

@@ -50,12 +50,12 @@ const QuickLinks = ({ onContactClick }: QuickLinksProps) => {
                 {link.label}
               </button>
             ) : (
-              <Link
-                href={link.href}
+              <p
+                // href={link.href}
                 className="text-black87 hover:text-green-400 transition-colors text-sm sm:text-sm cursor-pointer text-left block py-1 sm:py-0"
               >
                 {link.label}
-              </Link>
+              </p>
             )}
           </div>
         ))}
