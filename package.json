@@ -17,6 +17,7 @@
     "@types/react-facebook-login": "^4.1.11",
     "axios": "^1.12.2",
     "clsx": "^2.1.1",
+    "critters": "^0.0.25",
     "firebase": "^12.4.0",
     "gsap": "^3.13.0",
     "keen-slider": "^6.8.6",

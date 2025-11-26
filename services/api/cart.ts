@@ -124,7 +124,7 @@ export const cartService = {
             price: displayPrice,
           };
         })
-        .filter((item): item is ClientCartItem => item !== null); // Filter out any null items from the mapping
+        .filter((item: ClientCartItem | null): item is ClientCartItem => item !== null); // Filter out any null items from the mapping
       
       setClientCartItems(mappedItems);
       return response.data;
