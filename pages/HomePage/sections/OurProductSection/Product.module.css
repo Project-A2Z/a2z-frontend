@@ -135,10 +135,9 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  height: fit-content; /* Add this instead */
-  /* min-height: auto;  */
+  height: fit-content;
   width: 100%;
-  max-width: 100%; /* Ensure grid doesn't exceed container */
+  max-width: 100%;
 }
 
 .gridItem {
@@ -451,112 +450,6 @@
   }
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .containerSection {
-    margin-top: 10%; /* Reduced from 6000px */
-    position: relative;
-    /* top: ; */
-  }
-  
-  .container {
-    flex-direction: column;
-    gap: 20px;
-    height: fit-content;
-    padding: 16px; /* Reduce padding on smaller screens */
-  }
-  
-  .container > div:first-child {
-    width: 100%;
-  }
-  
-  /* Hide desktop filter on mobile */
-  .container > div:last-child {
-    display: none;
-  }
-  
-  .containerSection {
-    position: relative;
-  }
-  
-  .mobileFilterButton {
-    display: block;
-    margin-right: -2%;
-  }
-  
-  .productGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 968px) {
-  .containerSection {
-    position: relative;
-    top: 45%;
-  }
-  
-  .container {
-    padding: 12px;
-    height: fit-content;
-  }
-  
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .sliderHeader {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  
-  .bottomPagination {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 640px) {
-  .containerSection {
-    margin-top: 10%; 
-  }
-  
-  .container {
-    padding: 12px;
-    height: fit-content;
-  }
-  
-  .productGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .lettersGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  .sliderTitle {
-    font-size: 24px;
-  }
-  
-  .filterModalHeader {
-    padding: 16px 20px;
-  }
-  
-  .filterModalBody {
-    padding: 0 20px;
-    padding-top: 16px;
-  }
-  
-  .filterModalFooter {
-    padding: 16px 20px;
-    flex-direction: column;
-  }
-  
-  .filterModalFooter button {
-    width: 100%;
-  }
-}
 /* Pagination Container */
 .paginationContainer {
   display: flex;
@@ -638,16 +531,155 @@
   font-weight: 400;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .pageNumbers {
-    gap: 0.15rem;
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE BREAKPOINTS
+   ======================================== */
+
+@media (max-width: 1200px) {
+  .containerSection {
+    margin-top: 10%;
+    position: relative;
+  }
+  
+  .container {
+    flex-direction: column;
+    gap: 20px;
+    height: fit-content;
+    padding: 16px;
+  }
+  
+  .container > div:first-child {
+    width: 100%;
+  }
+  
+  /* Hide desktop filter on mobile */
+  .container > div:last-child {
+    display: none;
+  }
+  
+  .containerSection {
+    position: relative;
+  }
+  
+  .mobileFilterButton {
+    display: block;
+    margin-right: -2%;
+  }
+  
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 968px) {
+  .containerSection {
+    position: relative;
+    top: 45%;
+  }
+  
+  .container {
+    padding: 12px;
+    height: fit-content;
+  }
+  
+   .productGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+  
+  .sliderHeader {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .bottomPagination {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .containerSection {
+    margin-top: 10%; 
+  }
+  
+  .container {
+    padding: 12px;
+    height: fit-content;
+  }
+  
+ .productGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  
+  .lettersGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .sliderTitle {
+    font-size: 24px;
+  }
+  
+  .filterModalHeader {
+    padding: 16px 20px;
+  }
+  
+  .filterModalBody {
+    padding: 0 20px;
+    padding-top: 16px;
+  }
+  
+  .filterModalFooter {
+    padding: 16px 20px;
+    flex-direction: column;
+  }
+  
+  .filterModalFooter button {
+    width: 100%;
+  }
+}
+
+/* Small phones (iPhone SE, etc.) - 2 cards per row with 10px gap */
+@media (max-width: 480px) {
+  .containerSection {
+    margin-top: 10%; 
+  }
+  
+  .container {
+    padding: 8px;
+    height: fit-content;
+  }
+  
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  
+  .sliderTitle {
+    font-size: 20px;
+  }
+  
+  .sliderButton {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .paginationArrow {
+    width: 28px;
+    height: 28px;
   }
   
   .pageNumber {
-    min-width: 28px;
+    width: 28px;
     height: 28px;
     font-size: 12px;
+  }
+  
+  .pageNumbers {
+    gap: 0.15rem;
   }
   
   .arrowButton {
@@ -656,5 +688,37 @@
   
   .productsCount {
     font-size: 12px;
+  }
+}
+
+/* Very small phones (iPhone 12 mini, etc.) - 2 cards per row with 8px gap */
+@media (max-width: 375px) {
+  .container {
+    padding: 6px;
+  }
+  
+ .productGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  
+  .sliderTitle {
+    font-size: 18px;
+  }
+  
+  .sliderButton {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .paginationArrow {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .pageNumber {
+    min-width: 26px;
+    height: 26px;
+    font-size: 11px;
   }
 }

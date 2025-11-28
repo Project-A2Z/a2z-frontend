@@ -1,15 +1,10 @@
 "use client"
 import { useState, useRef } from 'react';
-
-//components
 import Card from '@/components/UI/Card/Card';
-
-//styles
 import styles from '@/components/UI/Product/ProductSlider.module.css';
 
-
 export interface Product {
-   id: string | number;
+  id: string | number;
   name: string;
   nameAr?: string;
   nameEn?: string;
@@ -143,14 +138,8 @@ function ProductSlider({
   return (
     <div className={styles.sliderContainer}>
       <div className={styles.gridWrapper}>
-        <div 
-          className={styles.productGrid}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gap: '16px'
-          }}
-        >
+        {/* ✅ FIXED: Removed inline styles that override media queries */}
+        <div className={styles.productGrid}>
           {currentProducts.map((product, index) => (
             <div key={`${product.id || product.name}-${currentPage}-${index}`} className={styles.gridItem}>
               <Card
