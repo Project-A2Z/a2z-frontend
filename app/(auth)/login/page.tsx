@@ -43,28 +43,35 @@ function LoginFormContent() {
 
 useEffect(() => {
   const handleSocialAuth = async () => {
-    // ✅ CRITICAL: Check if user just logged out
-    const justLoggedOut = localStorage.getItem('just_logged_out');
+    // Check if user just logged out
+    const justLoggedOut = sessionStorage.getItem('user_logged_out');
     if (justLoggedOut) {
       console.log('🚪 [LoginForm] User just logged out, skipping auto-login');
-      localStorage.removeItem('just_logged_out');
+      sessionStorage.removeItem('user_logged_out');
       return;
     }
 
-    // ✅ Check if user is coming back FROM a social login callback
-    console.log('🔍 [LoginForm] Checking for OAuth callback parameters...' , searchParams);
-    const isOAuthCallback = searchParams?.get('code') || searchParams?.get('state');
-    console.log('🔍 [LoginForm] isOAuthCallback:', !!isOAuthCallback);
+    // ✅ IMPROVED: Check for OAuth callback more reliably
+    const isOAuthCallback = searchParams?.get('oauth') === 'callback' || 
+                           searchParams?.get('code') || 
+                           searchParams?.get('state');
     
+    console.log('🔍 [LoginForm] OAuth callback check:', {
+      isOAuthCallback,
+      hasOAuthParam: searchParams?.get('oauth'),
+      hasCode: !!searchParams?.get('code'),
+      hasState: !!searchParams?.get('state')
+    });
+    
+    // Check existing localStorage token
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('user_data');
     const storedExpiry = localStorage.getItem('token_expiry');
     
-    // Check if user already has valid token in localStorage
     if (storedToken && storedUser && storedExpiry) {
       const isValid = Date.now() < parseInt(storedExpiry, 10);
       if (isValid) {
-        console.log('✅ [LoginForm] User already logged in from localStorage, redirecting...');
+        console.log('✅ [LoginForm] Valid token found, redirecting...');
         router.push('/');
         return;
       } else {
@@ -73,57 +80,61 @@ useEffect(() => {
       }
     }
     
-    // ✅ Only auto-login with social if coming back from OAuth callback
+    // Only process OAuth callback if we're coming from OAuth flow
     if (!isOAuthCallback) {
-      console.log('🔍 [LoginForm] Not an OAuth callback, skipping auto-login');
+      console.log('🔍 [LoginForm] Not an OAuth callback, skipping');
       return;
     }
     
-    console.log('🔍 [LoginForm] OAuth callback detected, processing session...');
+    console.log('🔍 [LoginForm] Processing OAuth callback...');
+    console.log('👤 [LoginForm] Session status:', status);
+    console.log('👤 [LoginForm] Has session:', !!session);
     
-    // ✅ Handle social login session and save to localStorage
-    console.log('👤 [LoginForm] Session:', session);
-    console.log('🔄 [LoginForm] allowAutoLogin:', allowAutoLogin);
-    if (allowAutoLogin && session?.backendToken && session?.user?.backendUser) {
+    // Handle OAuth session
+    if (session?.backendToken && session?.user?.backendUser) {
       console.log('✅ [LoginForm] Social login session detected!');
-      console.log('👤 [LoginForm] User:', session.user.backendUser.email);
+      
+      // ✅ Check for errors in session
+      if ((session as any)?.error) {
+        console.error('❌ [LoginForm] Session has error:', (session as any).error);
+        setAlertMessage('فشل تسجيل الدخول: ' + (session as any).error);
+        setShowErrorAlert(true);
+        setIsLoading(false);
+        return;
+      }
       
       // Save to localStorage
       UserStorage.saveUser(session.user.backendUser);
       UserStorage.saveToken(session.backendToken);
       
+      // Verify save
       const savedUser = localStorage.getItem('user_data');
       const savedToken = localStorage.getItem('auth_token');
-      setAllowAutoLogin(false);
       
       if (savedUser && savedToken) {
         console.log('✅ [LoginForm] localStorage save successful!');
+        
+        // Dispatch auth event
+        window.dispatchEvent(new CustomEvent('authUpdated'));
+        
+        // Start token monitoring
+        AuthService.startTokenMonitoring(() => {
+          console.log('🔒 [LoginForm] Token expired');
+          router.push('/login');
+        });
+        
+        // Small delay then redirect
+        await new Promise(resolve => setTimeout(resolve, 150));
+        router.push('/');
       } else {
         console.error('❌ [LoginForm] localStorage save FAILED!');
-        return;
+        setAlertMessage('فشل في حفظ بيانات تسجيل الدخول');
+        setShowErrorAlert(true);
       }
-      
-      // Dispatch auth update event
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('authUpdated'));
-      }
-      
-      // Start token monitoring
-      AuthService.startTokenMonitoring(() => {
-        console.log('🔒 [LoginForm] Token expired, redirecting to login...');
-        router.push('/login');
-      });
-      
-      console.log('✅ [LoginForm] Redirecting to home...');
-      await new Promise(resolve => setTimeout(resolve, 150));
-      router.push('/');
-      return;
-    }
-    
-    // Check for errors in session
-    if ((session as any)?.error) {
-      console.error('❌ [LoginForm] Error in session:', (session as any).error);
-      setAlertMessage('فشل تسجيل الدخول: ' + (session as any).error);
+    } else if (isOAuthCallback && status === 'unauthenticated') {
+      // OAuth callback but no valid session = error
+      console.error('❌ [LoginForm] OAuth callback but no session');
+      setAlertMessage('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.');
       setShowErrorAlert(true);
       setIsLoading(false);
     }
@@ -248,51 +259,50 @@ useEffect(() => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      console.log('🔵 [LoginForm] Starting Google login...');
-      setIsLoading(true);
-      setErrors({});
-      setAllowAutoLogin(true);
-      
-      // ✅ Clear the logout flag before starting new login
-      localStorage.removeItem('just_logged_out');
-      
-      await signIn('google', { 
-        redirect: true,
-        callbackUrl: '/'
-      });
-      
-    } catch (error) {
-      console.error('❌ [LoginForm] Google login error:', error);
-      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
-      setShowErrorAlert(true);
-      setIsLoading(false);
-    }
-  };
+ const handleGoogleLogin = async () => {
+  try {
+    console.log('🔵 [LoginForm] Starting Google login...');
+    setIsLoading(true);
+    setErrors({});
+    
+    // Clear any previous errors
+    sessionStorage.removeItem('user_logged_out');
+    
+    // Use callbackUrl that includes oauth flag
+    await signIn('google', { 
+      callbackUrl: '/login?oauth=callback',
+      redirect: true
+    });
+    
+  } catch (error) {
+    console.error('❌ [LoginForm] Google login error:', error);
+    setAlertMessage('حدث خطأ في تسجيل الدخول عبر Google');
+    setShowErrorAlert(true);
+    setIsLoading(false);
+  }
+};
 
-  const handleFacebookLogin = async () => {
-    try {
-      console.log('🔵 [LoginForm] Starting Facebook login...');
-      setIsLoading(true);
-      setErrors({});
-      
-      // ✅ Clear the logout flag before starting new login
-      localStorage.removeItem('just_logged_out');
-      
-      await signIn('facebook', { 
-        redirect: true,
-        callbackUrl: '/login'
-      });
-      
-    } catch (error) {
-      console.error('❌ [LoginForm] Facebook login error:', error);
-      setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
-      setShowErrorAlert(true);
-      setIsLoading(false);
-    }
-  };
-
+const handleFacebookLogin = async () => {
+  try {
+    console.log('🔵 [LoginForm] Starting Facebook login...');
+    setIsLoading(true);
+    setErrors({});
+    
+    sessionStorage.removeItem('user_logged_out');
+    
+    await signIn('facebook', { 
+      callbackUrl: '/login?oauth=callback',
+      redirect: true
+    });
+    
+  } catch (error) {
+    console.error('❌ [LoginForm] Facebook login error:', error);
+    setAlertMessage('حدث خطأ في تسجيل الدخول عبر Facebook');
+    setShowErrorAlert(true);
+    setIsLoading(false);
+  }
+};
+ 
   if (status === 'loading') {
     return (
       <>
