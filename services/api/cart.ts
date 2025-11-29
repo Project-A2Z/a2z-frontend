@@ -83,26 +83,48 @@ export const cartService = {
       
       const items = response.data?.data?.cart?.items || [];
       
-      const mappedItems: ClientCartItem[] = items.map((i: any) => {
-        const productId = i.productId._id || i.productId;
-        
-        const storedItem = localStorage.getItem(`cart_item_${productId}`);
-        let unit = 'unit';
-        if (storedItem) {
-          try {
-            unit = JSON.parse(storedItem).unit || 'unit';
-          } catch (e) {
-            console.error("Error parsing stored cart item:", e);
+      const mappedItems: ClientCartItem[] = items
+        .filter((i: any) => i && (i.productId?._id || i.productId)) // Filter out null/undefined items and items without productId
+        .map((i: any) => {
+          const productId = (i.productId && (i.productId._id || i.productId)) || '';
+          
+          if (!productId) {
+            console.warn('Skipping cart item with invalid product ID:', i);
+            return null;
           }
-        }
+          
+          const storedItem = localStorage.getItem(`cart_item_${productId}`);
+          let unit = 'unit';
+          if (storedItem) {
+            try {
+              unit = JSON.parse(storedItem).unit || 'unit';
+            } catch (e) {
+              console.error("Error parsing stored cart item:", e);
+            }
+          }
 
-        return {
-          _id: i._id,
-          productId: productId,
-          quantity: i.itemQty,
-          unit: unit,
-        };
-      });
+          // Convert quantity from database back to display format
+          // For ton and cubic_meter, we need to divide by 1000 to get the original quantity
+          let displayQuantity = i.itemQty;
+          if (unit === 'ton' || unit === 'cubic_meter') {
+            displayQuantity = i.itemQty / 1000;
+          }
+          
+          // Get the base price from product
+          let displayPrice = i.productId.price || 0;
+          if (unit === 'ton' || unit === 'cubic_meter') {
+            displayPrice = i.productId.price * 1000;
+          }
+
+          return {
+            _id: i._id,
+            productId: productId,
+            quantity: displayQuantity,
+            unit: unit,
+            price: displayPrice,
+          };
+        })
+        .filter((item: ClientCartItem | null): item is ClientCartItem => item !== null); // Filter out any null items from the mapping
       
       setClientCartItems(mappedItems);
       return response.data;
@@ -130,7 +152,34 @@ export const cartService = {
         return null;
       }
 
-      const payload = { productId: item.productId, itemQty: item.quantity };
+      // Get unit from localStorage to check if it's ton or cubic_meter
+      const cartItemKey = `cart_item_${item.productId}`;
+      const storedItem = localStorage.getItem(cartItemKey);
+      let unitKey = item.unit;
+      
+      if (storedItem) {
+        try {
+          const { unit } = JSON.parse(storedItem);
+          unitKey = unit || item.unit;
+        } catch (e) {
+          console.error('Error parsing cart item from localStorage:', e);
+        }
+      }
+
+      // Send quantity to database with multiplication for ton and cubic_meter
+      let dbQuantity = item.quantity;
+      if (unitKey === 'ton' || unitKey === 'cubic_meter') {
+        dbQuantity = item.quantity * 1000;
+      }
+
+      const payload = { productId: item.productId, itemQty: dbQuantity };
+      console.log('Cart Service - Adding to cart:', {
+        originalItem: item,
+        unitKey,
+        dbQuantity,
+        note: 'Sending multiplied quantity for ton/cubic_meter to DB',
+        payload
+      });
       const response = await apiClient.post('/cartItems/', payload);
       
       toast.success('تم إضافة المنتج إلى عربة التسوق', {
@@ -168,9 +217,47 @@ export const cartService = {
       safeQuantity = Math.max(1, Math.min(safeQuantity, Number.MAX_SAFE_INTEGER));
       safeQuantity = Math.floor(safeQuantity);
       
+      // Find the cart item to get its unit
+      const cartItems = getClientCartItems();
+      const cartItem = cartItems.find(item => item._id === cartItemId);
+      
+      let unitKey = '';
+      
+      if (cartItem) {
+        // Get unit from localStorage to check if it's ton or cubic_meter
+        const cartItemKey = `cart_item_${cartItem.productId}`;
+        const storedItem = localStorage.getItem(cartItemKey);
+        unitKey = cartItem.unit;
+        
+        if (storedItem) {
+          try {
+            const { unit } = JSON.parse(storedItem);
+            unitKey = unit || cartItem.unit;
+          } catch (e) {
+            console.error('Error parsing cart item from localStorage:', e);
+          }
+        }
+      }
+      
+      // Send quantity to database with multiplication for ton and cubic_meter
+      let dbQuantity = safeQuantity;
+      if (unitKey === 'ton' || unitKey === 'cubic_meter') {
+        dbQuantity = safeQuantity * 1000;
+      }
+      
       const url = buildUrl('/cartItems/:itemId', { itemId: cartItemId });
+      console.log('Cart Service - Updating cart item:', {
+        cartItemId,
+        originalQuantity: quantity,
+        safeQuantity,
+        cartItem,
+        unitKey,
+        dbQuantity,
+        note: 'Sending multiplied quantity for ton/cubic_meter to DB',
+        payload: { itemQty: dbQuantity }
+      });
       const response = await apiClient.put(url, { 
-        itemQty: safeQuantity 
+        itemQty: dbQuantity 
       });
       return response.data;
     } catch (error: any) {

@@ -1,3 +1,4 @@
+/* card.module.css - FIXED VERSION */
 .card {
   background: var(--background);
   border-radius: 16px;
@@ -5,9 +6,10 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: all 0.3s ease;
-  /* max-width: 280px; */
-  width: 200px;
-  height: 338px;
+  /* ✅ FIXED: Use 100% width to fit grid cell */
+  width: 100%;
+  max-width: 280px; /* Maximum size on large screens */
+  height: 21.125rem;
   position: relative;
   font-family: var(--font-primary);
   padding: 16px 8px; 
@@ -34,24 +36,19 @@
   background-color: unset;
   top: 8%;
   right: 11%;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
   z-index: 2;
-  
-
 }
 
 .heartIcon svg{
-  width: 20px;
-  height: 20px;
-
+  width: 1.25rem;
+  height: 1.25rem;
   color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-
   transition: color 0.3s ease;
-
 }
 
 /* Product Image */
@@ -64,11 +61,10 @@
   border-radius: 16px;
   overflow: hidden;
   display: flex;
-  
   justify-self: center;
-
   border: 1px solid var(--black8);
 }
+
 .img {
   width: 100%;
   height: 100%;
@@ -80,47 +76,48 @@
 }
 
 /* Availability Badge */
-
 .availableText {
   position: absolute;
   background: var(--primary);
   color: var(--onPrimary);
-  padding: 4px 16px;
-  border-radius: 24px;
-  bottom: 25%;
+  padding: 0.25rem 1rem;
+  border-radius: 1.5rem;
+  bottom: 27%;
   right: -25%;
   transform: translateX(-50%);
   z-index: 2;
-  gap: 8px;
-  font-size: 10px;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   font-weight: 400;
-  height: 20px;
+  height: 1.25rem;
   width: fit-content;
 }
+
 .unavailableText{
   position: absolute;
   background: var(--disabled);
   color: var(--onPrimary);
-  padding: 4px 16px;
-  border-radius: 24px;
+  padding: 0.25rem 1rem;
+  border-radius: 1.5rem;
   bottom: 25%;
   right: -25%;
   transform: translateX(-50%);
   z-index: 2;
-  gap: 8px;
-  font-size: 10px;
+  gap: 0.5rem;
+  font-size: 0.625rem;
   font-weight: 400;
-  height: 20px;
+  height: 1.25rem;
   width: fit-content;
 }
+
 .cardBody {
   position: relative;
   margin-top: 110%; 
   text-align: center;
   display: flex;
   flex-direction: column;
-  margin-right: 16px;
-  gap: 10px;
+  margin-right: 1rem;
+  gap: 0.625rem;
 }
 
 /* Category */
@@ -129,43 +126,40 @@
   justify-content: center;
   align-items: center;
   width: fit-content;
-  height: 20px;
-  border-radius: 24px;
-  padding: 4px 16px;
-  gap: 16px; 
-
+  height: 1.25rem;
+  border-radius: 1.5rem;
+  padding: 0.25rem 1rem;
+  gap: 1rem; 
   background-color: unset;
   border: 1px solid var(--black16);
-
 }
 
 .categoryText {
-
-  padding: 5px 14px;
-  border-radius: 18px;
-  font-size: 10px;
+  padding: 0.3rem 1rem;
+  border-radius: 1.125rem;
+  font-size: 0.625rem;
   font-weight: 500;
   color: var(--black60);
 }
 
-
-
 /* Product Name */
 .productName {
   display: flex;
-  width: 192px;
-  height: 46px;
-  gap: -8px;
-  font-size: 16px;
+  width: 70%;
+  height: 20%;
+  /* gap: 1.5rem; */
+  font-size: 1rem;
   font-weight: 600;
   color: var(--black60);
-  /* line-height: 100%; */
 }
 
 /* Price */
 .productName:last-child {
- margin-top: -14%;
+  margin-top: -14%;
+  margin-bottom: 5%;
+  gap: 1.5rem;
 }
+
 .priceSection{
   display: flex;
   gap: 0.2rem;
@@ -174,4 +168,175 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--black60);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE BREAKPOINTS
+   ======================================== */
+
+/* Tablets and below */
+@media screen and (max-width: 968px) {
+  .card {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    min-height: 280px;
+    padding: 8px 4px;
+  }
+
+  .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .heartIcon svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .cardImage {
+    margin: 8px 0;
+    width: 100%;
+    height: 140px;
+  }
+
+  .availableText {
+    padding: 0.2rem 0.75rem;
+    font-size: 0.65rem;
+    height: auto;
+  }
+
+  .unavailableText {
+    padding: 0.2rem 0.75rem;
+    font-size: 0.55rem;
+    height: auto;
+  }
+
+  .cardBody {
+    margin-right: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .category {
+    height: auto;
+    padding: 0.2rem 0.75rem;
+  }
+
+  .categoryText {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.55rem;
+  }
+
+  .productName {
+    font-size: 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .priceSection {
+    gap: 0.15rem;
+    font-size: 0.65rem;
+  }
+}
+
+/* Mobile phones - 2 columns layout */
+@media screen and (max-width: 480px) {
+  .card {
+    width: 100%;
+    max-width: none; /* Remove max-width to fill grid cell */
+    height: auto;
+    min-height: 240px;
+    padding: 6px 3px;
+  }
+
+  .icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    top: 6%;
+    right: 8%;
+  }
+
+  .heartIcon svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .cardImage {
+    margin: 6px 0;
+    height: 120px;
+    width: 100%;
+  }
+
+  .img {
+    /* margin-left: 0; */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+    justify-self: center;
+    align-self: center;
+    margin-left: -80%;
+  }
+
+  .availableText {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.55rem;
+    bottom: 22%;
+    right: -20%;
+  }
+
+  .unavailableText {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.5rem;
+    bottom: 22%;
+    right: -20%;
+  }
+
+  .cardBody {
+    margin-top: 100%;
+    margin-right: 0.4rem;
+    gap: 0.3rem;
+  }
+
+  .category {
+    padding: 0.15rem 0.6rem;
+  }
+
+  .categoryText {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.5rem;
+  }
+
+  .productName {
+    font-size: 0.65rem;
+    width: 80%;
+  }
+
+  .priceSection {
+    font-size: 0.6rem;
+    margin-top: -10%;
+  }
+}
+
+/* Very small phones */
+@media screen and (max-width: 375px) {
+  .card {
+    min-height: 220px;
+    padding: 4px 2px;
+  }
+
+  .cardImage {
+    height: 100px;
+  }
+
+  .productName {
+    font-size: 0.6rem;
+  }
+
+  .priceSection {
+    font-size: 0.55rem;
+  }
+
+  .categoryText {
+    font-size: 0.45rem;
+  }
 }

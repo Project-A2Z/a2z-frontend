@@ -115,6 +115,7 @@
   display: none;
 }
 
+/* Search Icon Button - Fixed */
 .searchIconBtn {
   display: flex;
   align-items: center;
@@ -122,10 +123,12 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
+  padding: 12px; /* Increased padding */
+  border-radius: 8px;
   transition: all 0.2s ease;
   color: var(--black60);
+  min-width: 48px; /* Ensure minimum size */
+  min-height: 48px; /* Ensure minimum size */
 }
 
 .searchIconBtn:hover {
@@ -141,7 +144,9 @@
   width: 24px;
   height: 24px;
   color: currentColor;
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
+
 
 /* Left Section - User Actions */
 .left {
@@ -784,6 +789,17 @@
   .body {
     padding-bottom: 88px;
   }
+
+  .searchIconBtn {
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .searchIcon {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -814,15 +830,17 @@
     font-size: 12px;
   }
 
-  .searchIcon {
-    width: 20px;
-    height: 20px;
-  }
-
   .searchIconBtn {
-    padding: 6px;
+    /* padding: 8px; */
+    min-width: 40px;
+    min-height: 40px;
   }
 
+  .searchIcon {
+    width: 100%;
+    height: 100%;
+    margin-left: -2%;
+  }
   .bottomNav {
     height: 75px;
     padding: 0 12px 8px;

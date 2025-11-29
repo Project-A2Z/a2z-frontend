@@ -13,12 +13,6 @@ const OptimizedProductSection = dynamic(
   }
 );
 
-// ✅ ISR Configuration - Revalidate every 1 hour
-export const revalidate = 3600;
-
-// ✅ Enable static generation - RENAMED to avoid conflict
-export const dynamicParams = false; // Changed from 'dynamic' to 'dynamicParams'
-
 // Skeleton component for loading state
 function ProductSectionSkeleton() {
   return (

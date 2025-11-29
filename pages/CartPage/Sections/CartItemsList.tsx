@@ -16,10 +16,11 @@ export type CartItem = {
 };
 
 type Props = {
-  items?: CartItem[];
+  items?: CartItem[]; 
   onUpdateQuantity?: (id: string, quantity: number) => void;
   onRemove?: (id: string) => void;
 };
+
 
 const CartItemImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
   const [imageSource, setImageSource] = React.useState('');
@@ -121,6 +122,7 @@ const CartItemsList: React.FC<Props> = React.memo(({
             key={item.id} 
             className="pt-[3px] sm:p-3 mt-[15px] mb-[15px] rounded-[10px] mx-[10px] bg-white border-[2px] border-gray-200"
           >
+            
             <div className="flex sm:flex-row gap-4">
               <div className="flex-shrink-0 m-auto">
                 <CartItemImage src={item.image} alt={item.name} />
@@ -150,12 +152,24 @@ const CartItemsList: React.FC<Props> = React.memo(({
                     </span>
                   </Button>
                 </div>
-
+{/* /************************************************************/}
                 <div className="flex flex-col items-start  w-[35%] sm:flex-col sm:items-center pr-[10px] sm:pr-3 justify-between gap-4">
                   <div className="text-left w-[100%] pl-2 sm:pl-3 ">
-                    <div className="text-xl font-bold text-black60">
-                      {/* item.price is now the price per display unit (e.g., price per ton) after conversion in cart.ts */}
-                      {(item.price * item.quantity).toLocaleString()} ج.م
+                    <div className="text-l font-bold text-black60">
+                      {(() => {
+                        const displayPrice = (item.unit === 'طن' || item.unit === 'متر مكعب') 
+                          ? (item.price  * item.quantity) 
+                          : (item.price * item.quantity);
+                        return displayPrice.toLocaleString();
+                      })()} ج.م / {item.unit}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {(() => {
+                        const unitPrice = (item.unit === 'طن' || item.unit === 'متر مكعب') 
+                          ? (item.price ) 
+                          : item.price;
+                        return unitPrice.toLocaleString();
+                      })()} ج.م / {item.unit}
                     </div>
                   </div>
                   

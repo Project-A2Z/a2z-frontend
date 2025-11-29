@@ -6,7 +6,7 @@ import OrderSummary from './Sections/OrderSummary';
 import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 // import type { CartItem } from './Sections/types';
-import { cartService } from '@/services/api/cart';
+import { cartService, getClientCartItems } from '@/services/api/cart';
 import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 
@@ -33,35 +33,20 @@ const CartPage = () => {
           return;
         }
         const res = await cartService.getCart();
-        const items = res?.data?.cart?.items ?? [];
-        
-        const mapped: CartItem[] = items.map((it: any) => {
+        const processedItems = await getClientCartItems();
+        const mapped: CartItem[] = processedItems.map((it: any) => {
           const p = it.productId || {};
-          const productId = p._id || '';
+          const productId = it.productId || '';
           
-          // Try to get unit from localStorage first
-          const cartItemKey = `cart_item_${productId}`;
-          const storedItem = localStorage.getItem(cartItemKey);
-          let selectedUnit = 'قطعة'; // Default unit
-          
-          if (storedItem) {
-            try {
-              const { unit } = JSON.parse(storedItem);
-              if (unit) {
-                // Convert unit to display name
-                const unitMap: Record<string, string> = {
-                  'unit': 'قطعة',
-                  'kg': 'كيلو',
-                  'ton': 'طن',
-                  'liter': 'لتر',
-                  'cubic_meter': 'متر مكعب'
-                };
-                selectedUnit = unitMap[unit] || unit;
-              }
-            } catch (e) {
-              console.error('Error parsing cart item from localStorage:', e);
-            }
-          }
+          // Convert unit to display name
+          const unitMap: Record<string, string> = {
+            'unit': 'قطعة',
+            'kg': 'كيلو',
+            'ton': 'طن',
+            'liter': 'لتر',
+            'cubic_meter': 'متر مكعب'
+          };
+          const selectedUnit = unitMap[it.unit] || it.unit || 'قطعة';
           
           let imageUrl = '/acessts/NoImage.jpg';
           const imageSources = p.imageList || p.images || p.image || [];
@@ -104,8 +89,8 @@ const CartPage = () => {
           return {
             id: String(it._id),
             name: p.name || p.title || 'منتج',
-            price: Number(p.price) || 0,
-            quantity: Number(it.itemQty) || 0,
+            price: it.price,
+            quantity: it.quantity,
             image: imageUrl,
             unit: selectedUnit,
             availability,
@@ -145,15 +130,16 @@ const CartPage = () => {
       await cartService.removeFromCart(id);
       setCartItems(items => items.filter(item => item.id !== id));
     } catch (e) {
-      //console.error('Failed to remove cart item', e);
+      console.error('Failed to remove cart item', e);
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // const shipping = 1000;
-  // const total = subtotal ;
-  //console.log('Cart Items:', cartItems);
-  //console.log('Subtotal:', subtotal);
+  const subtotal = cartItems.reduce((sum, item) => {
+    // Price is already multiplied by 1000 in getCart for ton/cubic_meter
+    // So we just multiply price by quantity directly
+    const itemTotal = item.price * item.quantity;
+    return sum + itemTotal;
+  }, 0);
   
   if (loading) {
     return (

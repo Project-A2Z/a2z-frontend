@@ -97,72 +97,58 @@ const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, account, profile, user, trigger }) {
       console.log('🎯 [NextAuth JWT Callback] Starting...');
-      console.log('🔍 [NextAuth] Trigger:', trigger);
-      console.log('🔍 [NextAuth] Has account:', !!account);
-      console.log('🔍 [NextAuth] Has profile:', !!profile);
-      console.log('🔍 [NextAuth] Has user:', !!user);
       
-      // This runs right after OAuth provider returns
-      if (account) {
-        console.log('🔑 [NextAuth] New OAuth login detected');
-        console.log('🔑 [NextAuth] Provider:', account.provider);
-        console.log('🔑 [NextAuth] Account object:', {
-          provider: account.provider,
-          type: account.type,
-          hasAccessToken: !!account.access_token,
-          hasIdToken: !!account.id_token,
-          accessToken: account.access_token ? account.access_token.substring(0, 30) + '...' : null,
-          userId: account.providerAccountId
-        });
-        
-        if (profile) {
-          console.log('👤 [NextAuth] Profile:', {
-            email: profile.email,
-            name: profile.name,
-            id: (profile as any).id
-          });
-        }
-        
-        // Store OAuth tokens
-        token.provider = account.provider;
-        
-        // For Facebook, use access_token
-        // For Google, prefer id_token but fallback to access_token
-        let tokenToSend = account.access_token;
-        
-        if (account.provider === 'google' && account.id_token) {
-          tokenToSend = account.id_token;
-          console.log('🔑 [NextAuth] Using Google ID token');
-        } else {
-          console.log('🔑 [NextAuth] Using access token');
-        }
-        
-        token.accessToken = tokenToSend;
-        
-        // Call your backend with the token
-        console.log('📞 [NextAuth] Calling backend...');
-        const backendResult = await loginWithBackend(
-          tokenToSend!,
-          account.provider as 'google' | 'facebook'
-        );
-        
-        if (backendResult.success) {
-          // Store backend JWT token and user data in the session
-          token.backendToken = backendResult.token;
-          token.backendUser = backendResult.user;
+      // ✅ ADD: Better error handling
+      try {
+        if (account) {
+          console.log('🔑 [NextAuth] New OAuth login detected');
+          console.log('🔑 [NextAuth] Provider:', account.provider);
           
-          console.log('✅ [NextAuth] Backend JWT stored in token');
-          console.log('✅ [NextAuth] Backend user stored in token');
-          console.log('✅ [NextAuth] User email:', backendResult.user?.email);
-        } else {
-          console.error('❌ [NextAuth] Backend authentication failed:', backendResult.error);
-          token.error = backendResult.error;
+          token.provider = account.provider;
+          
+          // Get the appropriate token
+          let tokenToSend = account.access_token;
+          
+          if (account.provider === 'google' && account.id_token) {
+            tokenToSend = account.id_token;
+            console.log('🔑 [NextAuth] Using Google ID token');
+          } else {
+            console.log('🔑 [NextAuth] Using access token');
+          }
+          
+          // ✅ ADD: Check if token exists
+          if (!tokenToSend) {
+            console.error('❌ [NextAuth] No token available from provider');
+            token.error = 'No authentication token received from provider';
+            return token;
+          }
+          
+          token.accessToken = tokenToSend;
+          
+          // Call backend
+          console.log('📞 [NextAuth] Calling backend...');
+          const backendResult = await loginWithBackend(
+            tokenToSend,
+            account.provider as 'google' | 'facebook'
+          );
+          
+          if (backendResult.success) {
+            token.backendToken = backendResult.token;
+            token.backendUser = backendResult.user;
+            console.log('✅ [NextAuth] Backend authentication successful');
+          } else {
+            console.error('❌ [NextAuth] Backend authentication failed:', backendResult.error);
+            token.error = backendResult.error || 'Backend authentication failed';
+          }
         }
+      } catch (error: any) {
+        console.error('❌ [NextAuth] JWT callback error:', error);
+        token.error = error.message || 'Authentication error occurred';
       }
       
       return token;
@@ -171,28 +157,28 @@ const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       console.log('🔄 [NextAuth Session Callback] Building session...');
       
-      // Send properties to the client
-      session.accessToken = token.accessToken as string;
-      session.provider = token.provider as string;
-      session.backendToken = token.backendToken as string;
+      // ✅ ADD: Safe property access
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+      if (token.provider) {
+        session.provider = token.provider as string;
+      }
+      if (token.backendToken) {
+        session.backendToken = token.backendToken as string;
+      }
       
       // Add backend user data to session
       if (token.backendUser && session.user) {
         session.user.backendUser = token.backendUser;
         console.log('✅ [NextAuth] Backend user added to session');
-        console.log('👤 [NextAuth] Backend user email:', token.backendUser?.email);
       }
       
-      // ✅ ADDED: Pass error to session if exists
+      // Pass error to session if exists
       if (token.error) {
         (session as any).error = token.error;
+        console.error('⚠️ [NextAuth] Passing error to session:', token.error);
       }
-      
-      console.log('✅ [NextAuth] Session built:', {
-        hasBackendToken: !!session.backendToken,
-        hasBackendUser: !!session.user?.backendUser,
-        provider: session.provider
-      });
       
       return session;
     },
@@ -202,15 +188,20 @@ const authOptions: NextAuthOptions = {
       console.log('📍 [NextAuth] URL:', url);
       console.log('📍 [NextAuth] Base URL:', baseUrl);
       
-      // ✅ FIXED: Redirect to /login so client-side can save to localStorage
-      const redirectUrl = baseUrl + '/login';
-      console.log('✅ [NextAuth] Redirecting to:', redirectUrl);
-      return redirectUrl;
+      // If there's an error, redirect to login with error param
+      if (url.includes('error=')) {
+        return url;
+      }
+      
+      // Redirect to login page for client-side localStorage handling
+      return `${baseUrl}/login?oauth=callback`;
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
 };
+    
+    
 
 const handler = NextAuth(authOptions);
 
