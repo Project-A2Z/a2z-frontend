@@ -42,7 +42,7 @@ const Slider: React.FC<SliderProps> = ({
   autoPlay = true,
   intervalMs = 5000,
   className = "",
-  rounded = true,
+  rounded = false, // Changed default to false
   showArrows = true,
   showButtons,
   showDots = true,
@@ -159,9 +159,7 @@ const Slider: React.FC<SliderProps> = ({
       onTouchEnd={onTouchEnd}
     >
       <div
-        className={`relative ${useFixedSize ? '' : `w-full ${aspect}`} overflow-hidden ${
-          rounded ? "rounded-xl" : ""
-        } bg-neutral-200 dark:bg-neutral-800`}
+        className={`relative ${useFixedSize ? '' : `w-full ${aspect}`} overflow-hidden bg-neutral-200 dark:bg-neutral-800`}
         style={useFixedSize ? sizeStyle : undefined}
       >
         {/* Slides */}
@@ -186,9 +184,9 @@ const Slider: React.FC<SliderProps> = ({
                   alt={slide.alt || `Slide ${idx + 1}`}
                   fill
                   priority={idx === 0}
-                  className="object-cover object-center w-full h-full"
+                  className="w-full h-full"
+                  style={{ objectFit: 'cover' }}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-                  // loading="lazy"
                 />
               )}
 

@@ -1,18 +1,61 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import styles from './../../profile.module.css';
 
-//components
-import InfoDetails from '../../../../components/UI/Profile/leftSection/Information/InfoDetails';
-import PassChange from '../../../../components/UI/Profile/leftSection/PassChange/PassChange';
-import Address from '@/components/UI/Profile/leftSection/Address/Address';
-import Orders from '@/components/UI/Profile/leftSection/Orders/Orders';
-import MessagesList from '@/components/UI/Profile/leftSection/Messages/MessagesList';
-
+// PERFORMANCE: Only import Welcome component (shown by default)
 import Welcome from '@/components/UI/Profile/leftSection/Welcome/Welcome';
-import Logout from '@/components/UI/Profile/leftSection/Logout/Logout';
 
-//interfaces and services
+// PERFORMANCE: Lazy load ALL other components - they load ONLY when clicked
+const InfoDetails = dynamic(
+  () => import('../../../../components/UI/Profile/leftSection/Information/InfoDetails'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+const PassChange = dynamic(
+  () => import('../../../../components/UI/Profile/leftSection/PassChange/PassChange'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+const Address = dynamic(
+  () => import('@/components/UI/Profile/leftSection/Address/Address'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+const Orders = dynamic(
+  () => import('@/components/UI/Profile/leftSection/Orders/Orders'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+const MessagesList = dynamic(
+  () => import('@/components/UI/Profile/leftSection/Messages/MessagesList'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+const Logout = dynamic(
+  () => import('@/components/UI/Profile/leftSection/Logout/Logout'),
+  {
+    loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
+    ssr: false
+  }
+);
+
+// Services - keep these as they're small
 import { logoutUser, AuthService } from './../../../../services/auth/login';
 import orderService, { OrderItem } from './../../../../services/profile/orders';
 import { updatePassword } from '../../../../services/profile/profile';
@@ -57,7 +100,7 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
-  // Fetch orders when the "طلباتك" tab is selected
+  // PERFORMANCE: Only fetch orders when the tab is selected
   useEffect(() => {
     const fetchOrders = async () => {
       if (box === 'طلباتك') {
@@ -65,12 +108,8 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         setOrdersError(null);
         
         try {
-          // Debug authentication
-          console.log('🔍 Starting orders fetch...');
           orderService.debugAuth();
-          
           const apiOrders = await orderService.getUserOrders();
-          // No need to transform - use OrderItem directly
           setOrders(apiOrders);
         } catch (error) {
           console.error('Failed to fetch orders:', error);
@@ -83,106 +122,73 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
     };
 
     fetchOrders();
-    console.log('user in EditProfileSection', user);
   }, [box, user]);
 
   const handleLogout = async () => {
-  try {
-    setIsLoggingOut(true);
-    console.log('🚪 Starting logout process...');
-    console.log('📦 Before logout - localStorage:', {
-      user: localStorage.getItem('user_data'),
-      token: localStorage.getItem('auth_token'),
-      refreshToken: localStorage.getItem('refresh_token')
-    });
-    
-    // Step 1: Clear your backend authentication
-    await logoutUser();
-    
-    console.log('📦 After logoutUser - localStorage:', {
-      user: localStorage.getItem('user_data'),
-      token: localStorage.getItem('auth_token'),
-      refreshToken: localStorage.getItem('refresh_token')
-    });
-    
-    // Step 2: Sign out from NextAuth (Google/Facebook session)
-    console.log('🚪 Signing out from NextAuth...');
-    await signOut({ 
-      redirect: false // Don't redirect automatically, we'll do it manually
-    });
-    console.log('✅ NextAuth signout complete');
-    
-    // Step 3: Clear user state
-    if (setUser) {
-      setUser(null);
-    }
-    
-    console.log('✅ Logout successful!');
-    
-    // Step 4: Redirect to login
-    window.location.href = '/login';
-    
-  } catch (error) {
-    console.error('❌ Logout failed:', error);
-    
-    // If logout fails, force clear everything
-    console.log('🧹 Force clearing all auth data...');
     try {
-      localStorage.removeItem('user_data');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      AuthService.clearAuthData();
+      setIsLoggingOut(true);
       
-      // Also try to sign out from NextAuth
-      try {
-        await signOut({ redirect: false });
-      } catch (signOutError) {
-        console.error('❌ NextAuth signout failed:', signOutError);
-      }
+      await logoutUser();
+      await signOut({ redirect: false });
       
       if (setUser) {
         setUser(null);
       }
       
-      console.log('📦 After force cleanup - localStorage:', {
-        user: localStorage.getItem('user_data'),
-        token: localStorage.getItem('auth_token'),
-        refreshToken: localStorage.getItem('refresh_token')
-      });
-      
       window.location.href = '/login';
       
-    } catch (clearError) {
-      console.error('❌ Failed to clear auth data:', clearError);
-      // Last resort - still redirect
-      window.location.href = '/login';
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      
+      try {
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        AuthService.clearAuthData();
+        
+        try {
+          await signOut({ redirect: false });
+        } catch (signOutError) {
+          console.error('❌ NextAuth signout failed:', signOutError);
+        }
+        
+        if (setUser) {
+          setUser(null);
+        }
+        
+        window.location.href = '/login';
+        
+      } catch (clearError) {
+        console.error('❌ Failed to clear auth data:', clearError);
+        window.location.href = '/login';
+      }
+      
+    } finally {
+      setIsLoggingOut(false);
     }
-    
-  } finally {
-    setIsLoggingOut(false);
-  }
-};
-  // Handle password change
+  };
+
   const handlePasswordChange = async (passwordData: { currentPassword: string; newPassword: string }) => {
     try {
-      console.log('🔐 Changing password...');
-      
-      // Call the updatePassword service with all required fields
       await updatePassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
-        confirmPassword: passwordData.newPassword // confirmPassword same as newPassword
+        confirmPassword: passwordData.newPassword
       });
-      
-      console.log('✅ Password changed successfully');
     } catch (error) {
       console.error('❌ Password change failed:', error);
-      throw error; // Re-throw to let PassChange component handle the error
+      throw error;
     }
   };
  
-  // Function to render component based on box value
+  // Render component based on box value
   const renderComponent = () => {
+    // When box is empty or undefined, show Welcome component (no lazy loading needed)
+    if (!box || box === '') {
+      return <Welcome name={user?.firstName || ""} />;
+    }
+
+    // All other components are lazy loaded
     switch (box) {
       case 'تفاصيل الحساب':
         return <InfoDetails 
@@ -191,14 +197,17 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
           email={user?.email || ''}
           phone={user?.phoneNumber || ''}
         />;
+        
       case 'تغيير كلمة المرور':
         return <PassChange 
           onChangePassword={handlePasswordChange}
         />;
+        
       case 'عناوينك':
         return <Address 
           Addresses={user?.address || []}
         />;
+        
       case 'طلباتك':
         if (isLoadingOrders) {
           return (
@@ -223,12 +232,13 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
         }
         
         return <Orders orders={orders} />;
+        
       case 'رسائلك':
         return <MessagesList />;
-      // case 'مدفوعاتك':
-      //   return <Payments />;
+        
       case 'تسجيل الخروج':
-        return <Logout onCancel={setBox} onLogout={handleLogout} />; 
+        return <Logout onCancel={setBox} onLogout={handleLogout} />;
+        
       default:
         return <Welcome name={user?.firstName || ""} />;
     }
@@ -241,4 +251,5 @@ const EditProfileSection: React.FC<EditProfileSectionProps> = ({ box, setBox, us
   );
 }
 
-export default EditProfileSection;
+// PERFORMANCE: Memoize to prevent unnecessary re-renders
+export default React.memo(EditProfileSection);

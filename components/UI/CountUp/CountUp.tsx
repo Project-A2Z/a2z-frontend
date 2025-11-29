@@ -1,120 +1,63 @@
-'use client';
-import { useEffect, useRef } from "react";
-import { useInView, useMotionValue, useSpring } from "motion/react";
+// components/UI/CountUp/CountUp.tsx
+import React, { useEffect, useRef, useState } from 'react';
 
-type CountUpProps = {
-  to: number;
+interface CountUpProps {
   from?: number;
-  direction?: "up" | "down";
-  delay?: number;
+  to: number;
   duration?: number;
-  className?: string;
-  startWhen?: boolean;
   separator?: string;
-  onStart?: () => void;
-  onEnd?: () => void;
-};
+  className?: string;
+  direction?: 'up' | 'down';
+}
 
-export default function CountUp({
-  to,
+const CountUp: React.FC<CountUpProps> = ({
   from = 0,
-  direction = "up",
-  delay = 0,
-  duration = 2,
-  className = "",
-  startWhen = true,
-  separator = "",
-  onStart,
-  onEnd,
-}: CountUpProps) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(direction === "down" ? to : from);
+  to,
+  duration = 1,
+  separator = ',',
+  className = '',
+  direction = 'up'
+}) => {
+  const [count, setCount] = useState(from);
+  const startTimeRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
-  const damping = 20 + 40 * (1 / duration);
-  const stiffness = 100 * (1 / duration);
-
-  const springValue = useSpring(motionValue, {
-    damping,
-    stiffness,
-  });
-
-  const isInView = useInView(ref, { once: true, margin: "0px" });
-
-  const getDecimalPlaces = (num: number) => {
-    const str = num.toString();
-
-    if (str.includes(".")) {
-      const decimals = str.split(".")[1];
-
-      if (parseInt(decimals) !== 0) {
-        return decimals.length;
+  useEffect(() => {
+    const animate = (timestamp: number) => {
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp;
       }
-    }
 
-    return 0;
+      const progress = Math.min((timestamp - startTimeRef.current) / (duration * 1000), 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      
+      const currentCount = Math.floor(from + (to - from) * easeOutQuart);
+      setCount(currentCount);
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(animate);
+      } else {
+        setCount(to); // Ensure final value is exact
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [from, to, duration]);
+
+  // Format number with separator
+  const formatNumber = (num: number): string => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, separator);
   };
 
-  const maxDecimals = Math.max(getDecimalPlaces(from), getDecimalPlaces(to));
+  return <span className={className}>{formatNumber(count)}</span>;
+};
 
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.textContent = String(direction === "down" ? to : from);
-    }
-  }, [from, to, direction]);
-
-  useEffect(() => {
-    if (isInView && startWhen) {
-      if (typeof onStart === "function") onStart();
-
-      const timeoutId = setTimeout(() => {
-        motionValue.set(direction === "down" ? from : to);
-      }, delay * 1000);
-
-      const durationTimeoutId = setTimeout(() => {
-        if (typeof onEnd === "function") onEnd();
-      }, delay * 1000 + duration * 1000);
-
-      return () => {
-        clearTimeout(timeoutId);
-        clearTimeout(durationTimeoutId);
-      };
-    }
-  }, [
-    isInView,
-    startWhen,
-    motionValue,
-    direction,
-    from,
-    to,
-    delay,
-    onStart,
-    onEnd,
-    duration,
-  ]);
-
-  useEffect(() => {
-    const unsubscribe = springValue.on("change", (latest) => {
-      if (ref.current) {
-        const hasDecimals = maxDecimals > 0;
-
-        const options = {
-          useGrouping: !!separator,
-          minimumFractionDigits: hasDecimals ? maxDecimals : 0,
-          maximumFractionDigits: hasDecimals ? maxDecimals : 0,
-        };
-
-        const formattedNumber = Intl.NumberFormat("en-US", options).format(
-          latest
-        );
-
-        ref.current.textContent = separator
-          ? formattedNumber.replace(/,/g, separator)
-          : formattedNumber;
-      }
-    });
-
-    return () => unsubscribe();
-  }, [springValue, separator, maxDecimals]);
-
-  return <span className={className} ref={ref} />;
-}
+export default CountUp;

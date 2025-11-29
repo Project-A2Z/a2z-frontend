@@ -1,13 +1,27 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 
-// Components
+// Components - Keep critical components for initial render
 import TopMetrics from "@/pages/ProfilePage/sections/TopScetion/Top";
 import InformationSection from "@/pages/ProfilePage/sections/InformationSection/InformationSection";
 import AccountList from "@/components/UI/Profile/RightSection/List";
-import EditProfileSection from "@/pages/ProfilePage/sections/EditProfile/EditProfileSection";
+
+// PERFORMANCE: Lazy load EditProfileSection (only loads when box is selected)
+const EditProfileSection = dynamic(
+  () => import("@/pages/ProfilePage/sections/EditProfile/EditProfileSection"),
+  {
+    loading: () => (
+      <div className={styles.loading_container}>
+        <div className={styles.loading_spinner}></div>
+        <p>جاري التحميل...</p>
+      </div>
+    ),
+    ssr: false, // Client-side only
+  }
+);
 
 // Services
 import { getCurrentUser } from "../../services/auth/login";
@@ -72,10 +86,6 @@ const ProfilePage = () => {
         const { useAuthMonitor } = await import(
           "../../components/providers/useAuthMonitor"
         );
-
-        // This is a simplified version - you may need to adjust based on your actual hook
-        // Since hooks can't be called conditionally, you might need to refactor this
-        // For now, we'll just set a flag that we're mounted
       } catch (error) {
         console.error("Error loading auth monitor:", error);
       }
@@ -87,7 +97,7 @@ const ProfilePage = () => {
   /**
    * Fetch user profile data from API
    */
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -137,7 +147,7 @@ const ProfilePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   /**
    * Load user data on component mount
@@ -148,78 +158,121 @@ const ProfilePage = () => {
     const localUser = getCurrentUser();
     if (localUser) {
       setUser(localUser);
+      setIsLoading(false);
     }
 
     fetchUserProfile();
-  }, [isMounted]);
+  }, [isMounted, fetchUserProfile]);
 
   /**
    * Check if screen is mobile size
+   * PERFORMANCE: Debounce resize event
    */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    let timeoutId: NodeJS.Timeout;
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsMobile(window.innerWidth <= 768);
+      }, 150);
     };
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
 
   /**
    * Handle mobile navigation
+   * PERFORMANCE: Use useCallback to prevent re-creation
    */
-  const handleMobileNavigation = (selectedBox: any) => {
-    setBox(selectedBox);
-    if (isMobile && selectedBox) {
-      setShowMobileMain(true);
-    }
-  };
+  const handleMobileNavigation = useCallback(
+    (selectedBox: string) => {
+      setBox(selectedBox);
+      if (isMobile && selectedBox) {
+        setShowMobileMain(true);
+      }
+    },
+    [isMobile]
+  );
 
-  const handleMobileBack = () => {
+  const handleMobileBack = useCallback(() => {
     setShowMobileMain(false);
     setBox("");
-  };
+  }, []);
 
   /**
    * Back button SVG icon
+   * PERFORMANCE: Memoize to prevent re-renders
    */
-  const BackIcon = () => (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m15 18-6-6 6-6" />
-    </svg>
+  const BackIcon = useMemo(
+    () => () =>
+      (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      ),
+    []
   );
 
   /**
-   * Retry button
+   * Retry button handler
    */
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setError(null);
     fetchUserProfile();
-  };
+  }, [fetchUserProfile]);
 
-  // Don't render until mounted on client
-  if (!isMounted) {
-    return (
-      <div className={styles.profile_page}>
-        <div className={styles.loading_container}>
-          <div className={styles.loading_spinner}></div>
-          <p>جاري التحميل...</p>
-        </div>
-      </div>
-    );
-  }
+  /**
+   * PERFORMANCE: Memoize metrics data to prevent re-creation
+   */
+  const metricsData = useMemo(
+    () => [
+      {
+        icon: <Heart />,
+        number: user?.favoriteItems || 0,
+        title: "المنتجات المفضلة",
+        className: styles.metric1,
+        onClick: () => {
+          router.push("/favorites");
+        },
+      },
+      {
+        icon: <Cart />,
+        number: user?.OrderCount || 0,
+        title: "عدد الطلبات",
+        className: styles.metric2,
+        onClick: () => {
+          setBox("طلباتك");
+        },
+      },
+      {
+        icon: <Star />,
+        number: user?.reviewsCount || 0,
+        title: "التقييمات",
+        className: styles.metric3,
+        onClick: () => {
+          setBox("رسائلك");
+        },
+      },
+    ],
+    [user?.favoriteItems, user?.OrderCount, user?.reviewsCount, router]
+  );
 
-  // Show loading state
+  // FIX: Show same loading UI on both server and client
+  // This prevents hydration mismatch
   if (isLoading && !user) {
     return (
       <div className={styles.profile_page}>
@@ -271,38 +324,7 @@ const ProfilePage = () => {
         </div>
       )}
 
-      <TopMetrics
-        metrics={[
-          {
-            icon: <Heart />,
-            number: user?.favoriteItems || 0,
-            title: "المنتجات المفضلة",
-            className: styles.metric1,
-            onClick: () => {
-              router.push("/favorites");
-            },
-          },
-          {
-            icon: <Cart />,
-            number: user?.OrderCount || 0,
-            title: "عدد الطلبات",
-            className: styles.metric2,
-            onClick: () => {
-              setBox("طلباتك");
-            },
-          },
-          {
-            icon: <Star />,
-            number: user?.reviewsCount || 0,
-            title: "التقييمات",
-            className: styles.metric3,
-            onClick: () => {
-              setBox("رسائلك");
-            },
-          },
-        ]}
-        className={styles.metric_card}
-      />
+      <TopMetrics metrics={metricsData} className={styles.metric_card} />
 
       <div className={styles.mid}>
         <div
@@ -335,21 +357,18 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {(() => {
-            const C = EditProfileSection as unknown as React.ComponentType<{
-              box: string;
-              setBox: React.Dispatch<React.SetStateAction<string>>;
-              user: User | null;
-              setUser: React.Dispatch<React.SetStateAction<User | null>>;
-            }>;
-            return (
-              <C box={box} setBox={setBox} user={user} setUser={setUser} />
-            );
-          })()}
+          {/* PERFORMANCE: Always render EditProfileSection, it shows Welcome by default */}
+          <EditProfileSection
+            box={box}
+            setBox={setBox}
+            user={user}
+            setUser={setUser}
+          />
         </div>
       </div>
     </div>
   );
 };
 
-export default ProfilePage;
+// PERFORMANCE: Export with React.memo to prevent unnecessary re-renders
+export default React.memo(ProfilePage);

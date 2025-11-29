@@ -2,16 +2,22 @@
 
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "../../../../components/UI/Buttons/Button";
-import Input from "../../../../components/UI/Inputs/Input";
+import { Button } from "@/components/UI/Buttons/Button";
+import Input from "@/components/UI/Inputs/Input";
 import { ChevronDown, MapPin, Edit3 } from "lucide-react";
+import dynamic from 'next/dynamic';
 import styles from "./../../profile.module.css";
 import {
   AddressService,
   AddressError,
-} from "../../../../services/profile/address";
-import MapLocationPicker from "../../../../components/UI/Profile/leftSection/Address/Location_map";
-
+} from "@/services/profile/address";
+const MapLocationPicker = dynamic(
+  () => import('@/components/UI/Profile/leftSection/Address/Location_map'),
+  { 
+    ssr: false,
+    loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>جاري تحميل الخريطة...</div>
+  }
+);
 import { locationData } from '@/public/data/locationData';
 
 const LOCATION_DATA = locationData as Record<string, string[]>;
