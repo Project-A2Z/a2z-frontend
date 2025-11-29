@@ -29,14 +29,11 @@ declare module "next-auth/jwt" {
   }
 }
 
-// ✅ FIXED: Removed localStorage saves - this runs on SERVER where localStorage doesn't exist
 async function loginWithBackend(accessToken: string, provider: 'google' | 'facebook'): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
   try {
     console.log('🔄 [NextAuth] Calling backend with access token...');
     console.log('🔑 [NextAuth] Provider:', provider);
-    console.log('🔑 [NextAuth] Token (first 20 chars):', accessToken.substring(0, 20) + '...');
     
-    // Call your socialLogin function
     const response = await socialLogin({ 
       idToken: accessToken, 
       provider 
@@ -46,9 +43,6 @@ async function loginWithBackend(accessToken: string, provider: 'google' | 'faceb
 
     if (response.status === 'success') {
       console.log('✅ [NextAuth] Backend login successful');
-      
-      // ✅ FIXED: Just return the data - localStorage saves will happen on CLIENT side
-      // Don't try to save to localStorage here - it doesn't exist on the server!
       
       return {
         success: true,
@@ -103,7 +97,6 @@ const authOptions: NextAuthOptions = {
     async jwt({ token, account, profile, user, trigger }) {
       console.log('🎯 [NextAuth JWT Callback] Starting...');
       
-      // ✅ ADD: Better error handling
       try {
         if (account) {
           console.log('🔑 [NextAuth] New OAuth login detected');
@@ -121,14 +114,14 @@ const authOptions: NextAuthOptions = {
             console.log('🔑 [NextAuth] Using access token');
           }
           
-          // ✅ ADD: Check if token exists
           if (!tokenToSend) {
             console.error('❌ [NextAuth] No token available from provider');
             token.error = 'No authentication token received from provider';
             return token;
           }
           
-          token.accessToken = tokenToSend;
+          // DON'T store the OAuth token - we don't need it
+          // token.accessToken = tokenToSend;
           
           // Call backend
           console.log('📞 [NextAuth] Calling backend...');
@@ -139,8 +132,18 @@ const authOptions: NextAuthOptions = {
           
           if (backendResult.success) {
             token.backendToken = backendResult.token;
-            token.backendUser = backendResult.user;
+            
+            // 🔥 CRITICAL: Store ONLY essential user data to keep JWT small
+            token.backendUser = {
+              id: backendResult.user?.id,
+              email: backendResult.user?.email,
+              name: backendResult.user?.name,
+              phone: backendResult.user?.phone,
+              // Add only what you NEED - remove arrays/objects if possible
+            };
+            
             console.log('✅ [NextAuth] Backend authentication successful');
+            console.log('👤 [NextAuth] User ID:', token.backendUser.id);
           } else {
             console.error('❌ [NextAuth] Backend authentication failed:', backendResult.error);
             token.error = backendResult.error || 'Backend authentication failed';
@@ -157,15 +160,13 @@ const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       console.log('🔄 [NextAuth Session Callback] Building session...');
       
-      // ✅ ADD: Safe property access
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
-      }
       if (token.provider) {
         session.provider = token.provider as string;
       }
+      
       if (token.backendToken) {
         session.backendToken = token.backendToken as string;
+        console.log('✅ [NextAuth] Backend token added to session');
       }
       
       // Add backend user data to session
@@ -179,6 +180,13 @@ const authOptions: NextAuthOptions = {
         (session as any).error = token.error;
         console.error('⚠️ [NextAuth] Passing error to session:', token.error);
       }
+      
+      console.log('📦 [NextAuth] Session ready:', {
+        hasBackendToken: !!session.backendToken,
+        hasBackendUser: !!session.user?.backendUser,
+        hasError: !!(session as any).error,
+        userId: session.user?.backendUser?.id
+      });
       
       return session;
     },
@@ -194,14 +202,12 @@ const authOptions: NextAuthOptions = {
       }
       
       // Redirect to login page for client-side localStorage handling
-      return `${baseUrl}/login?oauth=callback`;
+      return `${baseUrl}/login?oauth=success`;
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
 };
-    
-    
 
 const handler = NextAuth(authOptions);
 

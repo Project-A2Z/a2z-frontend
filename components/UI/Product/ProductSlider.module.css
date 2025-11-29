@@ -55,7 +55,11 @@
   height: fit-content;
 }
 
+/* ✅ FIXED: Define grid for all screen sizes */
 .productGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Desktop default */
+  gap: 16px;
   width: 100%;
   margin-bottom: 2rem;
   height: fit-content;
@@ -245,10 +249,14 @@
   font-size: 0.875rem;
 }
 
-/* Responsive Design */
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE BREAKPOINTS
+   ======================================== */
+
+/* Tablets and smaller laptops */
 @media (max-width: 1024px) {
   .productGrid {
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .loadingGrid {
@@ -256,9 +264,11 @@
   }
 }
 
+/* Large phones and small tablets */
 @media (max-width: 768px) {
   .productGrid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
   
   .loadingGrid {
@@ -285,16 +295,26 @@
   }
 }
 
+/* All mobile phones */
 @media (max-width: 480px) {
   .productGrid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
   
   .loadingGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .sliderContainer {
     padding: 0.75rem 0;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 375px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
   }
 }

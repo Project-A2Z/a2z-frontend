@@ -37,9 +37,7 @@ function LoginFormContent() {
   // ✅ NEW: Track if we've already processed this session
   const [processedSession, setProcessedSession] = useState<string | null>(null);
   const[ allowAutoLogin, setAllowAutoLogin ] = useState(false);
-
-  // ✅ FIXED: Better session handling with logout detection
-  // In LoginFormContent component - replace the main useEffect
+// Complete fixed useEffect for OAuth handling in your LoginForm component
 
 useEffect(() => {
   const handleSocialAuth = async () => {
@@ -51,19 +49,16 @@ useEffect(() => {
       return;
     }
 
-    // ✅ IMPROVED: Check for OAuth callback more reliably
-    const isOAuthCallback = searchParams?.get('oauth') === 'callback' || 
-                           searchParams?.get('code') || 
-                           searchParams?.get('state');
+    // Check for OAuth success parameter
+    const isOAuthCallback = searchParams?.get('oauth') === 'success';
     
-    console.log('🔍 [LoginForm] OAuth callback check:', {
+    console.log('🔍 [LoginForm] OAuth check:', {
       isOAuthCallback,
-      hasOAuthParam: searchParams?.get('oauth'),
-      hasCode: !!searchParams?.get('code'),
-      hasState: !!searchParams?.get('state')
+      status,
+      hasSession: !!session
     });
     
-    // Check existing localStorage token
+    // Check existing localStorage token FIRST
     const storedToken = localStorage.getItem('auth_token');
     const storedUser = localStorage.getItem('user_data');
     const storedExpiry = localStorage.getItem('token_expiry');
@@ -81,20 +76,118 @@ useEffect(() => {
     }
     
     // Only process OAuth callback if we're coming from OAuth flow
-    if (!isOAuthCallback) {
-      console.log('🔍 [LoginForm] Not an OAuth callback, skipping');
+    if (!isOAuthCallback  ) {
       return;
     }
-    
+
     console.log('🔍 [LoginForm] Processing OAuth callback...');
-    console.log('👤 [LoginForm] Session status:', status);
-    console.log('👤 [LoginForm] Has session:', !!session);
+    setIsLoading(true);
     
-    // Handle OAuth session
-    if (session?.backendToken && session?.user?.backendUser) {
-      console.log('✅ [LoginForm] Social login session detected!');
+    // Wait for session to be fully loaded
+    if (status === 'loading') {
+      console.log('⏳ [LoginForm] Session loading, waiting...');
+      return;
+    }
+
+    // 🔥 CRITICAL FIX: Force session refresh if unauthenticated
+    if (status === 'unauthenticated') {
+      console.log('⚠️ [LoginForm] Session unauthenticated, forcing refresh...');
       
-      // ✅ Check for errors in session
+      try {
+        // Import getSession dynamically
+        const { getSession } = await import('next-auth/react');
+        
+        console.log('🔄 [LoginForm] Manually fetching session...');
+        const freshSession = await getSession();
+        
+        console.log('📦 [LoginForm] Fresh session:', {
+          hasSession: !!freshSession,
+          hasBackendToken: !!freshSession?.backendToken,
+          hasBackendUser: !!freshSession?.user?.backendUser,
+          error: (freshSession as any)?.error
+        });
+        
+        if (allowAutoLogin && freshSession?.backendToken && freshSession?.user?.backendUser) {
+          console.log('✅ [LoginForm] Fresh session has required data!');
+          
+          // Check for session error
+          if ((freshSession as any)?.error) {
+            console.error('❌ [LoginForm] Session has error:', (freshSession as any).error);
+            setAlertMessage('فشل تسجيل الدخول: ' + (freshSession as any).error);
+            setShowErrorAlert(true);
+            setIsLoading(false);
+            return;
+          }
+          
+          try {
+            // Save to localStorage
+            console.log('💾 [LoginForm] Saving to localStorage...');
+            UserStorage.saveUser(freshSession.user.backendUser);
+            UserStorage.saveToken(freshSession.backendToken);
+            
+            // Verify save
+            const savedUser = localStorage.getItem('user_data');
+            const savedToken = localStorage.getItem('auth_token');
+            
+            if (savedUser && savedToken) {
+              console.log('✅ [LoginForm] localStorage save successful!');
+              console.log('👤 [LoginForm] User:', JSON.parse(savedUser)?.name);
+              
+              // Dispatch auth event
+              window.dispatchEvent(new CustomEvent('authUpdated'));
+              
+              // Start token monitoring
+              AuthService.startTokenMonitoring(() => {
+                console.log('🔒 [LoginForm] Token expired');
+                router.push('/login');
+              });
+              
+              // Small delay then redirect
+              await new Promise(resolve => setTimeout(resolve, 300));
+              console.log('🚀 [LoginForm] Redirecting to dashboard...');
+              router.push('/');
+              return;
+            } else {
+              console.error('❌ [LoginForm] localStorage save FAILED!');
+              setAlertMessage('فشل في حفظ بيانات تسجيل الدخول');
+              setShowErrorAlert(true);
+              setIsLoading(false);
+              return;
+            }
+          } catch (error) {
+            console.error('❌ [LoginForm] Error saving to localStorage:', error);
+            setAlertMessage('حدث خطأ في حفظ البيانات');
+            setShowErrorAlert(true);
+            setIsLoading(false);
+            
+            return;
+          }
+        } else {
+          console.error('❌ [LoginForm] Fresh session missing data after manual fetch');
+          setAlertMessage('فشل في الحصول على بيانات المستخدم. يرجى المحاولة مرة أخرى.');
+          setShowErrorAlert(true);
+          setIsLoading(false);
+          
+          // Clean up the URL
+          setTimeout(() => {
+            router.replace('/login');
+          }, 2000);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ [LoginForm] Error fetching session:', error);
+        setAlertMessage('حدث خطأ في تسجيل الدخول');
+        setShowErrorAlert(true);
+        setIsLoading(false);
+        return;
+      }
+    }
+    
+    // Handle authenticated session from useSession hook
+    if (status === 'authenticated') {
+      console.log('✅ [LoginForm] Session authenticated via hook');
+      
+      // Check for session error
       if ((session as any)?.error) {
         console.error('❌ [LoginForm] Session has error:', (session as any).error);
         setAlertMessage('فشل تسجيل الدخول: ' + (session as any).error);
@@ -103,68 +196,85 @@ useEffect(() => {
         return;
       }
       
-      // Save to localStorage
-      UserStorage.saveUser(session.user.backendUser);
-      UserStorage.saveToken(session.backendToken);
-      
-      // Verify save
-      const savedUser = localStorage.getItem('user_data');
-      const savedToken = localStorage.getItem('auth_token');
-      
-      if (savedUser && savedToken) {
-        console.log('✅ [LoginForm] localStorage save successful!');
+      // Check if we have the required data
+      if (session?.backendToken && session?.user?.backendUser) {
+        console.log('✅ [LoginForm] Session has required data');
         
-        // Dispatch auth event
-        window.dispatchEvent(new CustomEvent('authUpdated'));
-        
-        // Start token monitoring
-        AuthService.startTokenMonitoring(() => {
-          console.log('🔒 [LoginForm] Token expired');
-          router.push('/login');
-        });
-        
-        // Small delay then redirect
-        await new Promise(resolve => setTimeout(resolve, 150));
-        router.push('/');
+        try {
+          // Save to localStorage
+          console.log('💾 [LoginForm] Saving to localStorage...');
+          UserStorage.saveUser(session.user.backendUser);
+          UserStorage.saveToken(session.backendToken);
+          
+          // Verify save
+          const savedUser = localStorage.getItem('user_data');
+          const savedToken = localStorage.getItem('auth_token');
+          
+          if (savedUser && savedToken) {
+            console.log('✅ [LoginForm] localStorage save successful!');
+            console.log('👤 [LoginForm] User:', JSON.parse(savedUser)?.name);
+            
+            // Dispatch auth event
+            window.dispatchEvent(new CustomEvent('authUpdated'));
+            
+            // Start token monitoring
+            AuthService.startTokenMonitoring(() => {
+              console.log('🔒 [LoginForm] Token expired');
+              router.push('/login');
+            });
+            
+            // Small delay then redirect
+            await new Promise(resolve => setTimeout(resolve, 300));
+            console.log('🚀 [LoginForm] Redirecting to dashboard...');
+            router.push('/');
+          } else {
+            console.error('❌ [LoginForm] localStorage save FAILED!');
+            setAlertMessage('فشل في حفظ بيانات تسجيل الدخول');
+            setShowErrorAlert(true);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error('❌ [LoginForm] Error saving to localStorage:', error);
+          setAlertMessage('حدث خطأ في حفظ البيانات');
+          setShowErrorAlert(true);
+          setIsLoading(false);
+        }
       } else {
-        console.error('❌ [LoginForm] localStorage save FAILED!');
-        setAlertMessage('فشل في حفظ بيانات تسجيل الدخول');
+        // Session is authenticated but missing data
+        console.error('❌ [LoginForm] Session authenticated but missing data:', {
+          hasBackendToken: !!session?.backendToken,
+          hasBackendUser: !!session?.user?.backendUser
+        });
+        setAlertMessage('فشل في الحصول على بيانات المستخدم');
         setShowErrorAlert(true);
+        setIsLoading(false);
       }
-    } else if (isOAuthCallback && status === 'unauthenticated') {
-      // OAuth callback but no valid session = error
-      console.error('❌ [LoginForm] OAuth callback but no session');
-      setAlertMessage('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.');
-      setShowErrorAlert(true);
-      setIsLoading(false);
     }
   };
 
-  if (status !== 'loading') {
-    handleSocialAuth();
-  }
+  handleSocialAuth();
 }, [session, status, router, searchParams]);
 
-  // Handle OAuth errors from URL
-  useEffect(() => {
-    const error = searchParams?.get('error');
-    if (error) {
-      console.error('❌ [LoginForm] OAuth error from URL:', error);
-      let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
-      
-      if (error === 'OAuthCallback') {
-        errorMessage = 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
-      } else if (error === 'AccessDenied') {
-        errorMessage = 'تم إلغاء تسجيل الدخول';
-      } else if (error === 'Configuration') {
-        errorMessage = 'خطأ في إعدادات تسجيل الدخول';
-      }
-      
-      setAlertMessage(errorMessage);
-      setShowErrorAlert(true);
-      setIsLoading(false);
+// Keep your existing OAuth error handler
+useEffect(() => {
+  const error = searchParams?.get('error');
+  if (error) {
+    console.error('❌ [LoginForm] OAuth error from URL:', error);
+    let errorMessage = 'فشل تسجيل الدخول عبر الحساب الاجتماعي';
+    
+    if (error === 'OAuthCallback') {
+      errorMessage = 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
+    } else if (error === 'AccessDenied') {
+      errorMessage = 'تم إلغاء تسجيل الدخول';
+    } else if (error === 'Configuration') {
+      errorMessage = 'خطأ في إعدادات تسجيل الدخول';
     }
-  }, [searchParams]);
+    
+    setAlertMessage(errorMessage);
+    setShowErrorAlert(true);
+    setIsLoading(false);
+  }
+}, [searchParams]);
 
   // ✅ NEW: Listen for logout events
   useEffect(() => {
@@ -264,6 +374,8 @@ useEffect(() => {
     console.log('🔵 [LoginForm] Starting Google login...');
     setIsLoading(true);
     setErrors({});
+
+    setAllowAutoLogin(true);
     
     // Clear any previous errors
     sessionStorage.removeItem('user_logged_out');
@@ -287,6 +399,7 @@ const handleFacebookLogin = async () => {
     console.log('🔵 [LoginForm] Starting Facebook login...');
     setIsLoading(true);
     setErrors({});
+    setAllowAutoLogin(true);
     
     sessionStorage.removeItem('user_logged_out');
     
@@ -415,7 +528,7 @@ const handleFacebookLogin = async () => {
               </div>
 
               <div className={styles.socialButtons}>
-                <button 
+                {/* <button 
                   type="button"
                   className={styles.socialButton}
                   onClick={handleGoogleLogin}
@@ -442,7 +555,7 @@ const handleFacebookLogin = async () => {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                   </svg>
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
