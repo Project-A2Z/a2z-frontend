@@ -4,19 +4,19 @@ import React, { useState, useRef, useCallback, memo } from 'react';
 import styles from '@/components/UI/Profile/profile.module.css';
 
 // Icons
-// import CameraIcon from '@/public/icons/camera.svg';
+import CameraIcon from '@/public/icons/camera.svg';
 
 // Services
 import { updateUserProfile, UpdateProfileData } from '@/services/profile/profile';
 import { UserStorage } from '@/services/auth/login';
 
 // Instead of importing, use inline SVG
-const CameraIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-    <path d="M3 5a2 2 0 012-2h2l1-1h4l1 1h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/>
-  </svg>
-);
+// const CameraIcon = () => (
+//   <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+//     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+//     <path d="M3 5a2 2 0 012-2h2l1-1h4l1 1h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/>
+//   </svg>
+// );
 
 export interface User {
   _id: string;
