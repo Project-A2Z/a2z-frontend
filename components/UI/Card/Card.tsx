@@ -207,18 +207,20 @@ function Card({
                         <CustomImage
                             src={imageSrc}
                             alt={productName || 'صورة المنتج'}
-                            width={192}
-                            height={192}
+                            width={240}
+                            height={240}
                             rounded="md"
                             className={styles.img}
-                            objectFit="cover" 
+                            objectFit="cover"
+                            
                             priority
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                objectPosition: 'center'
+                            }}
                         />
-                        
-                        {/* Hover overlay */}
-                        <div className={styles.hoverOverlay}>
-                            <span className={styles.viewDetails}>عرض التفاصيل</span>
-                        </div>
                     </div>
                     
                     <div className={styles.available}>

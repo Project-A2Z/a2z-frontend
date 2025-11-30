@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 import { cn } from "@/lib/utils";
+import { CSSProperties } from 'react';
 
 interface ImageProps {
   src: string | StaticImageData;
@@ -16,6 +17,7 @@ interface ImageProps {
   fallbackSrc?: string;
   fill?: boolean;
   onClick?: () => void;
+  style?: CSSProperties;
 }
 
 export function CustomImage({
@@ -30,6 +32,7 @@ export function CustomImage({
   fallbackSrc = "/acessts/NoImage.jpg",
   fill,
   onClick,
+  style,
   ...props
 }: ImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
@@ -71,6 +74,7 @@ export function CustomImage({
           objectFit === "scale-down" && "object-scale-down",
           "transition-opacity duration-300"
         )}
+        style={style}
         {...props}
       />
     </div>

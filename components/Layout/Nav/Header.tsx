@@ -24,7 +24,7 @@ import {
 // Components
 import SearchComponent from "./../../UI/search/search";
 import NotificationsComponent from "./../../UI/notification/notification";
-import LanguageSelector from "./../../UI/Language/language";
+// import LanguageSelector from "./../../UI/Language/language";
 import { Button } from "../../UI/Buttons/Button";
 
 // Services
@@ -302,7 +302,7 @@ function Header({
           <Link href="/" className={styles.logoLink}>
             <img src="/icons/logo.svg" alt="Logo" className={styles.logo} />
           </Link>
-          <LanguageSelector />
+          {/* <LanguageSelector /> */}
         </div>
 
         {showSearch && (
@@ -331,7 +331,7 @@ function Header({
             <img src={Logo.src} alt="Logo" className={styles.logo} />
 
           </Link>
-          <LanguageSelector />
+{/* <LanguageSelector /> */}
         </div>
 
         {/* Desktop Search - Hidden on Mobile */}
