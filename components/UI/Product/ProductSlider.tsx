@@ -2,34 +2,7 @@
 import { useState, useRef } from 'react';
 import Card from '@/components/UI/Card/Card';
 import styles from '@/components/UI/Product/ProductSlider.module.css';
-
-export interface Product {
-  id: string | number;
-  name: string;
-  nameAr?: string;
-  nameEn?: string;
-  description?: string;
-  descriptionAr?: string;
-  descriptionEn?: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  image: string;
-  images?: (string)[];
-  imageList?: (string)[]; 
-  category: string;
-  categoryId?: string | number;
-  brand?: string;
-  brandId?: string | number;
-  inStock: boolean;
-  stockQuantity?: number;
-  rating?: number;
-  reviewsCount?: number;
-  tags?: string[];
-  specifications?: Record<string, any>;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { Product } from '@/services/product/products';
 
 interface ProductSliderProps {
   products: Product[];
@@ -53,6 +26,8 @@ function ProductSlider({
   const [currentPage, setCurrentPage] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  console.log('Rendering ProductSlider with products:', products);
+  
   if (isLoading) {
     return (
       <div className={styles.sliderContainer}>
@@ -122,7 +97,7 @@ function ProductSlider({
 
   const getProductImage = (product: Product): string => {
     if (product.image) return product.image;
-    if (product.images && product.images.length > 0) return product?.images[0];
+    if (product.images && product.images.length > 0) return product.images[0];
     return '/acessts/NoImage.jpg';
   };
 
@@ -138,7 +113,6 @@ function ProductSlider({
   return (
     <div className={styles.sliderContainer}>
       <div className={styles.gridWrapper}>
-        {/* ✅ FIXED: Removed inline styles that override media queries */}
         <div className={styles.productGrid}>
           {currentProducts.map((product, index) => (
             <div key={`${product.id || product.name}-${currentPage}-${index}`} className={styles.gridItem}>
@@ -153,6 +127,11 @@ function ProductSlider({
                 discount={product.discount}
                 rating={product.rating}
                 reviewsCount={product.reviewsCount}
+                product={product}
+                IsKG={product.IsKG}
+                IsTON={product.IsTON}
+                IsLITER={product.IsLITER}
+                IsCUBIC_METER={product.IsCUBIC_METER}
               />
             </div>
           ))}

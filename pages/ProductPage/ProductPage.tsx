@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Product } from '@/services/api/products';
+// import { console } from 'inspector';
 
 // Lazy load heavy components
 const Overview = lazy(() => import('@/pages/ProductPage/Sections/Overview'));
@@ -25,6 +26,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [currentRatingCount, setCurrentRatingCount] = useState<number>(0);
   const [ratingsDistribution, setRatingsDistribution] = useState<{ stars: number; count: number }[]>([]);
 
+  // console.log('ProductPage render with data:', data);
   useEffect(() => {
     const fetchProduct = async () => {
       if (data && data._id) {

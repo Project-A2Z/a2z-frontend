@@ -30,6 +30,14 @@ export interface Product {
   specifications?: Record<string, any>;
   createdAt?: string;
   updatedAt?: string;
+  
+  // Unit type fields
+  IsKG?: boolean;
+  IsTON?: boolean;
+  IsLITER?: boolean;
+  IsCUBIC_METER?: boolean;
+  stockQty?: number;
+  PurchasePrice?: number;
 }
 
 export interface ProductsResponse {
@@ -64,6 +72,43 @@ export interface ProductFilters {
   sortOrder?: 'asc' | 'desc';
   lang?: string;
 }
+
+export const getProductUnitLabel = (product: Product): string => {
+  if (product.IsKG) return 'كجم';
+  if (product.IsTON) return 'طن';
+  if (product.IsLITER) return 'لتر';
+  if (product.IsCUBIC_METER) return 'متر مكعب';
+  return ''; // No unit specified
+};
+
+// Helper function to get full unit type label
+export const getProductUnitFullLabel = (product: Product): string => {
+  if (product.IsKG) return 'كيلوجرام';
+  if (product.IsTON) return 'طن';
+  if (product.IsLITER) return 'لتر';
+  if (product.IsCUBIC_METER) return 'متر مكعب';
+  return '';
+};
+
+// Helper function to check if product has unit pricing
+export const hasUnitPricing = (product: Product): boolean => {
+  return !!(product.IsKG || product.IsTON || product.IsLITER || product.IsCUBIC_METER);
+};
+
+// Format price with unit
+export const formatPriceWithUnit = (price: number | string, product: Product): string => {
+  const formattedPrice = typeof price === 'string' 
+    ? parseFloat(price.replace(/[^0-9.]/g, '')).toLocaleString('ar-EG')
+    : price.toLocaleString('ar-EG');
+  
+  const unit = getProductUnitLabel(product);
+  
+  if (unit) {
+    return `${formattedPrice} ج.م / ${unit}`;
+  }
+  
+  return `${formattedPrice} ج.م`;
+};
 
 // Lightweight image URL validation
 const isValidImageUrl = (url: string): boolean => {
@@ -115,6 +160,7 @@ const processProductImagesStatic = (product: any): Product => {
     inStock: product.inStock !== undefined ? product.inStock : true,
   };
 };
+
 
 // Request config
 const getRequestConfig = (revalidate: number = 60) => ({
@@ -195,6 +241,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
         isLoadingProducts = false;
         pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
         pendingPromises = [];
+        // console.log(globalProductsCache)
         return globalProductsCache;
       }
 
@@ -362,6 +409,8 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
     } else {
       // Otherwise, use global products cache
       products = await getProductsWithState();
+
+      // console.log('Fetched all products count:', products);
     }
 
     // Apply additional filters
@@ -409,7 +458,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
 
     // Fallback to global cache
     if (globalProductsCache) {
-      // console.log('🔄 Using global cached products as fallback');
+      // console.log('🔄 Using global cached products as fallback' , globalProductsCache);
       return {
         data: globalProductsCache,
         pagination: {

@@ -10,17 +10,20 @@ import Availablity from '@/components/UI/Card/Availablity';
 import { useFavorites } from '@/services/favorites/FavoritesContext';
 import Alert from '@/components/UI/Alert/alert';
 
+// Import Product type and helper function
+import type { Product } from '@/services/product/products';
+import { getProductUnitLabel } from '@/services/product/products';
 
 // Sample Image
 import Img from '@/public/acessts/NoImage.jpg';
 
-// Icons (use static paths to avoid requiring SVGR)
+// Icons
 const EHEART_SRC = '/icons/emptyHeart.svg';
 const FHEART_SRC = '/icons/FilledHeart.svg';
 import { useRouter } from 'next/navigation';
 
 interface CardProps {
-    productImg?: string | StaticImageData ;
+    productImg?: string | StaticImageData;
     productName?: string;
     productCategory?: string;
     productPrice?: string;
@@ -30,8 +33,14 @@ interface CardProps {
     available?: boolean;
     rating?: number;
     reviewsCount?: number;
-    badge?: string; // For "New", "Sale", etc.
+    badge?: string;
     isLoading?: boolean;
+    // Unit type props - pass the whole product or individual flags
+    product?: Product;
+    IsKG?: boolean;
+    IsTON?: boolean;
+    IsLITER?: boolean;
+    IsCUBIC_METER?: boolean;
 }
 
 // Helper function to format price
@@ -43,7 +52,6 @@ const formatPrice = (price: string | number | undefined): string => {
     
     if (isNaN(numericPrice)) return '0';
     
-    // Format with thousands separator
     return numericPrice.toLocaleString('ar-EG');
 };
 
@@ -65,7 +73,12 @@ function Card({
     rating,
     reviewsCount,
     badge,
-    isLoading = false
+    isLoading = false,
+    product,
+    IsKG,
+    IsTON,
+    IsLITER,
+    IsCUBIC_METER
 }: CardProps) {
     const { toggle, isFavorite } = useFavorites();
     const router = useRouter();
@@ -98,28 +111,40 @@ function Card({
         return 0;
     }, [discount, numericOriginalPrice, numericPrice]);
 
+    // Get unit label using helper function
+    const unitLabel = useMemo(() => {
+        if (product) {
+            return getProductUnitLabel(product);
+        }
+        // Fallback to individual props
+        const mockProduct: Partial<Product> = {
+            IsKG,
+            IsTON,
+            IsLITER,
+            IsCUBIC_METER
+        };
+        return getProductUnitLabel(mockProduct as Product);
+    }, [product, IsKG, IsTON, IsLITER, IsCUBIC_METER]);
+
     const onHeartClick = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent navigation when clicking heart
+        e.stopPropagation();
         if (!id || isLoading) return;
 
-        // Check if user is authenticated using UserStorage
         const { UserStorage } = require('@/services/auth/login');
         const user = UserStorage.getUser();
 
         if (!user) {
-            // Show custom alert for unauthenticated users
             setShowLoginAlert(true);
             return;
         }
 
-        // User is authenticated, proceed with toggle
         toggle({
             id,
             name: productName || 'منتج',
             price: numericPrice,
             image: imageSrc,
         });
-    }, [id, toggle, productName, numericPrice, imageSrc, isLoading, router]);
+    }, [id, toggle, productName, numericPrice, imageSrc, isLoading]);
 
     const handleLoginConfirm = useCallback(() => {
         setShowLoginAlert(false);
@@ -132,13 +157,11 @@ function Card({
 
     const handleCardClick = useCallback(() => {
         if (isLoading) return;
-        // Prefer navigating by productId for server route /product/[id]
         const target = productId ? String(productId) : (productName || '');
         const slug = encodeURIComponent(target);
         router.push(`/product/${slug}`);
     }, [router, productName, productId, isLoading]);
 
-    // Loading skeleton
     if (isLoading) {
         return (
             <div className={`${styles.card} ${styles.loading}`}>
@@ -157,7 +180,6 @@ function Card({
     return (
         <>
             <div className={`${styles.card} ${!available ? styles.unavailable : ''}`}>
-                {/* Badges */}
                 {badge && (
                     <div className={styles.badge}>
                         {badge}
@@ -212,7 +234,6 @@ function Card({
                             rounded="md"
                             className={styles.img}
                             objectFit="cover"
-                            
                             priority
                             style={{
                                 width: '100%',
@@ -235,54 +256,53 @@ function Card({
                     
                     <h2 
                         className={styles.productName}
-                        title={productName} // Show full name on hover
+                        title={productName}
                         onClick={handleCardClick}
                     >
                         {productName || 'اسم المنتج'} 
                     </h2>
                     
-                    {/* Rating */}
-                    {/* <StarRating rating={rating} reviewsCount={reviewsCount} /> */}
-                    
-                    {/* Price section */}
+                    {/* Price section with unit */}
                     <div className={styles.priceSection}>
                         <div className={styles.currentPrice}>
                             {formatPrice(productPrice)}
-                            <span className={styles.currency}> ج.م </span>
+                            <span className={styles.currency}> ج.م</span>
+                            {unitLabel && (
+                                <span className={styles.unitLabel}> / {unitLabel}</span>
+                            )}
                         </div>
                         
                         {numericOriginalPrice && numericOriginalPrice > numericPrice && (
                             <div className={styles.originalPrice}>
                                 {formatPrice(originalPrice)}
-                                <span className={styles.currency}>  ج.م </span>
+                                <span className={styles.currency}> ج.م</span>
+                                {unitLabel && (
+                                    <span className={styles.unitLabel}> / {unitLabel}</span>
+                                )}
                             </div>
                         )}
                     </div>
-                    
-                    
-                    
                 </div>
             </div>
 
-            {/* Login Alert */}
             {showLoginAlert && (
                 <Alert
-                message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
-                setClose={handleLoginCancel}
-                buttons={[
-                    { 
-                    label: 'إلغاء', 
-                    onClick: handleLoginCancel, 
-                    variant: 'ghost' 
-                    },
-                    { 
-                    label: 'تسجيل الدخول', 
-                    onClick: handleLoginConfirm, 
-                    variant: 'primary' 
-                    }
-                ]}
-                type="warning"
-            />
+                    message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."
+                    setClose={handleLoginCancel}
+                    buttons={[
+                        { 
+                            label: 'إلغاء', 
+                            onClick: handleLoginCancel, 
+                            variant: 'ghost' 
+                        },
+                        { 
+                            label: 'تسجيل الدخول', 
+                            onClick: handleLoginConfirm, 
+                            variant: 'primary' 
+                        }
+                    ]}
+                    type="warning"
+                />
             )}
         </>
     );

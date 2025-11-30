@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
@@ -11,7 +11,6 @@ import Alert from "@/components/UI/Alert/alert";
 // Import the FavoritesContext directly but mark it as client-side only
 let FavoritesContext: any;
 
-// This will only be executed on the client side
 if (typeof window !== 'undefined') {
   FavoritesContext = require('@/services/favorites/FavoritesContext');
 }
@@ -31,6 +30,49 @@ type Props = {
   isTON?: boolean;
   isLITER?: boolean;
   isCUBIC_METER?: boolean;
+};
+
+// Helper function to calculate price based on unit conversion
+const calculatePriceForUnit = (basePrice: number, baseUnit: string, targetUnit: string): number => {
+  // Define conversion rules
+  const conversions: { [key: string]: { [key: string]: number } } = {
+    'kg': {
+      'kg': 1,
+      'ton': 1000,  // 1 ton = 1000 kg, so price * 1000
+    },
+    'liter': {
+      'liter': 1,
+      'cubic_meter': 1000,  // 1 cubic meter = 1000 liters, so price * 1000
+    },
+  };
+
+  // If same unit, return base price
+  if (baseUnit === targetUnit) {
+    return basePrice;
+  }
+
+  // Check if conversion exists
+  if (conversions[baseUnit] && conversions[baseUnit][targetUnit]) {
+    return basePrice * conversions[baseUnit][targetUnit];
+  }
+
+  // Default: return base price if no conversion rule exists
+  return basePrice;
+};
+
+// Helper function to get base unit (the smallest unit available)
+const getBaseUnit = (props: {
+  isUNIT?: boolean;
+  isKG?: boolean;
+  isTON?: boolean;
+  isLITER?: boolean;
+  isCUBIC_METER?: boolean;
+}): string => {
+  if (props.isKG) return 'kg';
+  if (props.isLITER) return 'liter';
+  if (props.isTON) return 'ton';
+  if (props.isCUBIC_METER) return 'cubic_meter';
+  return 'unit';
 };
 
 const Overview: React.FC<Props> = ({
@@ -63,41 +105,46 @@ const Overview: React.FC<Props> = ({
     return options.length > 0 ? options : [{ key: 'unit', label: 'قطعة' }];
   }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
+  // Get the base unit for price calculation
+  const baseUnit = useMemo(() => getBaseUnit({ isUNIT, isKG, isTON, isLITER, isCUBIC_METER }), 
+    [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
+
   const [selectedUnit, setSelectedUnit] = useState<string>(unitOptions[0]?.key || 'unit');
   
+  // Calculate displayed price based on selected unit
+  const displayedPrice = useMemo(() => {
+    return calculatePriceForUnit(price, baseUnit, selectedUnit);
+  }, [price, baseUnit, selectedUnit]);
+
   // Update selected unit if the first unit changes
   useEffect(() => {
     if (unitOptions.length > 0 && !unitOptions.some(u => u.key === selectedUnit)) {
       setSelectedUnit(unitOptions[0].key);
     }
   }, [unitOptions, selectedUnit]);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isManualNavigation, setIsManualNavigation] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const router = useRouter();
 
-  // Initialize all state hooks at the top level
   const [isMounted, setIsMounted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [loved, setLoved] = useState(false);
   const [isFavoriteState, setIsFavoriteState] = useState(false);
   
-  // Initialize client-side state and fetch cart for validation
   useEffect(() => {
     setIsMounted(true);
     setIsClient(true);
     
-    // Fetch cart items to populate client-side state for unit conflict validation
     cartService.getCart().catch(error => {
       console.error("Failed to fetch cart for validation:", error);
     });
   }, []);
   
-  // Always call useFavorites at the top level to maintain hook order
   const favoritesContext = FavoritesContext ? FavoritesContext.useFavorites() : null;
   
-  // Update favorite state when id changes or favorites context changes
   useEffect(() => {
     if (isClient && favoritesContext && id) {
       const { isFavorite } = favoritesContext;
@@ -107,7 +154,6 @@ const Overview: React.FC<Props> = ({
     }
   }, [id, isClient, favoritesContext]);
 
-  // Define available units based on props
   const availableUnits = React.useMemo(() => {
     const units: { [key: string]: string } = {};
     if (isUNIT) units.unit = 'قطعة';
@@ -144,7 +190,6 @@ const Overview: React.FC<Props> = ({
     setTimeout(() => setIsManualNavigation(false), 5000);
   };
 
-  // Auto-play: advance to next image every 3 seconds
   useEffect(() => {
     if (imageList.length <= 1 || isHovering || isManualNavigation) return;
 
@@ -155,7 +200,6 @@ const Overview: React.FC<Props> = ({
     return () => clearInterval(autoPlayInterval);
   }, [imageList.length, isHovering, isManualNavigation]);
 
-  // Keyboard navigation for image slider
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (imageList.length <= 1) return;
@@ -176,10 +220,8 @@ const Overview: React.FC<Props> = ({
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
     
-    // 1. Check for unit conflict before proceeding
     const hasConflict = checkProductUnitConflict(String(id), selectedUnit);
     if (hasConflict) {
-      // The checkProductUnitConflict function already displays the alert (toast)
       return;
     }
 
@@ -190,28 +232,22 @@ const Overview: React.FC<Props> = ({
         return;
       }
 
-      // Store the selected unit in localStorage to be used in the cart
       const cartItemKey = `cart_item_${id}`;
       localStorage.setItem(cartItemKey, JSON.stringify({
         unit: selectedUnit,
         quantity: quantity
       }));
 
-      // Send the product ID and selected unit to the backend
-      // The backend will handle the unit conversion
       await cartService.addToCart({
         productId: String(id),
         quantity: quantity,
         unit: selectedUnit, 
-        // The 'unit' field is no longer sent to the backend based on API docs
       });
       
-      // Refresh client-side cart state after successful addition
       await cartService.getCart();
       router.push("/cart");
     } catch (error) {
       console.error('Error adding to cart:', error);
-      // You might want to show an error message to the user here
     } finally {
       setIsAdding(false);
     }
@@ -230,12 +266,10 @@ const Overview: React.FC<Props> = ({
       return;
     }
     
-    // Optimistically update the UI
     const newLovedState = !loved;
     setLoved(newLovedState);
     
     try {
-      // Toggle the favorite in the context
       const { toggle } = favoritesContext;
       toggle({ 
         id, 
@@ -244,7 +278,6 @@ const Overview: React.FC<Props> = ({
         image: imageList[0] || '/acessts/NoImage.jpg' 
       });
     } catch (err) {
-      // Revert the UI if the API call fails
       console.error('Failed to toggle favorite:', err);
       setLoved(!newLovedState);
     }
@@ -270,7 +303,6 @@ const Overview: React.FC<Props> = ({
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
-            {/* Main Image */}
             <CustomImage
               src={imageList[currentImageIndex] || "/acessts/download (47).jpg"}
               alt={`${title} - Image ${currentImageIndex + 1}`}
@@ -279,11 +311,8 @@ const Overview: React.FC<Props> = ({
               priority={true}
               fallbackSrc="/acessts/download (47).jpg"
               className="w-full h-full transition-all duration-700 ease-in-out"
-              // sizes="(max-width: 768px) 100vw, 50vw"
-
             />
 
-            {/* Navigation Arrows - Only show if there are multiple images */}
             {imageList.length > 1 && (
               <>
                 <button
@@ -303,7 +332,6 @@ const Overview: React.FC<Props> = ({
               </>
             )}
 
-            {/* Dots Navigation - Only show if there are multiple images */}
             {imageList.length > 1 && (
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 {imageList.map((_, index) => (
@@ -348,7 +376,10 @@ const Overview: React.FC<Props> = ({
               {category}
             </span>
             <div className="text-2xl font-extrabold text-primary">
-              {price.toLocaleString()} ج.م
+              {displayedPrice.toLocaleString()} ج.م
+              <span className="text-sm font-normal text-black60 mr-2">
+                / {availableUnits[selectedUnit]}
+              </span>
             </div>
             <span
               className={`px-3 py-1 rounded-full text-xs border ${
@@ -438,7 +469,6 @@ const Overview: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Login Alert */}
       {showLoginAlert && (
         <Alert
           message="يجب عليك تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة."

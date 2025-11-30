@@ -75,13 +75,18 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
   // Cleanup
   useEffect(() => {
+    // console.log(displayedProducts)
+
     return () => {
       mountedRef.current = false;
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
+      
     };
   }, []);
+
+  // console.log('Rendered OptimizedProductSection' , displayedProducts );
 
   // Helper to check if "All" is selected
   const isAllLetter = useCallback((letter: string): boolean => {
@@ -123,15 +128,15 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, [initialData, loadAllProducts]);
 
   // Available categories memoization
-  const availableCategories = useMemo(() => {
-    const categories = new Set<string>();
-    allProducts.forEach(product => {
-      if (product.category) {
-        categories.add(product.category);
-      }
-    });
-    return Array.from(categories);
-  }, [allProducts]);
+  // const availableCategories = useMemo(() => {
+  //   const categories = new Set<string>();
+  //   allProducts.forEach(product => {
+  //     if (product.category) {
+  //       categories.add(product.category);
+  //     }
+  //   });
+  //   return Array.from(categories);
+  // }, [allProducts]);
 
   // Client-side filtering with useMemo for performance
   const applyFilters = useMemo(() => {
@@ -192,15 +197,15 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, []);
 
   // Debounced search
-  const handleSearch = useCallback((query: string) => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+  // const handleSearch = useCallback((query: string) => {
+  //   if (searchTimeoutRef.current) {
+  //     clearTimeout(searchTimeoutRef.current);
+  //   }
     
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(query);
-    }, 300);
-  }, []);
+  //   searchTimeoutRef.current = setTimeout(() => {
+  //     setSearchQuery(query);
+  //   }, 300);
+  // }, []);
 
   // Pagination handlers
   const handlePageChange = useCallback((page: number) => {
