@@ -68,10 +68,10 @@ const getBaseUnit = (props: {
   isLITER?: boolean;
   isCUBIC_METER?: boolean;
 }): string => {
-  if (props.isKG) return 'kg';
-  if (props.isLITER) return 'liter';
-  if (props.isTON) return 'ton';
-  if (props.isCUBIC_METER) return 'cubic_meter';
+  // Prioritize smaller units as base
+  if (props.isKG || props.isTON) return 'kg'; // KG is the base for weight
+  if (props.isLITER || props.isCUBIC_METER) return 'liter'; // Liter is the base for volume
+  if (props.isUNIT) return 'unit';
   return 'unit';
 };
 
@@ -94,14 +94,37 @@ const Overview: React.FC<Props> = ({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   
-  // Define available units based on props
+  // Define available units based on props - show related units together
   const unitOptions = React.useMemo(() => {
     const options: Array<{key: string, label: string}> = [];
-    if (isUNIT) options.push({ key: 'unit', label: 'قطعة' });
-    if (isKG) options.push({ key: 'kg', label: 'كيلو' });
-    if (isTON) options.push({ key: 'ton', label: 'طن' });
-    if (isLITER) options.push({ key: 'liter', label: 'لتر' });
-    if (isCUBIC_METER) options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+    
+    // If KG is available, also add TON option
+    if (isKG) {
+      options.push({ key: 'kg', label: 'كيلو' });
+      options.push({ key: 'ton', label: 'طن' });
+    }
+    // If TON is available without KG, still add both
+    else if (isTON) {
+      options.push({ key: 'kg', label: 'كيلو' });
+      options.push({ key: 'ton', label: 'طن' });
+    }
+    
+    // If LITER is available, also add CUBIC_METER option
+    if (isLITER) {
+      options.push({ key: 'liter', label: 'لتر' });
+      options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+    }
+    // If CUBIC_METER is available without LITER, still add both
+    else if (isCUBIC_METER) {
+      options.push({ key: 'liter', label: 'لتر' });
+      options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+    }
+    
+    // Add UNIT if specified
+    if (isUNIT) {
+      options.push({ key: 'unit', label: 'قطعة' });
+    }
+    
     return options.length > 0 ? options : [{ key: 'unit', label: 'قطعة' }];
   }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
@@ -156,11 +179,34 @@ const Overview: React.FC<Props> = ({
 
   const availableUnits = React.useMemo(() => {
     const units: { [key: string]: string } = {};
-    if (isUNIT) units.unit = 'قطعة';
-    if (isKG) units.kg = 'كيلو';
-    if (isTON) units.ton = 'طن';
-    if (isLITER) units.liter = 'لتر';
-    if (isCUBIC_METER) units.cubic_meter = 'متر مكعب';
+    
+    // If KG is available, also add TON option
+    if (isKG) {
+      units.kg = 'كيلو';
+      units.ton = 'طن';
+    }
+    // If TON is available without KG, still add both
+    else if (isTON) {
+      // units.kg = 'كيلو';
+      units.ton = 'طن';
+    }
+    
+    // If LITER is available, also add CUBIC_METER option
+    if (isLITER) {
+      units.liter = 'لتر';
+      units.cubic_meter = 'متر مكعب';
+    }
+    // If CUBIC_METER is available without LITER, still add both
+    else if (isCUBIC_METER) {
+      // units.liter = 'لتر';
+      units.cubic_meter = 'متر مكعب';
+    }
+    
+    // Add UNIT if specified
+    if (isUNIT) {
+      units.unit = 'قطعة';
+    }
+    
     return Object.keys(units).length > 0 ? units : { unit: 'قطعة' };
   }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
