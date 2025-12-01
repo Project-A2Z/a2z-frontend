@@ -1,4 +1,4 @@
-// services/product/products.ts - Updated with category-based caching
+// services/product/products.ts - Updated with category-based caching and pagination
 
 import {Api , API_ENDPOINTS} from './../api/endpoints'
 
@@ -42,6 +42,7 @@ export interface Product {
 
 export interface ProductsResponse {
   data: Product[];
+  length?: number;
   pagination?: {
     page: number;
     limit: number;
@@ -78,10 +79,9 @@ export const getProductUnitLabel = (product: Product): string => {
   if (product.IsTON) return 'طن';
   if (product.IsLITER) return 'لتر';
   if (product.IsCUBIC_METER) return 'متر مكعب';
-  return ''; // No unit specified
+  return '';
 };
 
-// Helper function to get full unit type label
 export const getProductUnitFullLabel = (product: Product): string => {
   if (product.IsKG) return 'كيلوجرام';
   if (product.IsTON) return 'طن';
@@ -90,12 +90,10 @@ export const getProductUnitFullLabel = (product: Product): string => {
   return '';
 };
 
-// Helper function to check if product has unit pricing
 export const hasUnitPricing = (product: Product): boolean => {
   return !!(product.IsKG || product.IsTON || product.IsLITER || product.IsCUBIC_METER);
 };
 
-// Format price with unit
 export const formatPriceWithUnit = (price: number | string, product: Product): string => {
   const formattedPrice = typeof price === 'string' 
     ? parseFloat(price.replace(/[^0-9.]/g, '')).toLocaleString('ar-EG')
@@ -110,7 +108,6 @@ export const formatPriceWithUnit = (price: number | string, product: Product): s
   return `${formattedPrice} ج.م`;
 };
 
-// Lightweight image URL validation
 const isValidImageUrl = (url: string): boolean => {
   if (!url || typeof url !== 'string' || url.trim() === '') {
     return false;
@@ -125,7 +122,6 @@ const isValidImageUrl = (url: string): boolean => {
   return imageExtensions.test(url) || cloudServices.test(url);
 };
 
-// Process product images
 const processProductImagesStatic = (product: any): Product => {
   const imageList = product.imageList || [];
   const fallbackImages = product.images || [];
@@ -161,8 +157,6 @@ const processProductImagesStatic = (product: any): Product => {
   };
 };
 
-
-// Request config
 const getRequestConfig = (revalidate: number = 60) => ({
   headers: {
     'Content-Type': 'application/json',
@@ -170,9 +164,9 @@ const getRequestConfig = (revalidate: number = 60) => ({
     ...(process.env.API_KEY && { 'Authorization': `Bearer ${process.env.API_KEY}` }),
   },
   next: { 
-        revalidate, 
-        tags: ['products'] 
-      },
+    revalidate, 
+    tags: ['products'] 
+  },
 });
 
 // ============================================
@@ -184,72 +178,58 @@ interface CategoryCacheEntry {
   timestamp: number;
 }
 
-// Global caches
-let globalProductsCache: Product[] | null = null; // For all products
-let categoryCaches: Map<string, CategoryCacheEntry> = new Map(); // For individual categories
+let globalProductsCache: Product[] | null = null;
+let categoryCaches: Map<string, CategoryCacheEntry> = new Map();
 let cacheTimestamp: number = 0;
 let isLoadingProducts = false;
 let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
 let lastRequestTime = 0;
 
 const CACHE_DURATION = 60 * 60 * 1000; 
-const MIN_REQUEST_INTERVAL = 15000; 
+const MIN_REQUEST_INTERVAL = 15000;
 
 // ============================================
 // FETCH ALL PRODUCTS (Global Cache)
 // ============================================
 export const getProductsWithState = async (): Promise<Product[]> => {
-  const now = Date.now();
+  const now: number = Date.now();
 
-  // Return cached data if available and not expired
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    // console.log('✅ Using cached products');
     return globalProductsCache;
   }
 
-  // If already loading, wait for the existing request
   if (isLoadingProducts) {
-    // console.log('⏳ Waiting for existing products request...');
     return new Promise((resolve, reject) => {
       pendingPromises.push({ resolve, reject });
     });
   }
 
-  // Rate limiting
   if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
-    const waitTime = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
-    // console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
+    const waitTime: number = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
+    await new Promise<void>(resolve => setTimeout(resolve, waitTime));
   }
 
-  // Start new loading process
   isLoadingProducts = true;
   lastRequestTime = now;
 
   try {
-    // // console.log('🔄 Fetching fresh products from API...');
-
-    const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
+    const response: Response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
       method: 'GET',
       ...getRequestConfig(),
     });
 
-    // Handle rate limiting
     if (response.status === 429) {
-      // console.warn('⏱️ Rate limited, using cached data if available');
       if (globalProductsCache) {
         isLoadingProducts = false;
         pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
         pendingPromises = [];
-        // console.log(globalProductsCache)
         return globalProductsCache;
       }
 
-      const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000);
-      // console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
-      await new Promise(resolve => setTimeout(resolve, retryAfter));
+      const retryAfter: number = Math.min(30000, Math.pow(2, 1) * 5000);
+      await new Promise<void>(resolve => setTimeout(resolve, retryAfter));
 
-      const retryResponse = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
+      const retryResponse: Response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
         method: 'GET',
         ...getRequestConfig(),
       });
@@ -269,7 +249,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       }
 
       const data: ProductsResponse = await retryResponse.json();
-      const products = (data.data || []).map(product => processProductImagesStatic(product));
+      const products: Product[] = (data.data || []).map(product => processProductImagesStatic(product));
 
       globalProductsCache = products;
       cacheTimestamp = now;
@@ -286,12 +266,10 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     }
 
     const data: ProductsResponse = await response.json();
-    const products = (data.data || []).map(product => processProductImagesStatic(product));
+    const products: Product[] = (data.data || []).map(product => processProductImagesStatic(product));
 
     globalProductsCache = products;
     cacheTimestamp = now;
-
-    // console.log(`✅ Successfully fetched ${products.length} products`);
 
     isLoadingProducts = false;
     pendingPromises.forEach(({ resolve }) => resolve(products));
@@ -303,7 +281,6 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     console.error('❌ Error fetching products:', error);
 
     if (globalProductsCache) {
-      // console.log('🔄 Using cached products as fallback');
       isLoadingProducts = false;
       pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
       pendingPromises = [];
@@ -328,31 +305,24 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 // FETCH PRODUCTS BY CATEGORY (Smart Caching)
 // ============================================
 export const fetchProductsByCategory = async (categoryName: string): Promise<Product[]> => {
-  const now = Date.now();
+  const now: number = Date.now();
 
-  // Check if we have a valid cache for this specific category
   const cachedCategory = categoryCaches.get(categoryName);
   if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
-    // console.log(`✅ Using cached products for category: ${categoryName}`);
     return cachedCategory.products;
   }
 
-  // If there's a cache for a different category, clear it
   if (categoryCaches.size > 0) {
     const cachedCategoryName = Array.from(categoryCaches.keys())[0];
     if (cachedCategoryName !== categoryName) {
-      // console.log(`🗑️ Clearing cache for old category: ${cachedCategoryName}`);
       categoryCaches.delete(cachedCategoryName);
     }
   }
 
   try {
-    // console.log(`🔄 Fetching products for category: ${categoryName}`);
+    const filterUrl: string = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
 
-    // Build filter URL
-    const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
-
-    const response = await fetch(filterUrl, {
+    const response: Response = await fetch(filterUrl, {
       method: 'GET',
       ...getRequestConfig(),
     });
@@ -370,25 +340,20 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
     }
 
     const data: ProductsResponse = await response.json();
-    const products = (data.data || []).map(product => processProductImagesStatic(product));
+    const products: Product[] = (data.data || []).map(product => processProductImagesStatic(product));
 
-    // Cache the products for this category
     categoryCaches.set(categoryName, {
       categoryName,
       products,
       timestamp: now
     });
 
-    // console.log(`✅ Cached ${products.length} products for category: ${categoryName}`);
-
     return products;
 
   } catch (error) {
     console.error(`❌ Error fetching products for category ${categoryName}:`, error);
 
-    // Return cached data as fallback
     if (cachedCategory) {
-      // console.log('🔄 Using cached category data as fallback');
       return cachedCategory.products;
     }
 
@@ -397,82 +362,191 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
 };
 
 // ============================================
-// FETCH ALL PRODUCTS (with optional filtering)
+// FETCH PRODUCTS WITH PAGINATION FROM API
 // ============================================
-export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'limit'> = {}): Promise<ProductsResponse> => {
+export const fetchProductsFromAPI = async (
+  page: number = 1, 
+  limit: number = 20, 
+  category?: string
+): Promise<ProductsResponse> => {
+  const now: number = Date.now();
+
+  if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
+    const waitTime: number = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
+    await new Promise<void>((resolve) => setTimeout(resolve, waitTime));
+  }
+
+  lastRequestTime = now;
+
   try {
+    let url: string = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?page=${page}&limit=${limit}`;
+    
+    if (category) {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+
+    const response: Response = await fetch(url, {
+      method: 'GET',
+      ...getRequestConfig(),
+    });
+
+    if (response.status === 429) {
+      console.warn('⏱️ Rate limited');
+      throw new Error('Service temporarily unavailable due to rate limiting. Please try again later.');
+    }
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    const data: ProductsResponse = await response.json();
+    
+    const products: Product[] = (data.data || []).map((product: any) => 
+      processProductImagesStatic(product)
+    );
+
+    const total: number = data.pagination?.total || data.length || products.length;
+    const totalPages: number = Math.ceil(total / limit);
+
+    return {
+      data: products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      },
+      filters: data.filters || {
+        categories: [...new Set(products.map((p: Product) => p.category))],
+        brands: [],
+        priceRange: {
+          min: products.length > 0 ? Math.min(...products.map((p: Product) => p.price)) : 0,
+          max: products.length > 0 ? Math.max(...products.map((p: Product) => p.price)) : 0
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Error fetching paginated products:', error);
+    throw error;
+  }
+};
+
+// ============================================
+// FETCH ALL PRODUCTS WITH SMART ROUTING
+// ============================================
+export const fetchAllProducts = async (
+  filters: ProductFilters = {} 
+): Promise<ProductsResponse> => {
+  try {
+    const page: number = filters.page || 1;
+    const limit: number = filters.limit || 20;
+
+    const needsClientSideFiltering: boolean = Boolean(
+      filters.search || 
+      filters.minPrice !== undefined || 
+      filters.maxPrice !== undefined || 
+      filters.inStock !== undefined ||
+      (Array.isArray(filters.category) && filters.category.length > 1)
+    );
+
+    if (!needsClientSideFiltering) {
+      const category: string | undefined = typeof filters.category === 'string' 
+        ? filters.category 
+        : undefined;
+      return await fetchProductsFromAPI(page, limit, category);
+    }
+
     let products: Product[];
 
-    // If category filter is specified, use category-specific cache
     if (filters.category && typeof filters.category === 'string') {
       products = await fetchProductsByCategory(filters.category);
     } else {
-      // Otherwise, use global products cache
       products = await getProductsWithState();
-
-      // console.log('Fetched all products count:', products);
     }
 
-    // Apply additional filters
-    let filteredProducts = products;
+    let filteredProducts: Product[] = products;
+
+    if (Array.isArray(filters.category) && filters.category.length > 0) {
+      filteredProducts = filteredProducts.filter((p: Product) => 
+        (filters.category as string[]).includes(p.category) || 
+        (p.categoryId && (filters.category as string[]).includes(p.categoryId as string))
+      );
+    }
 
     if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filteredProducts = filteredProducts.filter(p =>
+      const searchTerm: string = filters.search.toLowerCase();
+      filteredProducts = filteredProducts.filter((p: Product) =>
         p.name.toLowerCase().includes(searchTerm) ||
-        p.description?.toLowerCase().includes(searchTerm)
+        (p.description?.toLowerCase().includes(searchTerm) ?? false)
       );
     }
 
     if (filters.minPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price >= filters.minPrice!);
+      filteredProducts = filteredProducts.filter((p: Product) => p.price >= filters.minPrice!);
     }
 
     if (filters.maxPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price <= filters.maxPrice!);
+      filteredProducts = filteredProducts.filter((p: Product) => p.price <= filters.maxPrice!);
     }
 
     if (filters.inStock !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.inStock === filters.inStock);
+      filteredProducts = filteredProducts.filter((p: Product) => p.inStock === filters.inStock);
     }
 
+    const total: number = filteredProducts.length;
+    const totalPages: number = Math.ceil(total / limit);
+
+    const startIndex: number = (page - 1) * limit;
+    const endIndex: number = startIndex + limit;
+    const paginatedProducts: Product[] = filteredProducts.slice(startIndex, endIndex);
+
     return {
-      data: filteredProducts,
+      data: paginatedProducts,
       pagination: {
-        page: 1,
-        limit: filteredProducts.length,
-        total: filteredProducts.length,
-        totalPages: 1
+        page,
+        limit,
+        total,
+        totalPages
       },
       filters: {
-        categories: [...new Set(products.map(p => p.category))],
+        categories: [...new Set(products.map((p: Product) => p.category))],
         brands: [],
         priceRange: {
-          min: Math.min(...products.map(p => p.price)),
-          max: Math.max(...products.map(p => p.price))
+          min: products.length > 0 ? Math.min(...products.map((p: Product) => p.price)) : 0,
+          max: products.length > 0 ? Math.max(...products.map((p: Product) => p.price)) : 0
         }
       }
     };
+
   } catch (error) {
     console.error('Error in fetchAllProducts:', error);
 
-    // Fallback to global cache
     if (globalProductsCache) {
-      // console.log('🔄 Using global cached products as fallback' , globalProductsCache);
+      const page: number = filters.page || 1;
+      const limit: number = filters.limit || 20;
+      const startIndex: number = (page - 1) * limit;
+      const endIndex: number = startIndex + limit;
+      const paginatedCache: Product[] = globalProductsCache.slice(startIndex, endIndex);
+
       return {
-        data: globalProductsCache,
+        data: paginatedCache,
         pagination: {
-          page: 1,
-          limit: globalProductsCache.length,
+          page,
+          limit,
           total: globalProductsCache.length,
-          totalPages: 1
+          totalPages: Math.ceil(globalProductsCache.length / limit)
         },
         filters: {
-          categories: [...new Set(globalProductsCache.map(p => p.category))],
+          categories: [...new Set(globalProductsCache.map((p: Product) => p.category))],
           brands: [],
           priceRange: {
-            min: Math.min(...globalProductsCache.map(p => p.price)),
-            max: Math.max(...globalProductsCache.map(p => p.price))
+            min: globalProductsCache.length > 0 
+              ? Math.min(...globalProductsCache.map((p: Product) => p.price)) 
+              : 0,
+            max: globalProductsCache.length > 0 
+              ? Math.max(...globalProductsCache.map((p: Product) => p.price)) 
+              : 0
           }
         }
       };
@@ -483,7 +557,7 @@ export const fetchAllProducts = async (filters: Omit<ProductFilters, 'page' | 'l
         data: [],
         pagination: {
           page: 1,
-          limit: 0,
+          limit: 20,
           total: 0,
           totalPages: 0
         },
@@ -509,42 +583,41 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
   try {
     let products: Product[];
 
-    // Use category-specific cache if category filter is specified
     if (filters.category && typeof filters.category === 'string') {
       products = await fetchProductsByCategory(filters.category);
     } else {
       products = await getProductsWithState();
     }
 
-    // Apply filters
-    let filteredProducts = products;
+    let filteredProducts: Product[] = products;
 
     if (filters.category && Array.isArray(filters.category)) {
-      filteredProducts = filteredProducts.filter(p => filters.category!.includes(p.category));
+      filteredProducts = filteredProducts.filter((p: Product) => 
+        (filters.category as string[]).includes(p.category)
+      );
     }
 
     if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filteredProducts = filteredProducts.filter(p =>
+      const searchTerm: string = filters.search.toLowerCase();
+      filteredProducts = filteredProducts.filter((p: Product) =>
         p.name.toLowerCase().includes(searchTerm) ||
-        p.description?.toLowerCase().includes(searchTerm)
+        (p.description?.toLowerCase().includes(searchTerm) ?? false)
       );
     }
 
     if (filters.minPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price >= filters.minPrice!);
+      filteredProducts = filteredProducts.filter((p: Product) => p.price >= filters.minPrice!);
     }
 
     if (filters.maxPrice !== undefined) {
-      filteredProducts = filteredProducts.filter(p => p.price <= filters.maxPrice!);
+      filteredProducts = filteredProducts.filter((p: Product) => p.price <= filters.maxPrice!);
     }
 
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 20;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+    const page: number = filters.page || 1;
+    const limit: number = filters.limit || 20;
+    const startIndex: number = (page - 1) * limit;
+    const endIndex: number = startIndex + limit;
+    const paginatedProducts: Product[] = filteredProducts.slice(startIndex, endIndex);
 
     return {
       data: paginatedProducts,
@@ -555,11 +628,11 @@ export const fetchProducts = async (filters: ProductFilters = {}): Promise<Produ
         totalPages: Math.ceil(filteredProducts.length / limit)
       },
       filters: {
-        categories: [...new Set(products.map(p => p.category))],
+        categories: [...new Set(products.map((p: Product) => p.category))],
         brands: [],
         priceRange: {
-          min: Math.min(...products.map(p => p.price)),
-          max: Math.max(...products.map(p => p.price))
+          min: products.length > 0 ? Math.min(...products.map((p: Product) => p.price)) : 0,
+          max: products.length > 0 ? Math.max(...products.map((p: Product) => p.price)) : 0
         }
       }
     };
@@ -577,9 +650,9 @@ export const paginateProducts = (
   page: number = 1, 
   limit: number = 20
 ): ProductsResponse => {
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedData = products.slice(startIndex, endIndex);
+  const startIndex: number = (page - 1) * limit;
+  const endIndex: number = startIndex + limit;
+  const paginatedData: Product[] = products.slice(startIndex, endIndex);
   
   return {
     data: paginatedData,
@@ -626,11 +699,11 @@ export const fetchFeaturedProducts = async (
 // ============================================
 export const getProductImages = (product: Product): string[] => {
   if (product.imageList && product.imageList.length > 0) {
-    return product.imageList.filter(img => img !== null && isValidImageUrl(img)) as string[];
+    return product.imageList.filter((img): img is string => img !== null && isValidImageUrl(img));
   }
   
   if (product.images && product.images.length > 0) {
-    return product.images.filter(img => img !== null && isValidImageUrl(img)) as string[];
+    return product.images.filter((img): img is string => img !== null && isValidImageUrl(img));
   }
   
   if (product.image && isValidImageUrl(product.image)) {
@@ -641,15 +714,15 @@ export const getProductImages = (product: Product): string[] => {
 };
 
 export const getProductPrimaryImage = (product: Product): string | null => {
-  const images = getProductImages(product);
+  const images: string[] = getProductImages(product);
   return images.length > 0 ? images[0] : null;
 };
 
 export const getByCategory = (categories: string[] | null | undefined, allProducts: Product[] | null | undefined): Product[] => {
   if (!categories || !categories.length || !allProducts) return allProducts || [];
   
-  return allProducts.filter(product => 
-    categories.some(category => 
+  return allProducts.filter((product: Product) => 
+    categories.some((category: string) => 
       product.category === category || 
       product.categoryId === category
     )
@@ -659,7 +732,7 @@ export const getByCategory = (categories: string[] | null | undefined, allProduc
 export const getByFirstLetter = (letter: string | null | undefined, allProducts: Product[] | null | undefined): Product[] => {
   if (!letter || letter === 'كل' || !allProducts) return allProducts || [];
   
-  return allProducts.filter(product => 
+  return allProducts.filter((product: Product) => 
     product.name && (
       product.name.charAt(0) === letter ||
       product.name.charAt(0).toLowerCase() === letter.toLowerCase()
@@ -670,26 +743,22 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 // ============================================
 // CACHE MANAGEMENT
 // ============================================
-export const clearProductsCache = () => {
+export const clearProductsCache = (): void => {
   globalProductsCache = null;
   cacheTimestamp = 0;
-  // console.log('🗑️ Global products cache cleared');
 };
 
-export const clearCategoryCache = (categoryName?: string) => {
+export const clearCategoryCache = (categoryName?: string): void => {
   if (categoryName) {
     categoryCaches.delete(categoryName);
-    // console.log(`🗑️ Cache cleared for category: ${categoryName}`);
   } else {
     categoryCaches.clear();
-    // console.log('🗑️ All category caches cleared');
   }
 };
 
-export const clearAllCaches = () => {
+export const clearAllCaches = (): void => {
   clearProductsCache();
   clearCategoryCache();
-  // console.log('🗑️ All caches cleared');
 };
 
 export const getCacheInfo = () => {
