@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import CartHeader from './Sections/CartHeader';
 import CartItemsList from './Sections/CartItemsList';
 import OrderSummary from './Sections/OrderSummary';
-import ContactHelp from './Sections/ContactHelp';
+// import ContactHelp from './Sections/ContactHelp';
 import RelatedProducts from '@/components/UI/RelatedProducts/RelatedProducts';
 // import type { CartItem } from './Sections/types';
 import { cartService, getClientCartItems } from '@/services/api/cart';
@@ -11,14 +11,14 @@ import { isAuthenticated } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 
 export  type CartItem = {
-  id: string;            // Cart item ID
-  name: string;          // Name of the product
-  price: number;         // Price of the individual item
-  quantity: number;      // Quantity in cart
-  image: string;         // URL or path to the product image
-  unit: string;          // Unit of measurement (e.g., 'قطعة')
-  availability: string;  // Availability status (e.g., 'متوفر', 'غير متوفر')
-  category?: string;     // Optional category of the product
+  id: string;            
+  name: string;        
+  price: number;        
+  quantity: number;      
+  image: string;         
+  unit: string;          
+  availability: string;  
+  category?: string;     
 };
 
 const CartPage = () => {
@@ -33,10 +33,25 @@ const CartPage = () => {
           return;
         }
         const res = await cartService.getCart();
+        // console.log('=== CART PAGE DEBUG ===');
+        // console.log('Cart API response:', res);
         const processedItems = await getClientCartItems();
+        // console.log('Processed items from service:', processedItems);
+        // console.log('First processed item:', processedItems[0]);
+        
         const mapped: CartItem[] = processedItems.map((it: any) => {
-          const p = it.productId || {};
+          // Use the product object from the cart item
+          const p = it.product || {};
           const productId = it.productId || '';
+          
+          // console.log('=== MAPPING ITEM ===');
+          // console.log('Cart item:', it);
+          // console.log('Product data (it.product):', p);
+          // console.log('Product keys:', Object.keys(p));
+          // console.log('Product name:', p.name);
+          // console.log('Product title:', p.title);
+          // console.log('Product stockQty:', p.stockQty);
+          // console.log('==================');
           
           // Convert unit to display name
           const unitMap: Record<string, string> = {
@@ -86,20 +101,31 @@ const CartPage = () => {
 
           const availability = (p.stockQty ?? p.quantity ?? 0) > 0 ? 'متوفر' : 'غير متوفر';
 
-          return {
+          const finalItem = {
             id: String(it._id),
             name: p.name || p.title || 'منتج',
-            price: it.price,
-            quantity: it.quantity,
+            price: it.price || 0,
+            quantity: it.quantity || 1,
             image: imageUrl,
             unit: selectedUnit,
             availability,
             category: p.category,
           };
+
+          // console.log('=== FINAL MAPPED ITEM ===');
+          // console.log('Final item:', finalItem);
+          // console.log('========================');
+
+          return finalItem;
         });
+        
+        // console.log('=== ALL FINAL ITEMS ===');
+        // console.log('Final mapped cart items:', mapped);
+        // console.log('Total items:', mapped.length);
+        // console.log('======================');
         setCartItems(mapped);
       } catch (error: any) {
-        //console.error('Error fetching cart items:', error);
+        console.error('Error fetching cart items:', error);
         if (error?.response?.status === 401) {
           return;
         }
@@ -121,7 +147,7 @@ const CartPage = () => {
       await cartService.updateCartItem(id, newQuantity);
       setCartItems(items => items.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
     } catch (e) {
-      //console.error('Failed to update cart item quantity', e);
+      console.error('Failed to update cart item quantity', e);
     }
   };
 

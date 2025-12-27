@@ -11,6 +11,22 @@ export interface CartItem {
 
 interface ClientCartItem extends CartItem {
   unit: string;
+  price?: number;
+  product?: {
+    name?: string;
+    title?: string;
+    imageList?: string[];
+    images?: string[];
+    image?: string;
+    thumbnail?: string;
+    mainImage?: string;
+    coverImage?: string;
+    imageUrl?: string;
+    stockQty?: number;
+    quantity?: number;
+    category?: string;
+    price?: number;
+  };
 }
 
 let clientCartItems: ClientCartItem[] = [];
@@ -84,9 +100,11 @@ export const cartService = {
       const items = response.data?.data?.cart?.items || [];
       
       const mappedItems: ClientCartItem[] = items
-        .filter((i: any) => i && (i.productId?._id || i.productId)) // Filter out null/undefined items and items without productId
+        .filter((i: any) => i && (i.productId?._id || i.productId))
         .map((i: any) => {
-          const productId = (i.productId && (i.productId._id || i.productId)) || '';
+          // Check if productId is an object (populated) or just a string
+          const productData = i.productId && typeof i.productId === 'object' ? i.productId : null;
+          const productId = productData?._id || i.productId || '';
           
           if (!productId) {
             console.warn('Skipping cart item with invalid product ID:', i);
@@ -111,9 +129,9 @@ export const cartService = {
           }
           
           // Get the base price from product
-          let displayPrice = i.productId.price || 0;
+          let displayPrice = productData?.price || i.price || 0;
           if (unit === 'ton' || unit === 'cubic_meter') {
-            displayPrice = i.productId.price * 1000;
+            displayPrice = displayPrice * 1000;
           }
 
           return {
@@ -122,11 +140,15 @@ export const cartService = {
             quantity: displayQuantity,
             unit: unit,
             price: displayPrice,
+            product: productData, // Store the full product object
           };
         })
-        .filter((item: ClientCartItem | null): item is ClientCartItem => item !== null); // Filter out any null items from the mapping
+        .filter((item: ClientCartItem | null): item is ClientCartItem => item !== null);
       
       setClientCartItems(mappedItems);
+      
+      console.log('Processed cart items:', mappedItems);
+      
       return response.data;
     } catch (error: any) {
       if (handleAuthError(error)) return;

@@ -108,7 +108,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
             {way === 'cash' && (
                <Form
                     way={way}
-                    Total={Total + 1000}
+                    Total={Total }
                     onDataChange={(data) => {
                         setOpId(data.opId);
                         setOpImg(data.opImg);
@@ -134,7 +134,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
             {way === 'online' && (
                 <Form
                     way={way}
-                    Total={Total + 1000}
+                    Total={Total}
                     onDataChange={(data) => {
                         setOpId(data.opId);
                         setOpImg(data.opImg);

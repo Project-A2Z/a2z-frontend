@@ -106,9 +106,7 @@ export default function RootLayout({
   <meta name="geo.placename" content="Cairo" />
       </head>
       
-      <body className="antialiased" suppressHydrationWarning={true}>
-        {/* Google Translate */}
-        <GoogleTranslate pageLanguage={seoConfig.defaultLanguage} />
+      <body className="antialiased">
         
         {/* All Client Providers */}
         <ClientProviders>

@@ -267,7 +267,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
           rightIcon={<FilterIcon/>}
           rounded={true}
         >
-          فيلتر 
+          تصفية  
         </Button>
         
         {activeFiltersCount > 0 && (

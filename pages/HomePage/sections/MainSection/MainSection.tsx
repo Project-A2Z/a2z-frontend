@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Slider } from '../../../../components/UI/Slider';
 import type { SlideItem } from '../../../../components/UI/Slider';
+
 const MainSection = React.memo(() => {
   const [slides, setSlides] = useState<SlideItem[]>([]);
+  
   useEffect(() => {
     const data: SlideItem[] = [
       {
@@ -39,11 +41,11 @@ const MainSection = React.memo(() => {
   }, []);
 
   return (
-    <section className="w-full  rotate-0 opacity-100 mt-[72px] md:mt-[94px]">
-      <div className="w-full">
-        {/* Slider wrapper: full width at all breakpoints, responsive heights */}
+    <section className="w-full rotate-0 opacity-100 mt-[72px] md:mt-[94px]" suppressHydrationWarning>
+      <div className="w-full" style={{ marginTop: '4%' }}>
+        {/* Slider wrapper: 80vh height */}
         <div className="w-full">
-          <div className="w-full h-[232px] sm:h-[360px] md:h-[520px] lg:h-[650px] xl:h-[710px]">
+          <div className="w-full h-[90vh]">
             <Slider
               slides={slides}
               autoPlay
@@ -58,6 +60,7 @@ const MainSection = React.memo(() => {
             />
           </div>
         </div>
+        
         {/* Title block under slider */}
         <div className="w-full max-w-[1440px] mx-auto text-center mt-4">
           <h2 className="font-beiruti font-bold text-[20px] sm:text-[24px] md:text-[28px] leading-snug text-gray-800">
@@ -73,4 +76,4 @@ const MainSection = React.memo(() => {
 });
 
 MainSection.displayName = 'MainSection';
-export default React.memo(MainSection);
+export default MainSection;

@@ -89,6 +89,8 @@ const CartItemsList: React.FC<Props> = React.memo(({
   
   // Ensure items is always an array
   const cartItems = Array.isArray(items) ? items : [];
+
+  console.log('Rendering CartItemsList with items:', cartItems);
   
   const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;

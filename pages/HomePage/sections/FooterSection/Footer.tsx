@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ContactSection from '@/pages/HomePage/sections/FooterSection/Sections/ContactSection/ContactSection';
 import QuickLinks from '@/pages/HomePage/sections/FooterSection/Sections/QuickLinksSection/QuickLinks';
 import CategoriesSection from '@/pages/HomePage/sections/FooterSection/Sections/CategoriesSection/CategoriesSection';
 import AboutUsSection from '@/pages/HomePage/sections/FooterSection/Sections/AboutUsSection/AboutUsSection';
 import dynamic from 'next/dynamic';
+
+
+import CopyrightSection from "./Sections/CopyrightSection/copyright";
 
 // Dynamically import FloatingChat with SSR disabled
 const FloatingChat = dynamic(
@@ -13,6 +16,12 @@ const FloatingChat = dynamic(
 
 const Footer = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const [year, setYear] = useState<number | null>(null)
+
+  useEffect(() => {
+    setYear(new Date().getFullYear())
+  }, [])
 
   const handleContactClick = () => {
     setIsChatOpen(true);
@@ -54,12 +63,16 @@ const Footer = () => {
         </div>
            
         {/* Copyright */}
-        <div className="w-full py-4 border-t border-gray-200 text-center mb-[120px] relative">
+        {/* <div className="w-full py-4 border-t border-gray-200 text-center mb-[120px] relative">
           <div className="absolute top-0 left-1/2 w-[90%] h-px bg-gray-200 -translate-x-1/2 -translate-y-1/2"></div>
           <p className="text-black87 font-beiruti font-medium text-sm">
-            {new Date().getFullYear()} جميع الحقوق محفوظة
+             {year ?? '\u00A0'} جميع الحقوق محفوظة
           </p>
-        </div>
+          <p className="text-black87 font-beiruti font-medium text-sm">
+             تم تطوير الموقع من قبل أكسورا
+          </p>
+        </div> */}
+        <CopyrightSection />
       </div>
       
       {/* Floating Chat */}
