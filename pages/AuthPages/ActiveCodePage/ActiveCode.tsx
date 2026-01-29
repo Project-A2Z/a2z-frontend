@@ -7,6 +7,8 @@ import InstructionSection from "@/pages/AuthPages/ActiveCodePage/sections/Instru
 import CodeInputSection from "@/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
 import VerifyButtonSection from "@/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
 import ResendTimerSection from "@/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
+import Input from "@/components/UI/Inputs/Input";
+import BackgroundSection from "@/components/UI/Background/Background";
 import {
   resendVerificationCode,
   getCurrentUser,
@@ -26,9 +28,18 @@ const ActiveCodePage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [email, setEmail] = useState("");
-  const [emailLoaded, setEmailLoaded] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [isValidatingEmail, setIsValidatingEmail] = useState(false);
 
-  // Get email from URL params or current user
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Check if email was provided in URL or storage on mount
   useEffect(() => {
     console.log("🔍 Checking for email...");
     console.log("📧 URL params:", searchParams?.toString());
@@ -42,11 +53,13 @@ const ActiveCodePage = () => {
     if (emailParam) {
       console.log("✅ Using email from URL params:", emailParam);
       setEmail(emailParam);
-      setEmailLoaded(true);
+      setEmailInput(emailParam);
+      setEmailConfirmed(true);
     } else if (currentUser?.email) {
       console.log("✅ Using email from current user:", currentUser.email);
       setEmail(currentUser.email);
-      setEmailLoaded(true);
+      setEmailInput(currentUser.email);
+      setEmailConfirmed(true);
     } else {
       // Try to get from localStorage as backup
       const storedUser = localStorage.getItem("user");
@@ -61,7 +74,8 @@ const ActiveCodePage = () => {
           if (parsedUser?.email) {
             console.log("✅ Using email from stored user:", parsedUser.email);
             setEmail(parsedUser.email);
-            setEmailLoaded(true);
+            setEmailInput(parsedUser.email);
+            setEmailConfirmed(true);
             return;
           }
         } catch (e) {
@@ -72,26 +86,24 @@ const ActiveCodePage = () => {
       if (storedEmail) {
         console.log("✅ Using stored email:", storedEmail);
         setEmail(storedEmail);
-        setEmailLoaded(true);
+        setEmailInput(storedEmail);
+        setEmailConfirmed(true);
       } else {
-        console.log("❌ No email found, redirecting to registration");
-        setEmailLoaded(true);
-        setTimeout(() => {
-          router.push("/register");
-        }, 100);
+        console.log("⚠️ No email found, user must enter email manually");
+        // Don't redirect, just let user enter email
       }
     }
   }, [searchParams, router]);
 
   // Timer countdown effect
   useEffect(() => {
-    if (timeLeft > 0 && !canResend) {
+    if (emailConfirmed && timeLeft > 0 && !canResend) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft <= 0) {
       setCanResend(true);
     }
-  }, [timeLeft, canResend]);
+  }, [timeLeft, canResend, emailConfirmed]);
 
   // Clear messages after some time
   useEffect(() => {
@@ -100,6 +112,62 @@ const ActiveCodePage = () => {
       return () => clearTimeout(timer);
     }
   }, [success]);
+
+  // Handle email input change
+  const handleEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmailInput(value);
+    setEmailError("");
+    setError("");
+  };
+
+  // Handle email confirmation
+  const handleConfirmEmail = async () => {
+    const trimmedEmail = emailInput.trim();
+
+    if (!trimmedEmail) {
+      setEmailError("يرجى إدخال البريد الإلكتروني");
+      return;
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+      setEmailError("يرجى إدخال بريد إلكتروني صحيح");
+      return;
+    }
+
+    setIsValidatingEmail(true);
+    setEmailError("");
+    setError("");
+
+    try {
+      // Optionally, you can add an API call here to check if the email exists
+      // For now, we'll just validate the format and proceed
+      
+      console.log("✅ Email validated:", trimmedEmail);
+      setEmail(trimmedEmail);
+      setEmailConfirmed(true);
+      
+      // Store email in localStorage for backup
+      localStorage.setItem("userEmail", trimmedEmail);
+      
+      setSuccess("يرجى إدخال رمز التحقق المرسل إلى بريدك الإلكتروني");
+    } catch (error: any) {
+      console.error("❌ Email validation error:", error);
+      setEmailError("حدث خطأ أثناء التحقق من البريد الإلكتروني");
+    } finally {
+      setIsValidatingEmail(false);
+    }
+  };
+
+  // Handle email edit
+  const handleEditEmail = () => {
+    setEmailConfirmed(false);
+    setCode(["", "", "", "", "", ""]);
+    setError("");
+    setSuccess("");
+    setTimeLeft(60);
+    setCanResend(false);
+  };
 
   const handleCodeChange = useCallback(
     (index: number, value: string) => {
@@ -255,42 +323,13 @@ const ActiveCodePage = () => {
   const handleResend = async () => {
     console.log("🔄 Attempting to resend code...");
     console.log("📧 Current email state:", email);
-    console.log("📧 Email trimmed:", email?.trim());
-    console.log("📧 Email loaded:", emailLoaded);
 
-    let emailToUse = email?.trim();
-
-    if (!emailToUse) {
-      const emailParam = searchParams?.get("email");
-      const currentUser = getCurrentUser();
-      const storedEmail = localStorage.getItem("userEmail");
-      const storedUser = localStorage.getItem("user");
-
-      emailToUse =
-        email || emailParam || currentUser?.email || storedEmail || "";
-
-      if (!emailToUse && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          emailToUse = parsedUser?.email;
-        } catch (e) {
-          console.error("Error parsing stored user:", e);
-        }
-      }
-
-      console.log("📧 Backup email found:", emailToUse);
-    }
+    const emailToUse = email.trim();
 
     if (!emailToUse) {
       console.error("❌ No email available for resend");
-      setError(
-        "لا يمكن إعادة الإرسال. البريد الإلكتروني غير متوفر. يرجى العودة للصفحة السابقة."
-      );
+      setError("لا يمكن إعادة الإرسال. البريد الإلكتروني غير متوفر.");
       return;
-    }
-
-    if (emailToUse !== email) {
-      setEmail(emailToUse);
     }
 
     setIsResending(true);
@@ -357,21 +396,67 @@ const ActiveCodePage = () => {
       .padStart(2, "0")}`;
   }, []);
 
-  if (!emailLoaded) {
+  // If email is not confirmed yet, show email input form
+  if (!emailConfirmed) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingContent}>
-          <div className={styles.spinner}></div>
-          <p className={styles.loadingText}>جاري التحميل...</p>
+      <div className={styles.container}>
+        {/* <BackgroundSection /> */}
+        {/* Header Section */}
+        <div className={styles.headerSection}>
+          
+          <LogoSection />
+          <div className={styles.instructionText}>
+            <h2 className={styles.title}>تفعيل الحساب</h2>
+            <p className={styles.subtitle}>
+              يرجى إدخال بريدك الإلكتروني لإرسال رمز التحقق
+            </p>
+          </div>
         </div>
+
+        {/* Error Message */}
+        {emailError && (
+          <div className={`${styles.messageContainer} ${styles.errorMessage}`}>
+            <p className={styles.errorText}>{emailError}</p>
+          </div>
+        )}
+
+        {/* Email Input */}
+        <div className={styles.emailInputContainer}>
+          <Input
+            type="email"
+            placeholder="البريد الإلكتروني"
+            value={emailInput}
+            onChange={handleEmailInputChange}
+            error={!!emailError}
+            className={styles.emailInput}
+            dir="rtl"
+            
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleConfirmEmail();
+              }
+            }}
+          />
+        </div>
+
+        {/* Confirm Button */}
+        <button
+          onClick={handleConfirmEmail}
+          disabled={isValidatingEmail || !emailInput.trim()}
+          className={styles.confirmButton}
+        >
+          {isValidatingEmail ? "جاري التحقق..." : "تأكيد"}
+        </button>
       </div>
     );
   }
 
+  // If email is confirmed, show code verification interface
   return (
     <div className={styles.container}>
       {/* Header Section */}
       <div className={styles.headerSection}>
+        
         <LogoSection />
         <InstructionSection email={email} />
       </div>
@@ -413,12 +498,19 @@ const ActiveCodePage = () => {
         formatTime={formatTime}
       />
 
-      {/* Email Display */}
+      {/* Email Display with Edit Option */}
       {email && (
         <div className={styles.emailDisplay}>
           <p className={styles.emailText}>
             تم الإرسال إلى: <span className={styles.emailValue}>{email}</span>
           </p>
+          <button
+            onClick={handleEditEmail}
+            className={styles.editEmailButton}
+            type="button"
+          >
+            تعديل البريد الإلكتروني
+          </button>
         </div>
       )}
     </div>

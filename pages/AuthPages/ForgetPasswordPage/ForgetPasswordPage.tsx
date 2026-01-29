@@ -206,7 +206,7 @@ export default function ForgetPasswordPage() {
       const res = await fetchWithTimeout(
         "https://a2z-backend.fly.dev/app/v1/users/OTPResend",
         {
-          method: "PATCH",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
