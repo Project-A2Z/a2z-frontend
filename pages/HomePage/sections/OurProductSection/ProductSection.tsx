@@ -48,38 +48,39 @@ function ProductSectionSkeleton() {
   );
 }
 
-// ✅ Optimized data fetching with error handling
+// 🚀 CRITICAL FIX: Add ISR revalidation
+export const revalidate = 60; // Revalidate every 60 seconds
+
+// ✅ Optimized data fetching with proper error handling
 async function getProducts(): Promise<{
   data: ProductsResponse;
-  buildTime: string;
   error: string | null;
 }> {
   const startTime = Date.now();
-
+  
   try {
     console.log("🏗️ [ISR] Fetching products at build time...");
-
-    // Fetch with timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-    const productsData = await fetchAllProducts();
-    clearTimeout(timeoutId);
-
+    
+    // 🚀 OPTIMIZATION: Only fetch first page (20 items) instead of all products
+    const productsData = await fetchAllProducts({
+      page: 1,
+      limit: 20,
+      
+    });
+    
     const loadTime = Date.now() - startTime;
     console.log(
       `✅ [ISR] Fetched ${productsData.data.length} products in ${loadTime}ms`
     );
-
+    
     return {
       data: productsData,
-      buildTime: new Date().toISOString(),
       error: null,
     };
   } catch (error) {
     console.error("❌ [ISR] Error fetching products:", error);
-
-    // Return empty data structure on error
+    
+    // Return empty data structure on error instead of throwing
     return {
       data: {
         data: [],
@@ -95,14 +96,13 @@ async function getProducts(): Promise<{
           priceRange: { min: 0, max: 0 },
         },
       },
-      buildTime: new Date().toISOString(),
       error: error instanceof Error ? error.message : "فشل في تحميل المنتجات",
     };
   }
 }
 
 export default async function ProductsPage() {
-  const { data: initialData, buildTime, error } = await getProducts();
+  const { data: initialData, error } = await getProducts();
 
   return (
     <>
@@ -116,14 +116,35 @@ export default async function ProductsPage() {
             name: "المنتجات",
             description: "تصفح جميع المنتجات المتاحة",
             url: "/products",
-            numberOfItems: initialData.data.length,
+            numberOfItems: initialData.pagination?.total || 0,
           }),
         }}
       />
-
+      
       <main className="products-page">
+        {error && (
+          <div style={{ 
+            padding: '20px', 
+            background: '#fff3cd', 
+            border: '1px solid #ffc107',
+            borderRadius: '4px',
+            margin: '20px'
+          }}>
+            <strong>تحذير:</strong> {error}
+          </div>
+        )}
+        
         <OptimizedProductSection initialData={initialData} />
       </main>
     </>
   );
+}
+
+// 🚀 OPTIMIZATION: Generate static params for common pages
+// This pre-renders the first few pages at build time
+export async function generateStaticParams() {
+  // Only pre-render the first page
+  return [
+    { page: '1' }
+  ];
 }

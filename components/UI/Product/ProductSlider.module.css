@@ -267,7 +267,7 @@
 /* Large phones and small tablets */
 @media (max-width: 768px) {
   .productGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
   

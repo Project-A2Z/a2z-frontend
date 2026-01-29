@@ -1,7 +1,7 @@
 import styles from './card.module.css';
 function Availablity ({available = true}: {available?: boolean}) {
   return (
-    <div >
+    <div className={styles.available}>
       {available ? (
         <span className={styles.availableText}> متوفر في المخزون</span>
       ) : (
