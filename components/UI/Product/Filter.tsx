@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { fetchCategories } from '@/services/product/categories';
 
 //styles
@@ -17,18 +17,76 @@ interface FilterProps {
 
 // Helper function to format category name for display
 const formatCategoryName = (categoryName: string): string => {
-  // If it's already properly formatted, return as is
   if (categoryName.includes(' ')) {
     return categoryName;
   }
   
-  // Convert kebab-case or snake_case to Title Case
   return categoryName
     .replace(/[-_]/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 };
+
+// 🚀 OPTIMIZATION: Memoize category item to prevent unnecessary re-renders
+const CategoryItem = memo(({ 
+  category, 
+  checked, 
+  onChange, 
+  disabled 
+}: {
+  category: { id: string; label: string };
+  checked: boolean;
+  onChange: () => void;
+  disabled: boolean;
+}) => (
+  <label
+    className={`${styles.categoryItem} ${disabled ? styles.disabledItem : ''}`}
+  >
+    <span className={styles.categoryLabel}>
+      {category.label}
+    </span>
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className={styles.checkbox}
+      disabled={disabled}
+    />
+  </label>
+));
+
+CategoryItem.displayName = 'CategoryItem';
+
+// 🚀 OPTIMIZATION: Memoize letter button to prevent unnecessary re-renders
+const LetterButton = memo(({ 
+  letter, 
+  isActive, 
+  isAll, 
+  disabled, 
+  onClick 
+}: {
+  letter: string;
+  isActive: boolean;
+  isAll: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`
+      ${styles.letterButton}
+      ${isActive ? styles.active : ''}
+      ${isAll ? styles.all : ''}
+      ${disabled ? styles.disabledButton : ''}
+    `}
+  >
+    {letter}
+  </button>
+));
+
+LetterButton.displayName = 'LetterButton';
 
 function Filter({ 
   getByCategory, 
@@ -47,43 +105,65 @@ function Filter({
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  // Internal state with fallback to props
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+  // 🔧 FIX: Use refs to prevent infinite loops
+  const isInitialMount = useRef(true);
+  const prevSelectedCategories = useRef<string[]>(propSelectedCategories || initialCategories || []);
+  const prevSelectedLetter = useRef<string>(propSelectedLetter || initialLetter || 'الكل');
+
+  // Internal state - only use when props are not controlled
+  const [internalSelectedCategories, setInternalSelectedCategories] = useState<string[]>(
     propSelectedCategories || initialCategories || []
   );
-  const [selectedLetter, setSelectedLetter] = useState<string>(
+  const [internalSelectedLetter, setInternalSelectedLetter] = useState<string>(
     propSelectedLetter || initialLetter || 'الكل'
   );
 
+  // 🔧 FIX: Use controlled state when props exist, otherwise use internal state
+  const selectedCategories = propSelectedCategories !== undefined 
+    ? propSelectedCategories 
+    : internalSelectedCategories;
+  
+  const selectedLetter = propSelectedLetter !== undefined 
+    ? propSelectedLetter 
+    : internalSelectedLetter;
+
   // ============================================
-  // DETECT LANGUAGE CHANGES
+  // 🚀 OPTIMIZED: Language detection with custom event
   // ============================================
   useEffect(() => {
-    const detectLanguage = () => {
-      const htmlLang = document.documentElement.lang;
-      const savedLang = localStorage.getItem('selectedLanguage');
-      const detectedLang = savedLang || htmlLang || 'ar';
-      setCurrentLanguage(detectedLang === 'ar' ? 'ar' : 'en');
+    // Detect language once on mount
+    const savedLang = localStorage.getItem('selectedLanguage');
+    const htmlLang = document.documentElement.lang;
+    const detectedLang = savedLang || htmlLang || 'ar';
+    setCurrentLanguage(detectedLang === 'ar' ? 'ar' : 'en');
+
+    // Listen for language changes via custom event
+    const handleLangChange = (e: CustomEvent) => {
+      setCurrentLanguage(e.detail.language === 'ar' ? 'ar' : 'en');
     };
 
-    detectLanguage();
-
-    const observer = new MutationObserver(detectLanguage);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['lang']
-    });
-
-    window.addEventListener('storage', detectLanguage);
+    // @ts-ignore
+    window.addEventListener('languageChange', handleLangChange);
+    
+    // Also listen to storage changes as fallback
+    const handleStorageChange = () => {
+      const newLang = localStorage.getItem('selectedLanguage');
+      if (newLang) {
+        setCurrentLanguage(newLang === 'ar' ? 'ar' : 'en');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener('storage', detectLanguage);
+      // @ts-ignore
+      window.removeEventListener('languageChange', handleLangChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
   // ============================================
-  // FETCH CATEGORIES FROM API
+  // 🔧 FIX: Load categories unconditionally
   // ============================================
   useEffect(() => {
     const loadCategories = async () => {
@@ -92,15 +172,15 @@ function Filter({
         setCategoriesError(null);
         
         console.log('🔄 Loading categories...');
-        const categories = await fetchCategories();
         
+        // 🔧 FIX: Always fetch categories, not conditionally
+        const categories = await fetchCategories();
         console.log('✅ Categories loaded:', categories);
         setAvailableCategories(categories);
+        
       } catch (error) {
         console.error('❌ Error loading categories:', error);
         setCategoriesError(error instanceof Error ? error.message : 'Failed to load categories');
-        
-        // Don't use fallback categories - show error instead
         setAvailableCategories([]);
       } finally {
         setIsCategoriesLoading(false);
@@ -108,109 +188,161 @@ function Filter({
     };
 
     loadCategories();
-  }, []);
+  }, []); // Only run once on mount
 
-  // Update internal state when props change
+  // 🔧 FIX: Only sync props to internal state if they actually changed
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     if (propSelectedCategories !== undefined) {
-      setSelectedCategories(propSelectedCategories);
+      const currentCats = JSON.stringify([...propSelectedCategories].sort());
+      const prevCats = JSON.stringify([...prevSelectedCategories.current].sort());
+      
+      if (currentCats !== prevCats) {
+        prevSelectedCategories.current = propSelectedCategories;
+        setInternalSelectedCategories(propSelectedCategories);
+      }
     }
   }, [propSelectedCategories]);
 
   useEffect(() => {
-    if (propSelectedLetter !== undefined) {
-      setSelectedLetter(propSelectedLetter);
+    if (isInitialMount.current) {
+      return;
+    }
+
+    if (propSelectedLetter !== undefined && propSelectedLetter !== prevSelectedLetter.current) {
+      prevSelectedLetter.current = propSelectedLetter;
+      setInternalSelectedLetter(propSelectedLetter);
     }
   }, [propSelectedLetter]);
 
-  // Transform categories for display
-  const categories = availableCategories.map(categoryName => ({
-    id: categoryName,
-    label: formatCategoryName(categoryName) // Use actual category name from API
-  }));
+  // Transform categories for display (memoized)
+  const categories = React.useMemo(() => 
+    availableCategories.map(categoryName => ({
+      id: categoryName,
+      label: formatCategoryName(categoryName)
+    })),
+    [availableCategories]
+  );
 
-  // Bilingual letters
-  const arabicLetters = [
-    'الكل', 'أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
-    'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
-    'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ى'
-  ];
+  // Bilingual letters (memoized)
+  const letters = React.useMemo(() => {
+    const arabicLetters = [
+      'الكل', 'أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
+      'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
+      'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ى'
+    ];
 
-  const englishLetters = [
-    'All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
-    'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-    'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-  ];
+    const englishLetters = [
+      'All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+      'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+      'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    ];
 
-  const letters = currentLanguage === 'ar' ? arabicLetters : englishLetters;
+    return currentLanguage === 'ar' ? arabicLetters : englishLetters;
+  }, [currentLanguage]);
 
-  // Bilingual text
-  const text = {
-    ar: {
-      activeFilters: 'فلاتر نشطة',
-      clearAll: 'مسح الكل',
-      type: 'النوع',
-      selected: 'مُحدد',
-      letter: 'الحرف',
-      selectedLetter: 'الحرف المُحدد',
-      showingAll: 'عرض جميع المنتجات',
-      loading: 'جاري التحميل...',
-      error: 'خطأ في تحميل الفئات',
-      retry: 'إعادة المحاولة'
-    },
-    en: {
-      activeFilters: 'Active Filters',
-      clearAll: 'Clear All',
-      type: 'Type',
-      selected: 'Selected',
-      letter: 'Letter',
-      selectedLetter: 'Selected Letter',
-      showingAll: 'Showing All Products',
-      loading: 'Loading...',
-      error: 'Error loading categories',
-      retry: 'Retry'
-    }
-  };
-
-  const t = text[currentLanguage];
+  // Bilingual text (memoized)
+  const t = React.useMemo(() => {
+    const text = {
+      ar: {
+        activeFilters: 'فلاتر نشطة',
+        clearAll: 'مسح الكل',
+        type: 'النوع',
+        selected: 'مُحدد',
+        letter: 'الحرف',
+        selectedLetter: 'الحرف المُحدد',
+        showingAll: 'عرض جميع المنتجات',
+        loading: 'جاري التحميل...',
+        error: 'خطأ في تحميل الفئات',
+        retry: 'إعادة المحاولة'
+      },
+      en: {
+        activeFilters: 'Active Filters',
+        clearAll: 'Clear All',
+        type: 'Type',
+        selected: 'Selected',
+        letter: 'Letter',
+        selectedLetter: 'Selected Letter',
+        showingAll: 'Showing All Products',
+        loading: 'Loading...',
+        error: 'Error loading categories',
+        retry: 'Retry'
+      }
+    };
+    return text[currentLanguage];
+  }, [currentLanguage]);
 
   // Helper function to check if "All" is selected
-  const isAllLetter = (letter: string): boolean => {
+  const isAllLetter = useCallback((letter: string): boolean => {
     const normalizedLetter = letter.toLowerCase().trim();
     return normalizedLetter === 'all' || 
            normalizedLetter === 'الكل' || 
            normalizedLetter === 'كل';
-  };
+  }, []);
 
-  const handleCategoryChange = (categoryId: string) => {
+  // 🔧 FIX: Debounced change handlers to prevent rapid updates
+  const categoryChangeTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  const handleCategoryChange = useCallback((categoryId: string) => {
     if (disabled) return;
 
-    const updatedCategories = selectedCategories.includes(categoryId)
-      ? selectedCategories.filter(id => id !== categoryId)
-      : [...selectedCategories, categoryId];
+    const currentCategories = propSelectedCategories !== undefined 
+      ? propSelectedCategories 
+      : internalSelectedCategories;
+
+    const updatedCategories = currentCategories.includes(categoryId)
+      ? currentCategories.filter(id => id !== categoryId)
+      : [...currentCategories, categoryId];
     
-    setSelectedCategories(updatedCategories);
-    getByCategory(updatedCategories);
-  };
+    // Update internal state immediately for UI responsiveness
+    if (propSelectedCategories === undefined) {
+      setInternalSelectedCategories(updatedCategories);
+    }
+    
+    // 🔧 FIX: Debounce parent callback to prevent rapid API calls
+    if (categoryChangeTimeout.current) {
+      clearTimeout(categoryChangeTimeout.current);
+    }
+    
+    categoryChangeTimeout.current = setTimeout(() => {
+      getByCategory(updatedCategories);
+    }, 300); // 300ms debounce
+    
+  }, [disabled, propSelectedCategories, internalSelectedCategories, getByCategory]);
 
-  const handleLetterClick = (letter: string) => {
+  const handleLetterClick = useCallback((letter: string) => {
     if (disabled) return;
 
-    setSelectedLetter(letter);
+    // Update internal state immediately
+    if (propSelectedLetter === undefined) {
+      setInternalSelectedLetter(letter);
+    }
+    
+    // Call parent callback
     getByLetter(letter);
-  };
+  }, [disabled, propSelectedLetter, getByLetter]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     if (disabled) return;
 
-    setSelectedCategories([]);
     const allLabel = currentLanguage === 'ar' ? 'الكل' : 'All';
-    setSelectedLetter(allLabel);
+    
+    if (propSelectedCategories === undefined) {
+      setInternalSelectedCategories([]);
+    }
+    if (propSelectedLetter === undefined) {
+      setInternalSelectedLetter(allLabel);
+    }
+    
     getByCategory([]);
     getByLetter(allLabel);
-  };
+  }, [disabled, currentLanguage, propSelectedCategories, propSelectedLetter, getByCategory, getByLetter]);
 
-  const retryLoadCategories = async () => {
+  const retryLoadCategories = useCallback(async () => {
     try {
       setIsCategoriesLoading(true);
       setCategoriesError(null);
@@ -222,16 +354,17 @@ function Filter({
     } finally {
       setIsCategoriesLoading(false);
     }
-  };
+  }, []);
 
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (selectedCategories.length > 0) count += selectedCategories.length;
-    if (!isAllLetter(selectedLetter)) count += 1;
-    return count;
-  };
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (categoryChangeTimeout.current) {
+        clearTimeout(categoryChangeTimeout.current);
+      }
+    };
+  }, []);
 
-  const activeFiltersCount = getActiveFiltersCount();
   const isAllSelected = isAllLetter(selectedLetter);
 
   return (
@@ -264,28 +397,21 @@ function Filter({
         {/* Categories List */}
         {!isCategoriesLoading && !categoriesError && (
           <div className={styles.categoriesList}>
-            {categories.map((category) => (
-              <label
-                key={category.id}
-                className={`${styles.categoryItem} ${disabled ? styles.disabledItem : ''}`}
-              >
-                <span className={styles.categoryLabel}>
-                  {category.label}
-                </span>
-                <input
-                  type="checkbox"
+            {categories.length === 0 ? (
+              <p className={styles.noCategories}>لا توجد فئات متاحة</p>
+            ) : (
+              categories.map((category) => (
+                <CategoryItem
+                  key={category.id}
+                  category={category}
                   checked={selectedCategories.includes(category.id)}
                   onChange={() => handleCategoryChange(category.id)}
-                  className={styles.checkbox}
                   disabled={disabled}
                 />
-              </label>
-            ))}
+              ))
+            )}
           </div>
         )}
-
-      
-       
       </div>
 
       {/* Letters Section */}
@@ -299,19 +425,14 @@ function Filter({
                 : selectedLetter === letter;
             
             return (
-              <button
+              <LetterButton
                 key={letter}
-                onClick={() => handleLetterClick(letter)}
+                letter={letter}
+                isActive={isActive}
+                isAll={isAllLetter(letter)}
                 disabled={disabled}
-                className={`
-                  ${styles.letterButton}
-                  ${isActive ? styles.active : ''}
-                  ${isAllLetter(letter) ? styles.all : ''}
-                  ${disabled ? styles.disabledButton : ''}
-                `}
-              >
-                {letter}
-              </button>
+                onClick={() => handleLetterClick(letter)}
+              />
             );
           })}
         </div>
@@ -327,4 +448,4 @@ function Filter({
   );
 }
 
-export default Filter;
+export default memo(Filter);

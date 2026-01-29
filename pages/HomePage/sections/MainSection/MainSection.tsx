@@ -43,9 +43,9 @@ const MainSection = React.memo(() => {
   return (
     <section className="w-full rotate-0 opacity-100 mt-[72px] md:mt-[94px]" suppressHydrationWarning>
       <div className="w-full" style={{ marginTop: '4%' }}>
-        {/* Slider wrapper: 80vh height */}
+        {/* Slider wrapper: responsive height - smaller on mobile */}
         <div className="w-full">
-          <div className="w-full h-[90vh]">
+          <div className="w-full h-[25vh] sm:h-[35vh] md:h-[55vh] lg:h-[80vh]">
             <Slider
               slides={slides}
               autoPlay

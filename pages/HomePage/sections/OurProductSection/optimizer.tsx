@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/UI/Buttons/Button"; 
 import { 
@@ -27,31 +27,31 @@ interface OptimizedProductSectionProps {
 
 const PRODUCTS_PER_PAGE = 20;
 
-// Skeleton components for loading states
-function ProductSliderSkeleton() {
-  return (
-    <div className={style.sliderContainer}>
-      <div className={style.skeletonGrid}>
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className={style.skeletonCard} />
-        ))}
-      </div>
+// Skeleton components (memoized for performance)
+const ProductSliderSkeleton = memo(() => (
+  <div className={style.sliderContainer}>
+    <div className={style.skeletonGrid}>
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className={style.skeletonCard} />
+      ))}
     </div>
-  );
-}
+  </div>
+));
 
-function FilterSkeleton() {
-  return (
-    <div className={style.filterContainer}>
-      <div className={style.skeletonFilter} />
-    </div>
-  );
-}
+const FilterSkeleton = memo(() => (
+  <div className={style.filterContainer}>
+    <div className={style.skeletonFilter} />
+  </div>
+));
 
 function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) {
   // State management
-  const [displayedProducts, setDisplayedProducts] = useState<Product[]>(initialData?.data || []);
-  const [totalProducts, setTotalProducts] = useState<number>(initialData?.pagination?.total || 0);
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>(
+    initialData?.data || []
+  );
+  const [totalProducts, setTotalProducts] = useState<number>(
+    initialData?.pagination?.total || 0
+  );
   
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<string>('الكل');
@@ -60,7 +60,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(initialData?.pagination?.totalPages || 1);
   
-  const [isLoading, setIsLoading] = useState(!initialData);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -68,14 +68,22 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('الكل');
 
   const mountedRef = useRef(true);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasInitialData = useRef(!!initialData && initialData.data.length > 0);
+  
+  // 🔧 FIX: Track previous filter values to prevent unnecessary API calls
+  const prevFiltersRef = useRef({
+    categories: selectedCategories,
+    page: currentPage,
+    search: searchQuery
+  });
 
   // Cleanup
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -88,8 +96,35 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
            normalizedLetter === 'كل';
   }, []);
 
-  // Load products with pagination
+  // 🚀 OPTIMIZED: Load products with abort controller
   const loadProducts = useCallback(async () => {
+    // 🔧 FIX: Skip if filters haven't actually changed
+    const currentFilters = {
+      categories: selectedCategories,
+      page: currentPage,
+      search: searchQuery
+    };
+    
+    const filtersChanged = 
+      JSON.stringify(currentFilters.categories.sort()) !== JSON.stringify(prevFiltersRef.current.categories.sort()) ||
+      currentFilters.page !== prevFiltersRef.current.page ||
+      currentFilters.search !== prevFiltersRef.current.search;
+    
+    if (!filtersChanged && !hasInitialData.current) {
+      console.log('⏭️ Skipping API call - filters unchanged');
+      return;
+    }
+    
+    prevFiltersRef.current = currentFilters;
+
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+
     try {
       setIsLoading(true);
       setError(null);
@@ -112,21 +147,31 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
         filters.search = searchQuery.trim();
       }
 
-      const response = await fetchAllProducts(filters);
-
-      // console.log('Fetched Products:', response);
+      console.log('🔄 Loading products with filters:', filters);
       
+      const response = await fetchAllProducts(filters, abortControllerRef.current.signal);
+
+      // Check if component is still mounted
       if (!mountedRef.current) return;
       
       setDisplayedProducts(response.data);
       setTotalProducts(response.pagination?.total || 0);
       setTotalPages(response.pagination?.totalPages || 1);
       
+      console.log('✅ Loaded', response.data.length, 'products');
+      
     } catch (err: any) {
+      // Ignore abort errors
+      if (err.name === 'AbortError') {
+        console.log('Request cancelled');
+        return;
+      }
+
       if (!mountedRef.current) return;
       
       const errorMessage = err instanceof Error ? err.message : 'فشل في تحميل المنتجات';
       setError(errorMessage);
+      console.error('❌ Error loading products:', errorMessage);
     } finally {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -134,8 +179,15 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     }
   }, [currentPage, selectedCategories, searchQuery]);
 
-  // Load products when filters or page changes
+  // 🔧 FIX: Only load if filters changed or no initial data
   useEffect(() => {
+    // Skip first load if we have initial data
+    if (hasInitialData.current) {
+      hasInitialData.current = false;
+      console.log('✅ Using initial data, skipping first API call');
+      return;
+    }
+
     loadProducts();
   }, [loadProducts]);
 
@@ -145,32 +197,50 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       return displayedProducts;
     }
 
-    return displayedProducts.filter(product => {
+    const filtered = displayedProducts.filter(product => {
       const firstChar = product.name?.charAt(0) || '';
       return firstChar === selectedLetter || 
              firstChar.toLowerCase() === selectedLetter.toLowerCase();
     });
+    
+    console.log(`🔤 Letter filter "${selectedLetter}": ${filtered.length}/${displayedProducts.length} products`);
+    return filtered;
   }, [displayedProducts, selectedLetter, isAllLetter]);
 
-  // Filter handlers
+  // 🔧 FIX: Memoize and stabilize callback references
   const handleCategoryFilter = useCallback((categories: string[] | null | undefined) => {
-    setSelectedCategories(categories || []);
-    setCurrentPage(1); // Reset to first page when category changes
-  }, []);
+    const newCategories = categories || [];
+    
+    // Only update if actually changed (deep comparison)
+    const currentSorted = JSON.stringify([...selectedCategories].sort());
+    const newSorted = JSON.stringify([...newCategories].sort());
+    
+    if (currentSorted !== newSorted) {
+      console.log('📂 Category filter changed:', newCategories);
+      setSelectedCategories(newCategories);
+      setCurrentPage(1); // Reset to first page
+    }
+  }, [selectedCategories]);
 
   const handleLetterFilter = useCallback((letter: string | null | undefined) => {
-    setSelectedLetter(letter || 'الكل');
-  }, []);
+    const newLetter = letter || 'الكل';
+    if (newLetter !== selectedLetter) {
+      console.log('🔤 Letter filter changed:', newLetter);
+      setSelectedLetter(newLetter);
+      // Note: Letter filtering is client-side, so no need to reset page
+    }
+  }, [selectedLetter]);
 
   // Pagination handlers
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
+      console.log('📄 Page changed:', page);
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [currentPage, totalPages]);
 
-  // Modal handlers
+  // Modal handlers (memoized)
   const openFilterModal = useCallback(() => {
     setTempSelectedCategories([...selectedCategories]);
     setTempSelectedLetter(selectedLetter);
@@ -184,9 +254,10 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, []);
 
   const applyTempFilters = useCallback(() => {
+    console.log('✅ Applying modal filters');
     setSelectedCategories([...tempSelectedCategories]);
     setSelectedLetter(tempSelectedLetter);
-    setCurrentPage(1); // Reset to first page when applying filters
+    setCurrentPage(1);
     closeFilterModal();
   }, [tempSelectedCategories, tempSelectedLetter, closeFilterModal]);
 
@@ -200,28 +271,28 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
   // Clear all filters
   const clearAllFilters = useCallback(() => {
+    console.log('🗑️ Clearing all filters');
     setSelectedCategories([]);
     setSelectedLetter('الكل');
     setSearchQuery('');
     setCurrentPage(1);
-    
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
   }, []);
 
   // Refresh data
   const refreshData = useCallback(() => {
+    console.log('🔄 Refreshing data');
+    hasInitialData.current = false; // Force reload
+    prevFiltersRef.current = { categories: [], page: 1, search: '' }; // Reset filter tracking
     loadProducts();
   }, [loadProducts]);
 
   // Active filters count
-  const activeFiltersCount = useMemo(() => 
-    selectedCategories.length + 
-    (!isAllLetter(selectedLetter) ? 1 : 0) + 
-    (searchQuery.trim() ? 1 : 0),
-    [selectedCategories.length, selectedLetter, searchQuery, isAllLetter]
-  );
+  const activeFiltersCount = useMemo(() => {
+    const count = selectedCategories.length + 
+      (!isAllLetter(selectedLetter) ? 1 : 0) + 
+      (searchQuery.trim() ? 1 : 0);
+    return count;
+  }, [selectedCategories.length, selectedLetter, searchQuery, isAllLetter]);
 
   // Loading state
   if (isLoading && displayedProducts.length === 0) {
@@ -276,38 +347,35 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             size="sm" 
             onClick={clearAllFilters}
           >
-            مسح الفلاتر
+            مسح الفلاتر ({activeFiltersCount})
           </Button>
         )}
       </div>
 
       {/* Products Display */}
       <div className={style.container}>
-        <Suspense fallback={<ProductSliderSkeleton />}>
-          <ProductSlider 
-            products={filteredProducts} 
-            isLoading={isLoading}
-            error={error}
-          />
-        </Suspense>
+        <ProductSlider 
+          products={filteredProducts} 
+          isLoading={isLoading}
+          error={error}
+        />
         
-        <Suspense fallback={<FilterSkeleton />}>
-          <Filter 
-            getByCategory={handleCategoryFilter} 
-            getByLetter={handleLetterFilter}
-            selectedCategories={selectedCategories}
-            selectedLetter={selectedLetter}
-          />
-        </Suspense>
+        <Filter 
+          getByCategory={handleCategoryFilter} 
+          getByLetter={handleLetterFilter}
+          selectedCategories={selectedCategories}
+          selectedLetter={selectedLetter}
+          disabled={isLoading}
+        />
       </div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
+      {totalPages > 1 && !isLoading && (
         <div className={style.paginationContainer}>
           <div className={style.pageNumbers}>
             <div className={style.paginationInfo}>
               <span className={style.productsCount}>
-                عرض {totalProducts} من إجمالي المنتجات
+                عرض {filteredProducts.length} من {totalProducts} منتج
               </span>
             </div>
 
@@ -321,7 +389,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             </button>
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = Math.max(1, currentPage - 2) + i;
+              const pageNum = Math.max(1, Math.min(currentPage - 2, totalPages - 4)) + i;
               if (pageNum > totalPages) return null;
               
               return (
@@ -349,11 +417,20 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
       {/* Mobile Filter Modal */}
       {isFilterModalOpen && (
-        <div className={style.filterModal}>
-          <div className={style.filterModalContent}>
+        <div className={style.filterModal} onClick={closeFilterModal}>
+          <div 
+            className={style.filterModalContent} 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={style.filterModalHeader}>
               <h3>الفلاتر</h3>
-              <button onClick={closeFilterModal} className={style.closeModal}>×</button>
+              <button 
+                onClick={closeFilterModal} 
+                className={style.closeModal}
+                aria-label="إغلاق"
+              >
+                ×
+              </button>
             </div>
 
             <div className={style.filterModalBody}>
@@ -389,5 +466,10 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     </div>
   );
 }
+
+// Add display names for debugging
+ProductSliderSkeleton.displayName = 'ProductSliderSkeleton';
+FilterSkeleton.displayName = 'FilterSkeleton';
+OptimizedProductSection.displayName = 'OptimizedProductSection';
 
 export default OptimizedProductSection;
