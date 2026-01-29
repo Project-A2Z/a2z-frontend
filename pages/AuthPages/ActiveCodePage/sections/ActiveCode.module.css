@@ -21,6 +21,8 @@
   margin: 0 8px;
 }
 
+
+
 @media (min-width: 475px) {
   .container {
     max-width: 90%;

@@ -16,7 +16,7 @@ const CodeInputSection: React.FC<CodeInputSectionProps> = React.memo(({
 
     return (
         <div 
-            className="flex justify-center items-center flex-wrap gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" 
+            className="flex justify-center items-center gap-3 xs:gap-4 sm:gap-6 md:gap-8 w-full px-2" 
             dir="ltr"
         >
             <label htmlFor="code-0" className="sr-only">
