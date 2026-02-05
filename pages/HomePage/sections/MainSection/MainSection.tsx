@@ -44,7 +44,7 @@ const MainSection = React.memo(() => {
 
   return (
     <section className="w-full rotate-0 opacity-100 mt-[72px] md:mt-[94px]">
-      <div className="w-full" style={{ marginTop: '4%' }}>
+      <div className="w-full" style={{ marginTop: '-1%' }}>
         {/* Slider wrapper: responsive height - smaller on mobile */}
         <div className="w-full">
           <div className="w-full h-[35vh] sm:h-[45vh] md:h-[55vh] lg:h-[85vh]">

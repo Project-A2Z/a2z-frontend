@@ -10,7 +10,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, onIconClick, error, iconPosition = 'right', readOnly = false, ...props }, ref) => {
+  ({ className, icon, onIconClick, error, iconPosition = 'right', readOnly = false, type, ...props }, ref) => {
     const sidePadding = icon
       ? iconPosition === 'right'
         ? 'pr-12 pl-4'
@@ -21,6 +21,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="relative w-full">
         <input
           ref={ref}
+          type={type}
           readOnly={readOnly}
           className={cn(
             'w-full h-[44px] rounded-[32px] border bg-card text-right py-3 appearance-none',
@@ -29,6 +30,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             'transition-all duration-200 placeholder-black37',
             error ? 'border-error focus:ring-error' : '',
             readOnly ? 'cursor-not-allowed opacity-60 bg-gray-50' : '',
+            // Date input specific styles
+            type === 'date' ? 'date-input' : '',
             className
           )}
           {...props}
