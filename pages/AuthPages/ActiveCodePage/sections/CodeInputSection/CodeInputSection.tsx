@@ -36,7 +36,7 @@ const CodeInputSection: React.FC<CodeInputSectionProps> = React.memo(({
                                 text-center font-semibold border-2 border-gray-200 rounded-lg xs:rounded-xl 
                                 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 
                                 transition-all duration-200 
-                                [font-family:Beiruti] font-[600] leading-[100%] tracking-[0%]"
+                                [font-family:Beiruti] leading-[100%] tracking-[0%]"
                     placeholder=""
                     aria-label={`Verification Code - Digit ${index + 1}`}
                     inputMode="numeric"

@@ -1,45 +1,20 @@
+/* ========================================
+   BASE CONTAINERS
+   ======================================== */
+
 .conatainer_address {
   width: 100%;
-  max-width: 400px;
+  max-width: 25rem;
   height: fit-content;
   margin: 0 auto;
-  
   padding-bottom: 5%;
-} 
+}
 
 .container_list {
   width: 100%;
-  max-width: 400px;
+  max-width: 25rem;
   margin: 0 auto;
-  /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
 }
-
-.list {
-  background: var(--background);
-  border-radius: 16px;
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
-  overflow: hidden;
-  /* padding-bottom: 10%; */
-}
-
-.listItem {
-  padding: 12px 16px;
-  height: 48px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-bottom: 1.5px solid var(--black8);
-  text-align: right;
-  direction: rtl;
-  font-size: 16px;
-  font-weight: 600;
-  width: 80%;
-  display: flex;
-  justify-self: center;
-  align-self: center;
-  border-radius: 16px;
-    margin: 8px auto;
-}
-
 
 .container_form {
   height: fit-content;
@@ -48,20 +23,69 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  /* background: var(--background); */
-  /* background-color: #374151; */
   position: absolute;
-    top: -10%;
-    right: 0%;
+  top: -10%;
+  right: 0%;
 }
+
+.container_newaddress {
+  width: 100%;
+  max-width: 31.25rem;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--background);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+.container_drop {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+}
+
+
+/* ========================================
+   LIST COMPONENTS
+   ======================================== */
+
+.list {
+  background: var(--background);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.listItem {
+  padding: 0.75rem 1rem;
+  height: 3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 0.094rem solid var(--black8);
+  text-align: right;
+  direction: rtl;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 80%;
+  display: flex;
+  justify-self: center;
+  align-self: center;
+  border-radius: 1rem;
+  margin: 0.5rem auto;
+}
+
+
+/* ========================================
+   FORM COMPONENTS
+   ======================================== */
+
 .formCard {
   width: 100%;
-  /* max-width: 500px; */
   background: var(--background);
-  border-radius: 24px;
+  border-radius: 1.5rem;
   padding: 2rem;
   box-shadow: var(--shadow-lg);
-  border: 1.5px solid var(--black8);
+  border: 0.094rem solid var(--black8);
   position: relative;
   overflow: hidden;
 }
@@ -72,33 +96,43 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background:var(--background);
+  height: 0.25rem;
+  background: var(--background);
 }
 
-/* Title */
 .title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--black87);
   text-align: flex-start;
   margin-bottom: 2rem;
   direction: rtl;
   font-family: var(--font-primary);
+  padding: 1rem;
 }
 
-/* Form */
+.header {
+  margin-bottom: 2rem;
+}
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Input Group */
 .inputGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
   position: relative;
 }
 
@@ -109,14 +143,204 @@
 
 .input:hover {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
+  box-shadow: 0 0 0 0.188rem rgba(76, 147, 67, 0.1);
 }
 
 .input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.2), var(--shadow-md);
+  transform: translateY(-0.063rem);
+  box-shadow: 0 0 0 0.188rem rgba(76, 147, 67, 0.2), var(--shadow-md);
 }
 
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--black87);
+  margin-bottom: 0.5rem;
+  text-align: right;
+  direction: rtl;
+}
+
+
+/* ========================================
+   CHECKBOX COMPONENTS
+   ======================================== */
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+  direction: rtl;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: var(--black87);
+  direction: rtl;
+}
+
+.checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.checkboxText {
+  user-select: none;
+}
+
+
+/* ========================================
+   DROPDOWN COMPONENTS
+   ======================================== */
+
+.buttonContainer {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownButton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  background-color: var(--background);
+  border: 0.125rem solid var(--black8);
+  border-radius: 1.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 1rem;
+  direction: rtl;
+}
+
+.dropdownButton:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.dropdownButton:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.188rem rgba(76, 147, 67, 0.1);
+}
+
+.dropdownButtonOpen {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.188rem rgba(76, 147, 67, 0.1);
+}
+
+.dropdownButtonDisabled {
+  border-color: var(--black8);
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  color: var(--black8);
+  opacity: 0.6;
+}
+
+.buttonText {
+  flex: 1;
+  text-align: right;
+  color: var(--black87);
+  direction: rtl;
+}
+
+.buttonTextPlaceholder {
+  color: var(--black60);
+}
+
+.buttonTextDisabled {
+  color: var(--black8);
+}
+
+.chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--black60);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.optionsContainer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  background-color: var(--background);
+  border: 0.125rem solid var(--primary);
+  border-radius: 1rem;
+  box-shadow: 0 0.625rem 1.563rem -0.313rem rgba(0, 0, 0, 0.1), 0 0.625rem 0.625rem -0.313rem rgba(0, 0, 0, 0.04);
+  z-index: 50;
+  max-height: 15rem;
+  overflow-y: auto;
+  direction: rtl;
+}
+
+.optionButton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: right;
+  transition: all 0.15s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--black87);
+  font-size: 1rem;
+  direction: rtl;
+}
+
+.optionButton:hover {
+  background-color: rgba(76, 147, 67, 0.1);
+  color: var(--primary);
+}
+
+.optionButtonFirst {
+  border-radius: 0.875rem 0.875rem 0 0;
+}
+
+.optionButtonLast {
+  border-radius: 0 0 0.875rem 0.875rem;
+}
+
+.optionButtonSelected {
+  background-color: rgba(76, 147, 67, 0.1);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.optionsContainer::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.optionsContainer::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 0.188rem;
+}
+
+.optionsContainer::-webkit-scrollbar-thumb {
+  background: var(--black8);
+  border-radius: 0.188rem;
+}
+
+.optionsContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--black60);
+}
+
+
+/* ========================================
+   ADDRESS COMPONENTS
+   ======================================== */
 
 .addressList {
   display: flex;
@@ -125,25 +349,23 @@
   margin-bottom: 2rem;
   scroll-behavior: smooth;
   overflow-y: auto;
-  max-height: 500px; /* or use height: 500px; */
-  /* Optional: Add padding for better scrolling experience */
+  max-height: 31.25rem;
   padding-right: 0.5rem;
   padding-left: 0.5rem;
 }
 
-/* Optional: Style the scrollbar for better appearance */
 .addressList::-webkit-scrollbar {
-  width: 8px;
+  width: 0.5rem;
 }
 
 .addressList::-webkit-scrollbar-track {
   background: var(--disabled);
-  border-radius: 10px;
+  border-radius: 0.625rem;
 }
 
 .addressList::-webkit-scrollbar-thumb {
   background: var(--primary);
-  border-radius: 10px;
+  border-radius: 0.625rem;
 }
 
 .addressList::-webkit-scrollbar-thumb:hover {
@@ -152,8 +374,8 @@
 
 .addressCard {
   background: var(--background);
-  border: 1.5px solid var(--black8);
-  border-radius: 32px;
+  border: 0.094rem solid var(--black8);
+  border-radius: 2rem;
   padding: 1.5rem;
   transition: all 0.2s ease-in-out;
   position: relative;
@@ -161,12 +383,17 @@
 }
 
 .addressCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+  transform: translateY(-0.125rem);
+}
+
+.addressCard.loading {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .defaultAddress {
-  border: 2px solid var(--primary, #4c9343);
+  border: 0.125rem solid var(--primary, #4c9343);
   background: linear-gradient(135deg, #f8f9ff 0%, #f0f8f0 100%);
 }
 
@@ -175,7 +402,6 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  
 }
 
 .addressHeader {
@@ -195,17 +421,27 @@
 .addressDetails {
   flex: 1;
   min-width: 0;
+  max-width: 80%;
+}
+
+.head{
+  display: flex;
+  align-items: center;
+  gap: 13rem;
+  flex-direction: row;
 }
 
 .addressName {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--black87);
   margin: 0 0 0.25rem 0;
+  width: 10rem;
 }
 
-.addressPhone, .addressText {
-  font-size: 16px;
+.addressPhone,
+.addressText {
+  font-size: 1rem;
   font-weight: 500;
   color: var(--black87);
   margin: 0 0 0.5rem 0;
@@ -217,7 +453,7 @@
   background: var(--secondary1);
   color: white;
   padding: 0.25rem 0.75rem;
-  border-radius: 32px;
+  border-radius: 2rem;
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
@@ -230,8 +466,23 @@
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
-  min-width: 80px;
+  min-width: 5rem;
   flex-shrink: 0;
+}
+
+
+/* ========================================
+   BUTTON COMPONENTS
+   ======================================== */
+
+.buttonGroup {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 25%;
+  justify-self: center;
+  align-self: center;
 }
 
 .actionButton {
@@ -248,21 +499,20 @@
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   width: 100%;
 }
 
 .actionButton:hover:not(:disabled) {
   background: rgba(76, 147, 67, 0.1);
   color: var(--primary, #4c9343);
-  transform: translateY(-1px);
+  transform: translateY(-0.063rem);
 }
 
 .actionButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 
 .defaultButton {
   border-color: var(--secondary1);
@@ -276,430 +526,15 @@
 
 .addButton {
   margin-top: 1rem;
-}
-@media (max-width: 768px) {
-  .container_form {
-    position: static; /* Remove absolute positioning */
-    top: auto; /* Reset top */
-    right: auto; /* Reset right */
-    padding: 1rem 0.5rem;
-    margin-top: 0; /* Remove excessive margin */
-    width: 100%;
-  }
- 
-  .formCard {
-    padding: 1.5rem;
-    border-radius: 16px;
-    margin: 0; /* Remove margin that was causing overlap */
-    width: 100%;
-    max-width: none;
-  }
- 
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
- 
-  .form {
-    gap: 1.25rem;
-  }
-
-  .buttonGroup {
-    width: 100%; /* Make button group full width on mobile */
-    max-width: 300px; /* But limit maximum width */
-  }
+  min-width: 7rem;
+  align-self: center;
 }
 
-@media (max-width: 640px) {
-  .container_form {
-    padding: 0.5rem;
-  }
- 
-  .formCard {
-    padding: 1rem;
-    margin: 0;
-  }
- 
-  .title {
-    font-size: 1.25rem;
-  }
- 
-  .input {
-    font-size: 0.9rem;
-  }
-
-  .buttonGroup {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .formCard {
-    padding: 1rem;
-    border-radius: 12px;
-  }
- 
-  .title {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-  }
- 
-  .input {
-    font-size: 0.9rem;
-  }
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .addressCard {
-    padding: 1rem;
-  }
-  
-  .addressContent {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .addressActions {
-    flex-direction: row;
-    justify-content: center;
-    gap: 1rem;
-    /* margin-top: 0.2rem; */
-    padding: 12px 40px;
-    border-top: 1px solid #e5e7eb;
-    width: 50px;
-  }
-  
-  .actionButton {
-    flex: 1;
-    max-width: 120px;
-    font-size: 16px;
-    
-  }
-  
-  .defaultBadge {
-    align-self: flex-start;
-  }
-}
-
-/* RTL Support */
-[dir="rtl"] .addressInfo {
-  direction: rtl;
-}
-
-[dir="rtl"] .addressPhone {
-  direction: ltr;
-  text-align: left;
-}
-
-[dir="rtl"] .addressContent {
-  flex-direction: row-reverse;
-}
-
-/* Loading state */
-.addressCard.loading {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* Animation for address removal */
-@keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-    max-height: 200px;
-  }
-  to {
-    opacity: 0;
-    transform: translateX(100%);
-    max-height: 0;
-    padding: 0;
-    margin: 0;
-  }
-}
-/* Add these new styles to your profile.module.css file */
-
-/* Add these new styles to your profile.module.css file */
-
-.container_newaddress {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: var(--background);
-  min-height: 100vh;
-  direction: rtl;
-}
-
-.header {
-  margin-bottom: 2rem;
-}
-
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.checkboxContainer {
-  display: flex;
-  align-items: center;
-  margin: 1rem 0;
-  direction: rtl;
-}
-
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  gap: 0.75rem;
-  font-size: 16px;
-  color: var(--black87);
-  direction: rtl;
-}
-
-.checkbox {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--primary);
-  cursor: pointer;
-}
-
-.checkboxText {
-  user-select: none;
-}
-
-.buttonGroup {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 2rem;
-  direction: ltr;
-}
-
-.cancelButton, .saveButton {
+.cancelButton,
+.saveButton {
   flex: 1;
-  max-width: 150px;
-  min-width: 120px;
-}
-
-
-/* Improved dropdown container */
-.container_drop {
-  width: 100%;
-  position: relative;
-  z-index: 10;
-  margin-bottom: 0.5rem;
-}
-
-/* Improved label styling */
-.label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--black87);
-  margin-bottom: 8px;
-  text-align: right;
-  direction: rtl;
-}
-
-/* Improved button container */
-.buttonContainer {
-  position: relative;
-  width: 100%;
-}
-
-/* Improved dropdown button */
-.dropdownButton {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: right;
-  background-color: var(--background);
-  border: 2px solid var(--black8);
-  border-radius: 24px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  font-size: 16px;
-  direction: rtl;
-}
-
-.dropdownButton:hover:not(:disabled) {
-  border-color: var(--primary);
-}
-
-.dropdownButton:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
-}
-
-/* Button States */
-.dropdownButtonOpen {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(76, 147, 67, 0.1);
-}
-
-.dropdownButtonDisabled {
-  border-color: var(--black8);
-  background-color: #f9fafb;
-  cursor: not-allowed;
-  color: var(--black8);
-  opacity: 0.6;
-}
-
-/* Button Text */
-.buttonText {
-  flex: 1;
-  text-align: right;
-  color: var(--black87);
-  direction: rtl;
-}
-
-.buttonTextPlaceholder {
-  color: var(--black60);
-}
-
-.buttonTextDisabled {
-  color: var(--black8);
-}
-
-/* Chevron Icon */
-.chevron {
-  width: 20px;
-  height: 20px;
-  color: var(--black60);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-/* Options Container */
-.optionsContainer {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 4px;
-  background-color: var(--background);
-  border: 2px solid var(--primary);
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  z-index: 50;
-  max-height: 240px;
-  overflow-y: auto;
-  direction: rtl;
-}
-
-/* Option Button */
-.optionButton {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: right;
-  transition: all 0.15s ease;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: var(--black87);
-  font-size: 16px;
-  direction: rtl;
-}
-
-.optionButton:hover {
-  background-color: rgba(76, 147, 67, 0.1);
-  color: var(--primary);
-}
-
-.optionButtonFirst {
-  border-radius: 14px 14px 0 0;
-}
-
-.optionButtonLast {
-  border-radius: 0 0 14px 14px;
-}
-
-.optionButtonSelected {
-  background-color: rgba(76, 147, 67, 0.1);
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* Scrollbar Styling */
-.optionsContainer::-webkit-scrollbar {
-  width: 6px;
-}
-
-.optionsContainer::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 3px;
-}
-
-.optionsContainer::-webkit-scrollbar-thumb {
-  background: var(--black8);
-  border-radius: 3px;
-}
-
-.optionsContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--black60);
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-  .container_newaddress {
-    padding: 1rem;
-  }
-  
-  .fieldGroup {
-    margin-bottom: 1.25rem;
-  }
-  
-  .buttonGroup {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .cancelButton, .saveButton {
-    max-width: none;
-    width: 100%;
-  }
-  
-  .dropdownButton {
-    padding: 14px 16px;
-  }
-  
-  .label {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container_newaddress {
-    padding: 0.75rem;
-  }
-  
-  .title {
-    font-size: 1.25rem;
-  }
-}
-
-
-/* Button Group */
-.buttonGroup {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 25%;
-  justify-self: center;
-    align-self: center;
+  max-width: 9.375rem;
+  min-width: 7.5rem;
 }
 
 .submitButton {
@@ -725,12 +560,211 @@
   left: 100%;
 }
 
-/* Loading Animation */
+
+/* ========================================
+   RTL SUPPORT
+   ======================================== */
+
+[dir="rtl"] .addressInfo {
+  direction: rtl;
+}
+
+[dir="rtl"] .addressPhone {
+  direction: ltr;
+  text-align: right;
+}
+
+[dir="rtl"] .addressContent {
+  flex-direction: row-reverse;
+}
+
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 12.5rem;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+
+/* ========================================
+   MEDIA QUERIES - TABLET (768px)
+   ======================================== */
+
+@media (max-width: 48rem) {
+  .container_form {
+    position: static;
+    top: auto;
+    right: auto;
+    padding: 1rem 0.5rem;
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form {
+    gap: 1.25rem;
+  }
+
+  .buttonGroup {
+    width: 100%;
+    max-width: 18.75rem;
+  }
+
+  .addressCard {
+    padding: 1rem;
+  }
+
+  .addressContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .addressActions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.75rem 2.5rem;
+    width: 30%;
+    height: fit-content;
+    /* margin-top: -15%; */
+  }
+
+  .actionButton {
+    flex: 1;
+    max-width: 7.5rem;
+    font-size: 1rem;
+  }
+
+  .defaultBadge {
+    align-self: flex-start;
+  }
+}
+
+
+/* ========================================
+   MEDIA QUERIES - MOBILE LARGE (640px)
+   ======================================== */
+
+@media (max-width: 40rem) {
+  .container_form {
+    padding: 0.5rem;
+  }
+
+  .container_newaddress {
+    padding: 1rem;
+  }
+
+  .formCard {
+    padding: 1rem;
+    margin: 0;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .input {
+    font-size: 0.9rem;
+  }
+
+  .buttonGroup {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cancelButton,
+  .saveButton {
+    max-width: none;
+    width: 100%;
+  }
+
+  .dropdownButton {
+    padding: 0.875rem 1rem;
+  }
+
+  .label {
+    font-size: 1rem;
+  }
+
+  .fieldGroup {
+    margin-bottom: 1.25rem;
+  }
+  .head{
+    gap: 8rem;
+  }
+}
+
+
+/* ========================================
+   MEDIA QUERIES - MOBILE SMALL (480px)
+   ======================================== */
+
+@media (max-width: 30rem) {
+  .container_newaddress {
+    padding: 0.75rem;
+  }
+
+  .formCard {
+    padding: 0.2rem;
+    border-radius: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .input {
+    font-size: 0.9rem;
+  }
+
+  .addressInfo {
+    font-size: 0.75rem;
+    font-weight: 300;
+  }
+  .head{
+    gap: 5rem;
+  }
+  .addressText{
+    max-width: 50%;
+  }
+  .addressName {
+    font-size: 0.9rem;
+    width: 5rem;
   }
 }

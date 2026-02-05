@@ -81,7 +81,7 @@
 
 .mid {
   position: relative;
-  margin-bottom: 60%;
+  /* margin-bottom: 60%; */
   margin-top: -10%;
   padding-top: 5%;
   /* FIX: Reserve minimum height to prevent shifts */

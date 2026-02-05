@@ -209,3 +209,11 @@ body {
 body > .skiptranslate {
   display: none !important;
 }
+
+.rdp-chevron{
+  color: var(--primary);
+}
+
+.navButton svg{
+  color: var(--primary);    
+}

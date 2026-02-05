@@ -19,6 +19,9 @@ export interface CreateOrderData {
   paymentWith?: PaymentWith;
   NumOperation?: string;
   image?: File;
+  // ADD THESE - Backend needs to know what products are in the order
+  cartId?: string; // If backend uses cart ID
+  products?: Array<{id: string; quantity: number}>; // Or product details
 }
 
 export interface Address {
@@ -145,6 +148,92 @@ class OrderValidator {
   }
 }
 
+// File processing helper
+class FileProcessor {
+  /**
+   * Convert File to Blob if needed and ensure proper MIME type
+   */
+  static async processImageFile(file: File): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('File must be an image'));
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        reject(new Error('File size must be less than 5MB'));
+        return;
+      }
+
+      // Read file and create a new Blob to ensure it's properly formatted
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        if (!e.target?.result) {
+          reject(new Error('Failed to read file'));
+          return;
+        }
+
+        // Create a new Blob from the ArrayBuffer
+        const arrayBuffer = e.target.result as ArrayBuffer;
+        const blob = new Blob([arrayBuffer], { type: file.type });
+        
+        resolve(blob);
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  }
+}
+
+// Cart Service Helper - to get current cart ID
+class CartHelper {
+  /**
+   * Get the current user's cart ID from localStorage or API
+   */
+  static getCartId(): string | null {
+    // Try to get from localStorage first
+    const cartData = localStorage.getItem('cart');
+    if (cartData) {
+      try {
+        const cart = JSON.parse(cartData);
+        return cart._id || cart.id || null;
+      } catch (e) {
+        console.error('Failed to parse cart data:', e);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get cart ID from API
+   */
+  static async fetchCartId(token: string): Promise<string | null> {
+    try {
+      const response = await fetch(`${Api}/cart`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.data?._id || data.data?.id || null;
+      }
+    } catch (e) {
+      console.error('Failed to fetch cart ID:', e);
+    }
+    return null;
+  }
+}
+
 // Order Service
 export class OrderService {
   private baseUrl: string;
@@ -174,9 +263,10 @@ export class OrderService {
     return headers;
   }
 
-  private createFormData(data: CreateOrderData): FormData {
+  private async createFormData(data: CreateOrderData): Promise<FormData> {
     const formData = new FormData();
 
+    // Append text fields
     formData.append('firstName', data.firstName);
     formData.append('lastName', data.lastName);
     formData.append('phoneNumber', data.phoneNumber);
@@ -194,14 +284,69 @@ export class OrderService {
       formData.append('NumOperation', data.NumOperation);
     }
 
+    // IMPORTANT: Add cart ID if available
+    if (data.cartId) {
+      formData.append('cartId', data.cartId);
+      console.log('✅ Cart ID added to FormData:', data.cartId);
+    } else {
+      // Try to get cart ID if not provided
+      const cartId = CartHelper.getCartId();
+      if (cartId) {
+        formData.append('cartId', cartId);
+        console.log('✅ Cart ID retrieved and added to FormData:', cartId);
+      } else if (this.token) {
+        // Last resort: try to fetch from API
+        const fetchedCartId = await CartHelper.fetchCartId(this.token);
+        if (fetchedCartId) {
+          formData.append('cartId', fetchedCartId);
+          console.log('✅ Cart ID fetched from API and added to FormData:', fetchedCartId);
+        } else {
+          console.warn('⚠️ No cart ID available - this may cause errors');
+        }
+      }
+    }
+
+    // If products array is provided (alternative to cartId)
+    if (data.products && data.products.length > 0) {
+      formData.append('products', JSON.stringify(data.products));
+      console.log('✅ Products added to FormData:', data.products);
+    }
+
+    // Process and append image file if present
     if (data.image) {
-      formData.append('image', data.image);
+      try {
+        console.log('📸 Processing image file:', {
+          name: data.image.name,
+          type: data.image.type,
+          size: data.image.size
+        });
+
+        // Process the file to ensure it's a proper Blob
+        const processedBlob = await FileProcessor.processImageFile(data.image);
+        
+        // Append with explicit filename and MIME type
+        formData.append('image', processedBlob, data.image.name);
+        
+        console.log('✅ Image processed and added to FormData');
+      } catch (error) {
+        console.error('❌ Error processing image:', error);
+        throw new Error('Failed to process image file');
+      }
     }
 
     return formData;
   }
 
   async createOrder(data: CreateOrderData): Promise<CreateOrderResponse> {
+    console.log('📦 CreateOrder called with data:', {
+      ...data,
+      image: data.image ? {
+        name: data.image.name,
+        type: data.image.type,
+        size: data.image.size
+      } : undefined
+    });
+
     // Client-side validation
     const validationErrors = OrderValidator.validate(data);
     if (validationErrors.length > 0) {
@@ -212,18 +357,33 @@ export class OrderService {
       throw new Error('Authentication required. Please login first.');
     }
 
-    const formData = this.createFormData(data);
+    // Create FormData with processed image and cart data
+    const formData = await this.createFormData(data);
     const url = `${this.baseUrl}/orders`;
+
+    // Log FormData contents (for debugging)
+    console.log('📋 FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof Blob) {
+        console.log(`${key}:`, {
+          type: value.type,
+          size: value.size,
+          name: (value as File).name || 'blob'
+        });
+      } else {
+        console.log(`${key}:`, value);
+      }
+    }
 
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: this.getHeaders(true),
+        headers: this.getHeaders(true), // true = multipart
         body: formData,
       });
 
       const result = await response.json();
-      // console.log('Create Order Response:', result);
+      console.log('📬 Server response:', result);
 
       if (!response.ok) {
         throw new Error(result.message || `HTTP error! status: ${response.status}`);
@@ -231,6 +391,7 @@ export class OrderService {
 
       return result as CreateOrderResponse;
     } catch (error) {
+      console.error('❌ Create order error:', error);
       if (error instanceof Error) {
         throw error;
       }
