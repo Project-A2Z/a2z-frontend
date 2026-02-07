@@ -4,10 +4,10 @@ import { Product } from '@/services/api/products';
 // import { console } from 'inspector';
 
 // Lazy load heavy components
-const Overview = lazy(() => import('@/pages/ProductPage/Sections/Overview'));
-const Specs = lazy(() => import('@/pages/ProductPage/Sections/Specs'));
-const Ratings = lazy(() => import('@/pages/ProductPage/Sections/Ratings'));
-const Reviews = lazy(() => import('@/pages/ProductPage/Sections/Reviews'));
+const Overview = lazy(() => import('./Sections/Overview'));
+const Specs = lazy(() => import('./Sections/Specs'));
+const Ratings = lazy(() => import('./Sections/Ratings'));
+const Reviews = lazy(() => import('./Sections/Reviews'));
 const RelatedProducts = lazy(() => import('@/components/UI/RelatedProducts/RelatedProducts'));
 
 export type ProductData = Product;

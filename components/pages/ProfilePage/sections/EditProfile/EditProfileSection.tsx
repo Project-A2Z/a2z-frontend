@@ -8,7 +8,7 @@ import Welcome from '@/components/UI/Profile/leftSection/Welcome/Welcome';
 
 // PERFORMANCE: Lazy load ALL other components - they load ONLY when clicked
 const InfoDetails = dynamic(
-  () => import('../../../../components/UI/Profile/leftSection/Information/InfoDetails'),
+  () => import('@/components/UI/Profile/leftSection/Information/InfoDetails'),
   {
     loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
     ssr: false
@@ -16,7 +16,7 @@ const InfoDetails = dynamic(
 );
 
 const PassChange = dynamic(
-  () => import('../../../../components/UI/Profile/leftSection/PassChange/PassChange'),
+  () => import('@/components/UI/Profile/leftSection/PassChange/PassChange'),
   {
     loading: () => <div style={{ padding: '2rem', textAlign: 'center' }}>جاري التحميل...</div>,
     ssr: false
@@ -56,9 +56,9 @@ const Logout = dynamic(
 );
 
 // Services - keep these as they're small
-import { logoutUser, AuthService } from './../../../../services/auth/login';
-import orderService, { OrderItem } from './../../../../services/profile/orders';
-import { updatePassword } from '../../../../services/profile/profile';
+import { logoutUser, AuthService } from '@/services/auth/login';
+import orderService, { OrderItem } from '@/services/profile/orders';
+import { updatePassword } from '@/services/profile/profile';
 import { signOut } from 'next-auth/react';
 
 interface User {

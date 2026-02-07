@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Slider } from '../../../../components/UI/Slider';
-import type { SlideItem } from '../../../../components/UI/Slider';
+import { Slider } from '@/components/UI/Slider';
+import type { SlideItem } from '@/components/UI/Slider';
 
 const MainSection = React.memo(() => {
   const [slides, setSlides] = useState<SlideItem[]>([]);

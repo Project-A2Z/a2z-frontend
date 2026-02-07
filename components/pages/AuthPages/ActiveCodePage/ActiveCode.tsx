@@ -2,18 +2,18 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import LogoSection from "@/pages/AuthPages/ActiveCodePage/sections/LogoSection/Logo";
-import InstructionSection from "@/pages/AuthPages/ActiveCodePage/sections/InstructionSection/InstructionSection";
-import CodeInputSection from "@/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
-import VerifyButtonSection from "@/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
-import ResendTimerSection from "@/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
+import LogoSection from "./sections/LogoSection/Logo";
+import InstructionSection from "./sections/InstructionSection/InstructionSection";
+import CodeInputSection from "./sections/CodeInputSection/CodeInputSection";
+import VerifyButtonSection from "./sections/VerifyButtonSection/VerifyButtonSection";
+import ResendTimerSection from "./sections/ResendTimerSection/ResendTimerSection";
 import Input from "@/components/UI/Inputs/Input";
 import BackgroundSection from "@/components/UI/Background/Background";
 import {
   resendVerificationCode,
   getCurrentUser,
-} from "../../../services/auth/register";
-import { verifyEmail } from "../../../services/auth/register";
+} from "@/services/auth/register";
+import { verifyEmail } from "@/services/auth/register";
 
 import styles from "./sections/ActiveCode.module.css";
 

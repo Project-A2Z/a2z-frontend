@@ -5,13 +5,13 @@ import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 
 // Components - Keep critical components for initial render
-import TopMetrics from "@/pages/ProfilePage/sections/TopScetion/Top";
-import InformationSection from "@/pages/ProfilePage/sections/InformationSection/InformationSection";
+import TopMetrics from "./sections/TopScetion/Top";
+import InformationSection from "./sections/InformationSection/InformationSection";
 import AccountList from "@/components/UI/Profile/RightSection/List";
 
 // PERFORMANCE: Lazy load EditProfileSection (only loads when box is selected)
 const EditProfileSection = dynamic(
-  () => import("@/pages/ProfilePage/sections/EditProfile/EditProfileSection"),
+  () => import("./sections/EditProfile/EditProfileSection"),
   {
     loading: () => (
       <div className={styles.loading_container}>
@@ -24,13 +24,13 @@ const EditProfileSection = dynamic(
 );
 
 // Services
-import { getCurrentUser } from "../../services/auth/login";
-import { ProfileService } from "../../services/profile/profile";
+import { getCurrentUser } from "@/services/auth/login";
+import { ProfileService } from "@/services/profile/profile";
 
 // Icons
-import Heart from "./../../public/icons/HeartProf.svg";
-import Cart from "./../../public/icons/CartProf.svg";
-import Star from "./../../public/icons/StarProf.svg";
+import Heart from "@/public/icons/HeartProf.svg";
+import Cart from "@/public/icons/CartProf.svg";
+import Star from "@/public/icons/StarProf.svg";
 
 // Interfaces
 export interface User {
@@ -84,7 +84,7 @@ const ProfilePage = () => {
     const initializeAuth = async () => {
       try {
         const { useAuthMonitor } = await import(
-          "../../components/providers/useAuthMonitor"
+          "@/components/providers/useAuthMonitor"
         );
       } catch (error) {
         console.error("Error loading auth monitor:", error);

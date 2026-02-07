@@ -1,7 +1,7 @@
 import React from "react";
-import HeroSection from "@/pages/AboutPage/Sections/HeroSection/HeroSection";
-import ServicesSection from "@/pages/AboutPage/Sections/ServicesSection/ServicesSection";
-import ClientsSection from "@/pages/AboutPage/Sections/ClientSection/ClientsSection";
+import HeroSection from "./Sections/HeroSection/HeroSection";
+import ServicesSection from "./Sections/ServicesSection/ServicesSection";
+import ClientsSection from "./Sections/ClientSection/ClientsSection";
 import MVSection from "./Sections/MVSection/MVSection";
 
 import { generateSEO } from "@/config/seo.config";

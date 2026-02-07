@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ContactSection from '@/pages/HomePage/sections/FooterSection/Sections/ContactSection/ContactSection';
-import QuickLinks from '@/pages/HomePage/sections/FooterSection/Sections/QuickLinksSection/QuickLinks';
-import CategoriesSection from '@/pages/HomePage/sections/FooterSection/Sections/CategoriesSection/CategoriesSection';
-import AboutUsSection from '@/pages/HomePage/sections/FooterSection/Sections/AboutUsSection/AboutUsSection';
+import ContactSection from './Sections/ContactSection/ContactSection';
+import QuickLinks from './Sections/QuickLinksSection/QuickLinks';
+import CategoriesSection from './Sections/CategoriesSection/CategoriesSection';
+import AboutUsSection from './Sections/AboutUsSection/AboutUsSection';
 import dynamic from 'next/dynamic';
 
 

@@ -1,4 +1,4 @@
-import ForgetPasswordPage from "@/pages/AuthPages/ForgetPasswordPage/ForgetPasswordPage";
+import ForgetPasswordPage from "@/components/pages/AuthPages/ForgetPasswordPage/ForgetPasswordPage";
 import Background from "@/components/UI/Background/Background";
 
 export default function ResetPasswordPage() {

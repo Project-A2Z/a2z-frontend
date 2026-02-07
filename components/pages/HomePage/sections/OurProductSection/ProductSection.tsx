@@ -6,7 +6,7 @@ import {
 
 // Lazy load the product section
 const OptimizedProductSection = dynamic(
-  () => import("@/pages/HomePage/sections/OurProductSection/optimizer"),
+  () => import("./optimizer"),
   {
     loading: () => <ProductSectionSkeleton />,
     ssr: true,

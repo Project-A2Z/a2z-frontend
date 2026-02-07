@@ -1,4 +1,4 @@
-import NewAddressForm from "@/pages/ProfilePage/sections/AddAdress/AddAdress";
+import NewAddressForm from "@/components/pages/ProfilePage/sections/AddAdress/AddAdress";
 
 import { generateSEO } from "@/config/seo.config";
 

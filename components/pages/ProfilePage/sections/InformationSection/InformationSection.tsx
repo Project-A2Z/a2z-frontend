@@ -3,7 +3,7 @@ import React, { useState, useEffect, memo } from 'react';
 import styles from './../../profile.module.css';
 
 // Components
-import Info from '../../../../components/UI/Profile/RightSection/Info';
+import Info from '@/components/UI/Profile/RightSection/Info';
 
 // Interfaces
 export interface User {
