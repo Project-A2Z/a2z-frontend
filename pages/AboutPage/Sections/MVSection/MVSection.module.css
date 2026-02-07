@@ -1,0 +1,13 @@
+.mvSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .mvSection {
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+  }
+}

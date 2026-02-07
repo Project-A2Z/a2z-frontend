@@ -43,7 +43,7 @@ const Footer = () => {
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              opacity: 0.3 /* Adjust this value between 0 and 1 */
+              opacity: 0.2 
             }}
           ></div>
           {/* Gradient Overlay */}

@@ -1,8 +1,7 @@
 import React from 'react'
-
 const AboutUsSection = () => {
     return (
-      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[16%] min-h-[180px] sm:min-h-[160px] md:min-h-[140px] lg:h-[18vh] flex flex-col justify-end items-end ">
+      <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[30%] min-h-[180px] sm:min-h-[160px] md:min-h-[140px] lg:h-[18vh] flex flex-col justify-end items-end ">
         <div className="w-full sm:w-[95%] md:w-[90%] lg:w-[85%] min-h-[7vh] sm:min-h-[6vh] md:min-h-[5vh] flex flex-row  items-center gap-1 sm:gap-2 md:gap-3 mx-auto px-1 sm:px-2">
           {/* company name - positioned on the left */}
           <div className="w-[45%] sm:w-[40%] md:w-[50%] lg:w-[55%] min-h-[5vh] sm:min-h-[4.5vh] flex justify-start items-center ">
@@ -25,7 +24,6 @@ const AboutUsSection = () => {
           والمواد المساعدة وكيماويات صناعة 
           المنظفات ومستحضرات التجميل
         </p>
-
       </div>
     );
   };
