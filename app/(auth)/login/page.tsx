@@ -227,7 +227,7 @@ function LoginFormContent() {
               <button 
                 type="button"
                 className={styles.forgotPasswordLink}
-                onClick={() => router.push('/active-code')}
+                onClick={() => router.push('/reset-password')}
                 disabled={isLoading}
               >
                 هل نسيت كلمة المرور؟

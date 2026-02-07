@@ -1,4 +1,4 @@
-// services/product/products.ts - Updated with category-based caching and pagination
+// services/product/products.ts - OPTIMIZED VERSION with AbortSignal support
 
 import {Api , API_ENDPOINTS} from './../api/endpoints'
 
@@ -157,7 +157,8 @@ const processProductImagesStatic = (product: any): Product => {
   };
 };
 
-const getRequestConfig = (revalidate: number = 60) => ({
+// 🚀 OPTIMIZATION: Updated to accept optional AbortSignal
+const getRequestConfig = (revalidate: number = 60, signal?: AbortSignal) => ({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -167,6 +168,7 @@ const getRequestConfig = (revalidate: number = 60) => ({
     revalidate, 
     tags: ['products'] 
   },
+  ...(signal && { signal }), // Add signal if provided
 });
 
 // ============================================
@@ -185,22 +187,40 @@ let isLoadingProducts = false;
 let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
 let lastRequestTime = 0;
 
-const CACHE_DURATION = 60 * 60 * 1000; 
-const MIN_REQUEST_INTERVAL = 15000;
+// 🚀 OPTIMIZATION: Reduced cache duration for more frequent updates
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes instead of 1 hour
+const MIN_REQUEST_INTERVAL = 1000; // Reduced to 1 second for better responsiveness
 
 // ============================================
 // FETCH ALL PRODUCTS (Global Cache)
 // ============================================
-export const getProductsWithState = async (): Promise<Product[]> => {
+export const getProductsWithState = async (signal?: AbortSignal): Promise<Product[]> => {
   const now: number = Date.now();
 
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    console.log('✅ Returning cached products:', globalProductsCache.length);
     return globalProductsCache;
+  }
+
+  // 🚀 OPTIMIZATION: Check if request was aborted before proceeding
+  if (signal?.aborted) {
+    throw new DOMException('Request aborted', 'AbortError');
   }
 
   if (isLoadingProducts) {
     return new Promise((resolve, reject) => {
       pendingPromises.push({ resolve, reject });
+      
+      // 🚀 OPTIMIZATION: Handle abort for pending promises
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          const index = pendingPromises.findIndex(p => p.resolve === resolve);
+          if (index > -1) {
+            pendingPromises.splice(index, 1);
+            reject(new DOMException('Request aborted', 'AbortError'));
+          }
+        });
+      }
     });
   }
 
@@ -213,9 +233,11 @@ export const getProductsWithState = async (): Promise<Product[]> => {
   lastRequestTime = now;
 
   try {
+    console.log('🔄 Fetching all products from API...');
+    
     const response: Response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
       method: 'GET',
-      ...getRequestConfig(),
+      ...getRequestConfig(60, signal),
     });
 
     if (response.status === 429) {
@@ -231,7 +253,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 
       const retryResponse: Response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
         method: 'GET',
-        ...getRequestConfig(),
+        ...getRequestConfig(60, signal),
       });
 
       if (retryResponse.status === 429) {
@@ -258,6 +280,7 @@ export const getProductsWithState = async (): Promise<Product[]> => {
       pendingPromises.forEach(({ resolve }) => resolve(products));
       pendingPromises = [];
 
+      console.log('✅ Fetched products after retry:', products.length);
       return products;
     }
 
@@ -275,10 +298,19 @@ export const getProductsWithState = async (): Promise<Product[]> => {
     pendingPromises.forEach(({ resolve }) => resolve(products));
     pendingPromises = [];
 
+    console.log('✅ Fetched products successfully:', products.length);
     return products;
 
   } catch (error) {
     console.error('❌ Error fetching products:', error);
+
+    // 🚀 OPTIMIZATION: Handle abort errors gracefully
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      isLoadingProducts = false;
+      pendingPromises.forEach(({ reject }) => reject(error));
+      pendingPromises = [];
+      throw error;
+    }
 
     if (globalProductsCache) {
       isLoadingProducts = false;
@@ -304,12 +336,21 @@ export const getProductsWithState = async (): Promise<Product[]> => {
 // ============================================
 // FETCH PRODUCTS BY CATEGORY (Smart Caching)
 // ============================================
-export const fetchProductsByCategory = async (categoryName: string): Promise<Product[]> => {
+export const fetchProductsByCategory = async (
+  categoryName: string, 
+  signal?: AbortSignal
+): Promise<Product[]> => {
   const now: number = Date.now();
 
   const cachedCategory = categoryCaches.get(categoryName);
   if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
+    console.log('✅ Returning cached category products:', categoryName, cachedCategory.products.length);
     return cachedCategory.products;
+  }
+
+  // 🚀 OPTIMIZATION: Check abort before API call
+  if (signal?.aborted) {
+    throw new DOMException('Request aborted', 'AbortError');
   }
 
   if (categoryCaches.size > 0) {
@@ -320,11 +361,13 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
   }
 
   try {
+    console.log('🔄 Fetching products for category:', categoryName);
+    
     const filterUrl: string = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
 
     const response: Response = await fetch(filterUrl, {
       method: 'GET',
-      ...getRequestConfig(),
+      ...getRequestConfig(60, signal),
     });
 
     if (response.status === 429) {
@@ -348,10 +391,16 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
       timestamp: now
     });
 
+    console.log('✅ Fetched category products:', categoryName, products.length);
     return products;
 
   } catch (error) {
     console.error(`❌ Error fetching products for category ${categoryName}:`, error);
+
+    // 🚀 OPTIMIZATION: Handle abort errors
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error;
+    }
 
     if (cachedCategory) {
       return cachedCategory.products;
@@ -367,9 +416,15 @@ export const fetchProductsByCategory = async (categoryName: string): Promise<Pro
 export const fetchProductsFromAPI = async (
   page: number = 1, 
   limit: number = 20, 
-  category?: string
+  category?: string,
+  signal?: AbortSignal
 ): Promise<ProductsResponse> => {
   const now: number = Date.now();
+
+  // 🚀 OPTIMIZATION: Check abort early
+  if (signal?.aborted) {
+    throw new DOMException('Request aborted', 'AbortError');
+  }
 
   if (lastRequestTime && (now - lastRequestTime) < MIN_REQUEST_INTERVAL) {
     const waitTime: number = MIN_REQUEST_INTERVAL - (now - lastRequestTime);
@@ -385,9 +440,11 @@ export const fetchProductsFromAPI = async (
       url += `&category=${encodeURIComponent(category)}`;
     }
 
+    console.log('🔄 Fetching paginated products:', { page, limit, category });
+
     const response: Response = await fetch(url, {
       method: 'GET',
-      ...getRequestConfig(),
+      ...getRequestConfig(60, signal),
     });
 
     if (response.status === 429) {
@@ -407,6 +464,8 @@ export const fetchProductsFromAPI = async (
 
     const total: number = data.pagination?.total || data.length || products.length;
     const totalPages: number = Math.ceil(total / limit);
+
+    console.log('✅ Fetched paginated products:', products.length, 'of', total);
 
     return {
       data: products,
@@ -428,19 +487,33 @@ export const fetchProductsFromAPI = async (
 
   } catch (error) {
     console.error('❌ Error fetching paginated products:', error);
+    
+    // 🚀 OPTIMIZATION: Re-throw abort errors
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error;
+    }
+    
     throw error;
   }
 };
 
 // ============================================
-// FETCH ALL PRODUCTS WITH SMART ROUTING
+// 🚀 MAIN OPTIMIZED FUNCTION - fetchAllProducts
 // ============================================
 export const fetchAllProducts = async (
-  filters: ProductFilters = {} 
+  filters: ProductFilters = {},
+  signal?: AbortSignal  // 🚀 NEW: Accept AbortSignal
 ): Promise<ProductsResponse> => {
   try {
+    console.log('📊 fetchAllProducts called with filters:', filters);
+    
     const page: number = filters.page || 1;
     const limit: number = filters.limit || 20;
+
+    // 🚀 OPTIMIZATION: Check abort before processing
+    if (signal?.aborted) {
+      throw new DOMException('Request aborted', 'AbortError');
+    }
 
     const needsClientSideFiltering: boolean = Boolean(
       filters.search || 
@@ -450,19 +523,21 @@ export const fetchAllProducts = async (
       (Array.isArray(filters.category) && filters.category.length > 1)
     );
 
+    // 🚀 OPTIMIZATION: Use API pagination when possible
     if (!needsClientSideFiltering) {
       const category: string | undefined = typeof filters.category === 'string' 
         ? filters.category 
         : undefined;
-      return await fetchProductsFromAPI(page, limit, category);
+      return await fetchProductsFromAPI(page, limit, category, signal);
     }
 
+    // Client-side filtering path
     let products: Product[];
 
     if (filters.category && typeof filters.category === 'string') {
-      products = await fetchProductsByCategory(filters.category);
+      products = await fetchProductsByCategory(filters.category, signal);
     } else {
-      products = await getProductsWithState();
+      products = await getProductsWithState(signal);
     }
 
     let filteredProducts: Product[] = products;
@@ -501,6 +576,8 @@ export const fetchAllProducts = async (
     const endIndex: number = startIndex + limit;
     const paginatedProducts: Product[] = filteredProducts.slice(startIndex, endIndex);
 
+    console.log('✅ Returning filtered products:', paginatedProducts.length, 'of', total);
+
     return {
       data: paginatedProducts,
       pagination: {
@@ -520,7 +597,13 @@ export const fetchAllProducts = async (
     };
 
   } catch (error) {
-    console.error('Error in fetchAllProducts:', error);
+    console.error('❌ Error in fetchAllProducts:', error);
+
+    // 🚀 OPTIMIZATION: Handle abort errors specifically
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('ℹ️ Request was cancelled');
+      throw error;
+    }
 
     if (globalProductsCache) {
       const page: number = filters.page || 1;
@@ -528,6 +611,8 @@ export const fetchAllProducts = async (
       const startIndex: number = (page - 1) * limit;
       const endIndex: number = startIndex + limit;
       const paginatedCache: Product[] = globalProductsCache.slice(startIndex, endIndex);
+
+      console.log('⚠️ Returning cached data due to error');
 
       return {
         data: paginatedCache,
@@ -579,14 +664,17 @@ export const fetchAllProducts = async (
 // ============================================
 // FETCH PRODUCTS WITH PAGINATION
 // ============================================
-export const fetchProducts = async (filters: ProductFilters = {}): Promise<ProductsResponse> => {
+export const fetchProducts = async (
+  filters: ProductFilters = {}, 
+  signal?: AbortSignal
+): Promise<ProductsResponse> => {
   try {
     let products: Product[];
 
     if (filters.category && typeof filters.category === 'string') {
-      products = await fetchProductsByCategory(filters.category);
+      products = await fetchProductsByCategory(filters.category, signal);
     } else {
-      products = await getProductsWithState();
+      products = await getProductsWithState(signal);
     }
 
     let filteredProducts: Product[] = products;
@@ -670,10 +758,11 @@ export const paginateProducts = (
 // ============================================
 export const searchProducts = async (
   query: string,
-  filters: Omit<ProductFilters, 'search'> = {}
+  filters: Omit<ProductFilters, 'search'> = {},
+  signal?: AbortSignal
 ): Promise<ProductsResponse> => {
   try {
-    return await fetchProducts({ ...filters, search: query });
+    return await fetchProducts({ ...filters, search: query }, signal);
   } catch (error) {
     console.error('Error searching products:', error);
     throw error;
@@ -684,10 +773,11 @@ export const searchProducts = async (
 // FETCH FEATURED PRODUCTS
 // ============================================
 export const fetchFeaturedProducts = async (
-  filters: ProductFilters = {}
+  filters: ProductFilters = {},
+  signal?: AbortSignal
 ): Promise<ProductsResponse> => {
   try {
-    return await fetchProducts({ ...filters, featured: true });
+    return await fetchProducts({ ...filters, featured: true }, signal);
   } catch (error) {
     console.error('Error fetching featured products:', error);
     throw error;
@@ -746,19 +836,23 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 export const clearProductsCache = (): void => {
   globalProductsCache = null;
   cacheTimestamp = 0;
+  console.log('🗑️ Cleared products cache');
 };
 
 export const clearCategoryCache = (categoryName?: string): void => {
   if (categoryName) {
     categoryCaches.delete(categoryName);
+    console.log('🗑️ Cleared cache for category:', categoryName);
   } else {
     categoryCaches.clear();
+    console.log('🗑️ Cleared all category caches');
   }
 };
 
 export const clearAllCaches = (): void => {
   clearProductsCache();
   clearCategoryCache();
+  console.log('🗑️ Cleared all caches');
 };
 
 export const getCacheInfo = () => {

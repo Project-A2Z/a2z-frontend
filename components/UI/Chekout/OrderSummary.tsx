@@ -124,7 +124,7 @@ const Summary: React.FC<SummaryInter> = ({
         image: paymentData.image,
       };
 
-      //console.log('📦 Creating order:', orderData);
+      console.log('📦 Creating order:', orderData);
 
       // Create order
       const response = await orderService.createOrder(orderData);

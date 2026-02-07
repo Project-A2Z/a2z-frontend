@@ -10,7 +10,8 @@
     gap: 16px;
     /* background-color: black; */
     /* max-width: 800px; */
-    margin: 7% auto;
+    margin: 7% 5rem;
+    justify-self: center;
     padding: 0 0.6%;
     width: 85%;
     height: fit-content;
@@ -109,5 +110,10 @@
     
     .items_list_grid {
         grid-template-columns: 1fr;
+    }
+}
+@media (max-width : 320px) {
+    .content_wrapper{
+        margin: 20% 1rem;
     }
 }

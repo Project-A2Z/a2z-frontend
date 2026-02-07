@@ -8,6 +8,7 @@ import styles from '@/components/UI/Chekout/Style.module.css'
 import { Button } from '@/components/UI/Buttons/Button' 
 import Input from '@/components/UI/Inputs/Input'
 import Alert, { AlertButton } from '@/components/UI/Alert/alert'
+import DatePicker from "../DatePicker/DatePicker"
 
 interface FormData {
     opId: string;
@@ -197,6 +198,14 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                             disabled={isConfirmed}
                             max={new Date().toISOString().split('T')[0]}
                         />
+                        {/* <DatePicker
+                            value={transactionDate}
+                            onChange={setTransactionDate}
+                            max={new Date().toISOString().split('T')[0]}
+                            disabled={isConfirmed}
+                            placeholder="اختر التاريخ"
+                            className={styles.customInput}
+                        /> */}
                     </div>
 
                     <div className={styles.fieldGroup}>

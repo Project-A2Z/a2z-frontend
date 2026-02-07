@@ -1,0 +1,267 @@
+/* DatePicker.module.css */
+
+.container {
+  position: relative;
+  width: 100%;
+}
+
+.triggerButton {
+  width: 100%;
+  height: 44px;
+  border-radius: 32px;
+  border: 1px solid var(--black16);
+  background-color: var(--card);
+  text-align: right;
+  padding: 12px 16px;
+  transition: all 200ms;
+  cursor: pointer;
+}
+
+.triggerButton:focus {
+  outline: none;
+  border: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+.triggerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: rgb(249 250 251);
+}
+
+.selectedText {
+  color: var(--black87);
+}
+
+.placeholderText {
+  color: var(--black37);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.dropdownContainer {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 8px;
+  z-index: 50;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 1px solid var(--black8);
+  overflow: hidden;
+  background-color: var(--card);
+  font-family: var(--font-primary);
+}
+
+.calendarWrapper {
+  padding: 16px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--black8);
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--black16);
+  color: var(--black60);
+  background-color: transparent;
+  transition: all 200ms;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.cancelButton:hover {
+  background-color: var(--black8);
+}
+
+.confirmButton {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background-color: var(--primary);
+  color: var(--onPrimary);
+  transition: all 200ms;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: none;
+}
+
+.confirmButton:hover {
+  opacity: 0.9;
+}
+
+/* DayPicker custom styles */
+.dayPickerRoot {
+  direction: rtl;
+}
+
+.months {
+  display: flex;
+  flex-direction: column;
+}
+
+.month {
+  width: 100%;
+}
+
+.caption {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+  position: relative;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.captionLabel {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navButton {
+  height: 32px;
+  width: 32px;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 9999px;
+  transition: all 200ms;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+
+}
+
+.navButton svg{
+  color: var(--primary);    
+}
+
+.navButton:hover {
+  background-color: rgb(var(--primary) / 0.1);
+}
+
+.navButtonPrevious {
+  position: absolute;
+  left: 4px;
+  color: var(--primary);
+
+}
+
+.navButtonNext {
+  position: absolute;
+  right: 4px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.headRow {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.headCell {
+  border-radius: 6px;
+  width: 40px;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  flex: 1;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.cell {
+  position: relative;
+  padding: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.cell:focus-within {
+  position: relative;
+  z-index: 20;
+}
+
+.day {
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  font-weight: 400;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms;
+}
+
+.day:hover {
+  background-color: rgb(var(--primary) / 0.1);
+}
+
+.day:focus {
+  outline: none;
+  border: 2px solid var(--primary);
+  
+}
+
+.daySelected {
+  background-color: var(--primary);
+  color: var(--onPrimary);
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.daySelected:hover {
+  background-color: var(--primary);
+  color: var(--onPrimary);
+}
+
+.dayToday {
+  background-color: var(--secondary1);
+  color: var(--onPrimary);
+  font-weight: 600;
+}
+
+.dayOutside {
+  opacity: 0.3;
+}
+
+.dayDisabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dayDisabled:hover {
+  background-color: transparent;
+}
+
+.dayHidden {
+  visibility: hidden;
+}
