@@ -88,12 +88,12 @@
   border-radius: 1.5rem;
   top: 50%;
   right: 50%;
-  transform: translate(95% , 180%);
+  transform: translate(90% , 120%);
   z-index: 2;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 400;
-  height: 1.25rem;
+  height: 2rem;
   width: fit-content;
   min-width: 6rem;
   /* background-color: aquamarine; */
@@ -106,14 +106,14 @@
   color: var(--onPrimary);
   padding: 0.25rem 0.5rem;
   border-radius: 1.5rem;
-  bottom: 25%;
-  right: -25%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: 50%;
+  transform: translate(90% , 120%);
   z-index: 2;
   gap: 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.8rem;
   font-weight: 400;
-  height: 1.25rem;
+  height: 2rem;
   width: fit-content;
    min-width: 6rem;
   /* background-color: aquamarine; */
@@ -140,7 +140,7 @@
   align-items: center;
   width: fit-content;
   min-width: 5rem;
-  height: 1.25rem;
+  height: 1.5rem;
   border-radius: 1.5rem;
   padding: 0.25rem 1rem;
   gap: 1rem; 
@@ -151,7 +151,7 @@
 .categoryText {
   padding: 0.3rem 1rem;
   border-radius: 1.125rem;
-  font-size: 0.625rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--black60);
 }
@@ -161,7 +161,7 @@
   display: flex;
   width: 70%;
   height: 20%;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--black60);
 }
@@ -178,7 +178,7 @@
   gap: 0.2rem;
   align-self: flex-start;
   margin-top: -6%;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--black60);
 }
@@ -257,17 +257,17 @@
 
   .categoryText {
     padding: 0.2rem 0.5rem;
-    font-size: 0.6rem;
+    font-size: 0.75rem;
   }
 
   .productName {
-    font-size:0.825rem;
+    font-size:1rem;
     gap: 0.25rem;
   }
 
   .priceSection {
     gap: 0.15rem;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -340,16 +340,16 @@
 
   .categoryText {
     padding: 0.1rem 0.4rem;
-    font-size: 0.6rem;
+    font-size: 0.8rem;
   }
 
   .productName {
-    font-size: 0.825rem;
+    font-size: 1rem;
     width: 80%;
   }
 
   .priceSection {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     margin-top: -10%;
   }
 }
@@ -370,11 +370,11 @@
   }
 
   .priceSection {
-    font-size: 0.55rem;
+    font-size: 0.75rem;
   }
 
   .categoryText {
-    font-size: 0.50rem;
+    font-size: 0.8rem;
   }
   /* .cardBody {
     margin-top: 100%;
