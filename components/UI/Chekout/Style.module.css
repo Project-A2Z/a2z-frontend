@@ -1337,7 +1337,7 @@
 /* iPad Air and similar tablets */
 @media (min-width: 768px) and (max-width: 1023px) {
   .Container {
-    margin: 4% 6%;
+    margin: 4% 0;
     padding: 2.5%;
   }
   
