@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type RatingsDistribution = { stars: number; count: number }[];
 
@@ -12,162 +12,170 @@ type Props = {
   interactive?: boolean;
 };
 
+const StarIcon = ({ filled = true, size = 20 }: { filled?: boolean; size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? "#F59E0B" : "#D1D5DB"}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+);
+
 const Ratings: React.FC<Props> = React.memo(({
   average = 0,
   total = 0,
   distribution = [],
   onStarClick,
   onDistributionClick,
-  interactive = true
+  interactive = true,
 }) => {
-  const [hoveredStars, setHoveredStars] = useState<number | null>(null);
-  const [selectedStars, setSelectedStars] = useState<number | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
+  const [selectedStar, setSelectedStar] = useState<number | null>(null);
 
-  // Ensure distribution is always an array
-  const safeDistribution = Array.isArray(distribution) ? distribution : [];
-  
-  // Ensure average and total are valid numbers
-  const safeAverage = typeof average === 'number' && !isNaN(average) ? average : 0;
-  const safeTotal = typeof total === 'number' && !isNaN(total) ? total : 0;
+  const safeAverage = typeof average === "number" && !isNaN(average) ? average : 0;
+  const safeTotal = typeof total === "number" && !isNaN(total) ? total : 0;
 
-  const maxCount = Math.max(1, ...safeDistribution.map(d => d.count));
+  // Normalize: always have all 5 stars, counts as real numbers
+  const rawDistribution: RatingsDistribution = Array.isArray(distribution) ? distribution : [];
+  const distributionMap = new Map<number, number>(
+    rawDistribution.map((d) => [Number(d.stars), Number(d.count)])
+  );
+  const safeDistribution: RatingsDistribution = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: distributionMap.get(stars) ?? 0,
+  }));
 
-  const handleStarClick = (starValue: number) => {
-    if (!interactive || !onStarClick) return;
-    setSelectedStars(selectedStars === starValue ? null : starValue);
-    onStarClick(starValue);
+  const totalFromDistribution = safeDistribution.reduce((sum, d) => sum + d.count, 0);
+  const displayTotal = safeTotal || totalFromDistribution;
+
+  // ✅ Bar width = percentage of TOTAL reviews (not relative to max bar)
+  // e.g. 13 out of 21 reviews = 62% wide bar
+  const getBarPct = (count: number) => {
+    if (displayTotal === 0) return 0;
+    return (count / displayTotal) * 100;
   };
 
-  const handleDistributionClick = (stars: number) => {
+  const displayAverage = hoveredStar !== null ? hoveredStar : safeAverage;
+
+  const handleStarClick = (val: number) => {
+    if (!interactive || !onStarClick) return;
+    setSelectedStar(selectedStar === val ? null : val);
+    onStarClick(val);
+  };
+
+  const handleRowClick = (stars: number) => {
     if (!interactive || !onDistributionClick) return;
     onDistributionClick(stars);
   };
 
-  const getDisplayAverage = () => {
-    return hoveredStars !== null ? hoveredStars : safeAverage;
-  };
-
-  const getGoldColor = (count: number) => {
-    if (count >= 50) return 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600';
-    else if (count >= 30) return 'bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500';
-    else if (count >= 15) return 'bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400';
-    else if (count >= 5) return 'bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-300';
-    else return 'bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-200';
-  };
-
-  const getGoldTextColor = (count: number) => {
-    return count >= 30 ? 'text-yellow-700' : 'text-yellow-600';
-  };
-
-  if (safeTotal === 0) {
+  if (safeTotal === 0 && totalFromDistribution === 0) {
     return (
-      <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-        <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
-        <p className="text-black60">لا توجد تقييمات بعد.</p>
+      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5" dir="rtl">
+        <h2 className="text-base font-bold text-gray-900 mb-3 text-right">الآراء حول هذا المنتج</h2>
+        <p className="text-gray-400 text-sm">لا توجد تقييمات بعد.</p>
       </section>
     );
   }
 
   return (
-    <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-      <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
+    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5" dir="rtl">
+      {/* Title */}
+      <h2 className="text-base font-bold text-gray-900 mb-3 text-right">
+        الآراء حول هذا المنتج
+      </h2>
 
-      <div className="flex items-center justify-start gap-4 mb-2">
-        <div className="flex items-center gap-1 text-amber-500" aria-label={`التقييم ${getDisplayAverage().toFixed(1)} من 5`}>
+      {/* Rating header */}
+      <div className="flex items-center gap-2.5" aria-label={`التقييم ${displayAverage.toFixed(1)} من 5`}>
+        <span className="text-xl font-bold text-gray-900 leading-none">
+          {displayAverage.toFixed(1)}
+        </span>
+        <div className="flex gap-1" dir="ltr">
           {Array.from({ length: 5 }).map((_, i) => {
-            const starValue = i + 1;
-            const isActive = starValue <= Math.round(getDisplayAverage());
-            const isClickable = interactive && onStarClick;
-
+            const val = i + 1;
+            const filled = val <= Math.round(displayAverage);
+            const isClickable = interactive && !!onStarClick;
             return (
               <span
                 key={i}
-                className={`text-2xl sm:text-3xl leading-none transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? 'text-amber-500 hover:text-amber-600'
-                    : 'text-black16 hover:text-amber-400'
-                } ${isClickable ? 'hover:scale-110' : ''}`}
-                onMouseEnter={() => isClickable && setHoveredStars(starValue)}
-                onMouseLeave={() => isClickable && setHoveredStars(null)}
-                onClick={() => handleStarClick(starValue)}
+                className={`inline-flex transition-transform duration-150 ${isClickable ? "cursor-pointer hover:scale-110" : ""}`}
                 role={isClickable ? "button" : undefined}
                 tabIndex={isClickable ? 0 : undefined}
+                aria-label={`${val} stars`}
+                onMouseEnter={() => isClickable && setHoveredStar(val)}
+                onMouseLeave={() => isClickable && setHoveredStar(null)}
+                onClick={() => handleStarClick(val)}
                 onKeyDown={(e) => {
-                  if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                  if (isClickable && (e.key === "Enter" || e.key === " ")) {
                     e.preventDefault();
-                    handleStarClick(starValue);
+                    handleStarClick(val);
                   }
                 }}
               >
-                ★
+                <StarIcon filled={filled} size={28} />
               </span>
             );
           })}
         </div>
-        <div className="text-black60 text-sm sm:text-base font-medium">
-          {getDisplayAverage().toFixed(1)}
-        </div>
-      </div>
-      <div className="text-right text-black40 text-xs mb-4">
-        تقييم {safeTotal} {selectedStars && `- تم تصفية ${selectedStars} نجوم`}
       </div>
 
-      <div className="space-y-2">
-        {safeDistribution
-          .sort((a, b) => b.stars - a.stars)
-          .map((row) => {
-            const isClickable = interactive && onDistributionClick;
-            const isHighlighted = selectedStars === row.stars;
+      {/* Review count */}
+      <p className="text-xs text-gray-400 mt-1 mb-3 text-right">
+        تقييم {displayTotal}
+        {selectedStar ? ` - تم تصفية ${selectedStar} نجوم` : ""}
+      </p>
 
-            return (
-              <div
-                key={row.stars}
-                className={`flex items-center gap-3 transition-all duration-200 ${
-                  isClickable ? 'cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2' : ''
-                } ${isHighlighted ? 'bg-amber-50 border border-amber-200 rounded-lg' : ''}`}
-                onClick={() => handleDistributionClick(row.stars)}
-                role={isClickable ? "button" : undefined}
-                tabIndex={isClickable ? 0 : undefined}
-                onKeyDown={(e) => {
-                  if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
-                    e.preventDefault();
-                    handleDistributionClick(row.stars);
-                  }
-                }}
-              >
-                <div className={`w-8 text-sm text-right transition-colors duration-200 ${getGoldTextColor(row.count)}`}>
-                  {row.count}
-                </div>
+      {/* Distribution bars */}
+      <div className="flex flex-col gap-2">
+        {safeDistribution.map((row) => {
+          const pct = getBarPct(row.count);
+          const isHighlighted = selectedStar === row.stars;
+          const isClickable = interactive && !!onDistributionClick;
 
-                <div className="flex-1 h-2 bg-black8 rounded-full overflow-hidden relative">
-                  <div
-                    className={`h-full transition-all duration-300 ${getGoldColor(row.count)}`}
-                    style={{
-                      width: `${(row.count / maxCount) * 100}%`,
-                      transform: isHighlighted ? 'scaleY(1.2)' : 'scaleY(1)'
-                    }}
-                  />
-                  {isHighlighted && (
-                    <div className="absolute inset-0 bg-amber-400 opacity-20 rounded-full animate-pulse" />
-                  )}
-                </div>
-
-                <div className={`flex items-center gap-1 w-10 justify-end transition-colors duration-200 ${getGoldTextColor(row.count)}`}>
-                  <span className="transition-transform duration-200 hover:scale-110">★</span>
-                  <span className={`transition-colors duration-200 ${
-                    isHighlighted ? 'font-semibold' : ''
-                  }`}>
-                    {row.stars}
-                  </span>
-                </div>
+          return (
+            <div
+              key={row.stars}
+              onClick={() => handleRowClick(row.stars)}
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (isClickable && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  handleRowClick(row.stars);
+                }
+              }}
+              className={`flex items-center gap-2.5 px-1.5 py-0.5 rounded-lg border transition-all duration-200
+                ${isClickable ? "cursor-pointer" : ""}
+                ${isHighlighted ? "bg-amber-50 border-amber-200" : "border-transparent hover:bg-gray-50"}`}
+            >
+              {/* RIGHT in RTL: ★ + star number */}
+              <div className="flex items-center gap-1 shrink-0 w-8 justify-start" dir="ltr">
+                <StarIcon filled size={16} />
+                <span className="text-sm text-gray-700 font-medium">{row.stars}</span>
               </div>
-            );
-          })}
+
+              {/* MIDDLE: progress bar */}
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+
+              {/* LEFT in RTL: user count */}
+              <span className="w-5 text-left text-sm text-gray-500 shrink-0">
+                {row.count}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
 });
 
-Ratings.displayName = 'Ratings';
+Ratings.displayName = "Ratings";
 
 export default React.memo(Ratings);

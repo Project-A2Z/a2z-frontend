@@ -181,8 +181,8 @@ return (
         <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-12' : 'w-full'} gap-4 md:gap-6`}>
           {/* Cart Items Section */}
           <div className={`${cartItems.length > 0 ? 'lg:col-span-8 xl:col-span-9' : 'w-full'}`}>
-            <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 md:p-6">
-              <CartHeader itemCount={cartItems.length} />
+            <div className={`bg-white p-3 sm:p-4 md:p-6 flex flex-col gap-2 ${cartItems.length === 0 ? 'mt-14 sm:mt-20' : ''}`}>
+              {cartItems.length > 0 && <CartHeader itemCount={cartItems.length} />}
               <div className="mt-4">
                 <CartItemsList 
                   items={cartItems} 
@@ -195,8 +195,8 @@ return (
 
           {/* Order Summary - Only shown when there are items */}
           {cartItems.length > 0 && (
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="sticky top-24 space-y-4">
+            <div className="lg:col-span-4 xl:col-span-3 justify-self-center w-full" >
+              <div className="sticky top-32 space-y-4">
                 <OrderSummary 
                   order={cartItems} 
                   itemCount={cartItems.length} 
@@ -209,11 +209,11 @@ return (
         </div>
 
         {/* Related Products */}
-        {cartItems.length > 0 && (
+        {/* {cartItems.length > 0 && ( */}
           <div className="mt-8 md:mt-12">
             <RelatedProducts />
           </div>
-        )}
+        {/* )} */}
       </div>
     </div>
   );
