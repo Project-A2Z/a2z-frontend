@@ -13,7 +13,7 @@ interface ContactInfoProps {
 
 const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
   const defaultContacts: ContactItem[] = [
-    { type: "phone", value: "+201002866565" },
+    { type: "phone", value: "+20 12 20612372" },
     { type: "address", value: "كوبرى القبة - القاهرة مصر" },
     { type: "email", value: ["info@a2z-trading.com", "support@a2z-trading.com"] },
   ];
@@ -33,7 +33,7 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
       case "email":
         return `https://mail.google.com/mail/?view=cm&fs=1&to=${value.trim()}`;
       case "address":
-        return `https://maps.app.goo.gl/tdgaJqnyiDonxfLd7?g_st=aw`;
+        return `https://maps.app.goo.gl/41u4Vh6848gD8ybs5`;
       default:
         return "#";
     }

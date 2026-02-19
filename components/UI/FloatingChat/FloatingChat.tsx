@@ -43,7 +43,7 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{ success?: boolean; message: string } | null>(null);
-  const whatsappHref = 'https://wa.me/2010957676137';
+  const whatsappHref = 'https://wa.me/201007710805';
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
