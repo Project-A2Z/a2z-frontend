@@ -76,6 +76,24 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     fetchProduct();
   }, [data]);
 
+  const updateRatingData = (productData: ProductData) => {
+    setCurrentRating(productData.reviewSummary?.averageRate || productData.averageRate || 0);
+    setCurrentRatingCount(productData.reviewSummary?.totalReviews || 0);
+
+    // API field is "rateDistribution" (not "ratingDistribution")
+    const raw = productData.reviewSummary?.rateDistribution;
+
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const distribution = Object.entries(raw).map(([stars, count]) => ({
+        stars: parseInt(stars, 10),
+        count: Number(count),
+      }));
+      setRatingsDistribution(distribution);
+    } else {
+      setRatingsDistribution([]);
+    }
+  };
+
   const handleReviewAction = async () => {
     if (!product?._id) return;
     try {
@@ -145,11 +163,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
 
             <Suspense fallback={<SectionLoader />}>
               <Ratings
-                average={currentRating}
-                total={currentRatingCount}
-                distribution={ratingsDistribution}
-                interactive={true}
-              />
+  average={currentRating}
+  total={currentRatingCount}
+  distribution={ratingsDistribution}
+  interactive={true}
+  // onStarClick={handleStarFilter}
+  // onDistributionClick={handleDistributionFilter}
+/>
             </Suspense>
 
             <Suspense fallback={<SectionLoader />}>

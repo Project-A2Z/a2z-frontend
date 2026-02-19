@@ -13,6 +13,7 @@
   position: relative;
   font-family: var(--font-primary);
   padding: 16px 8px; 
+  cursor: pointer;
 }
 
 .card:hover {
@@ -84,7 +85,7 @@
   position: absolute;
   background: var(--primary);
   color: var(--onPrimary);
-  padding: 0.25rem 0.5rem;
+  padding: 0.1rem 1rem;
   border-radius: 1.5rem;
   top: 50%;
   right: 50%;
@@ -93,9 +94,9 @@
   gap: 0.5rem;
   font-size: 0.8rem;
   font-weight: 400;
-  height: 2rem;
+  height: 1.5rem;
   width: fit-content;
-  min-width: 6rem;
+  min-width: 6.75rem;
   /* background-color: aquamarine; */
   padding-bottom: 1rem;
 }

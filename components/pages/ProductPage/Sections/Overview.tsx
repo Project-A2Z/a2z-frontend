@@ -1,6 +1,12 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { Heart, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+} from "lucide-react";
 import { Minus, Plus } from "lucide-react";
 import { CustomImage } from "@/components/UI/Image/Images";
 import { cartService, checkProductUnitConflict } from "@/services/api/cart";
@@ -11,8 +17,8 @@ import Alert from "@/components/UI/Alert/alert";
 // Import the FavoritesContext directly but mark it as client-side only
 let FavoritesContext: any;
 
-if (typeof window !== 'undefined') {
-  FavoritesContext = require('@/services/favorites/FavoritesContext');
+if (typeof window !== "undefined") {
+  FavoritesContext = require("@/services/favorites/FavoritesContext");
 }
 
 type Props = {
@@ -20,7 +26,7 @@ type Props = {
   title?: string;
   description?: string;
   price?: number;
-  imageList?: string[]; 
+  imageList?: string[];
   rating?: number;
   ratingCount?: number;
   category?: string;
@@ -33,16 +39,20 @@ type Props = {
 };
 
 // Helper function to calculate price based on unit conversion
-const calculatePriceForUnit = (basePrice: number, baseUnit: string, targetUnit: string): number => {
+const calculatePriceForUnit = (
+  basePrice: number,
+  baseUnit: string,
+  targetUnit: string,
+): number => {
   // Define conversion rules
   const conversions: { [key: string]: { [key: string]: number } } = {
-    'kg': {
-      'kg': 1,
-      'ton': 1000,  // 1 ton = 1000 kg, so price * 1000
+    kg: {
+      kg: 1,
+      ton: 1000, // 1 ton = 1000 kg, so price * 1000
     },
-    'liter': {
-      'liter': 1,
-      'cubic_meter': 1000,  // 1 cubic meter = 1000 liters, so price * 1000
+    liter: {
+      liter: 1,
+      cubic_meter: 1000, // 1 cubic meter = 1000 liters, so price * 1000
     },
   };
 
@@ -69,10 +79,10 @@ const getBaseUnit = (props: {
   isCUBIC_METER?: boolean;
 }): string => {
   // Prioritize smaller units as base
-  if (props.isKG || props.isTON) return 'kg'; // KG is the base for weight
-  if (props.isLITER || props.isCUBIC_METER) return 'liter'; // Liter is the base for volume
-  if (props.isUNIT) return 'unit';
-  return 'unit';
+  if (props.isKG || props.isTON) return "kg"; // KG is the base for weight
+  if (props.isLITER || props.isCUBIC_METER) return "liter"; // Liter is the base for volume
+  if (props.isUNIT) return "unit";
+  return "unit";
 };
 
 const Overview: React.FC<Props> = ({
@@ -93,47 +103,51 @@ const Overview: React.FC<Props> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
-  
+
   // Define available units based on props - show related units together
   const unitOptions = React.useMemo(() => {
-    const options: Array<{key: string, label: string}> = [];
-    
+    const options: Array<{ key: string; label: string }> = [];
+
     // If KG is available, also add TON option
     if (isKG) {
-      options.push({ key: 'kg', label: 'كيلو' });
-      options.push({ key: 'ton', label: 'طن' });
+      options.push({ key: "kg", label: "كيلو" });
+      options.push({ key: "ton", label: "طن" });
     }
     // If TON is available without KG, still add both
     else if (isTON) {
-      options.push({ key: 'kg', label: 'كيلو' });
-      options.push({ key: 'ton', label: 'طن' });
+      options.push({ key: "kg", label: "كيلو" });
+      options.push({ key: "ton", label: "طن" });
     }
-    
+
     // If LITER is available, also add CUBIC_METER option
     if (isLITER) {
-      options.push({ key: 'liter', label: 'لتر' });
-      options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+      options.push({ key: "liter", label: "لتر" });
+      options.push({ key: "cubic_meter", label: "متر مكعب" });
     }
     // If CUBIC_METER is available without LITER, still add both
     else if (isCUBIC_METER) {
-      options.push({ key: 'liter', label: 'لتر' });
-      options.push({ key: 'cubic_meter', label: 'متر مكعب' });
+      options.push({ key: "liter", label: "لتر" });
+      options.push({ key: "cubic_meter", label: "متر مكعب" });
     }
-    
+
     // Add UNIT if specified
     if (isUNIT) {
-      options.push({ key: 'unit', label: 'قطعة' });
+      options.push({ key: "unit", label: "قطعة" });
     }
-    
-    return options.length > 0 ? options : [{ key: 'unit', label: 'قطعة' }];
+
+    return options.length > 0 ? options : [{ key: "unit", label: "قطعة" }];
   }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
   // Get the base unit for price calculation
-  const baseUnit = useMemo(() => getBaseUnit({ isUNIT, isKG, isTON, isLITER, isCUBIC_METER }), 
-    [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
+  const baseUnit = useMemo(
+    () => getBaseUnit({ isUNIT, isKG, isTON, isLITER, isCUBIC_METER }),
+    [isUNIT, isKG, isTON, isLITER, isCUBIC_METER],
+  );
 
-  const [selectedUnit, setSelectedUnit] = useState<string>(unitOptions[0]?.key || 'unit');
-  
+  const [selectedUnit, setSelectedUnit] = useState<string>(
+    unitOptions[0]?.key || "unit",
+  );
+
   // Calculate displayed price based on selected unit
   const displayedPrice = useMemo(() => {
     return calculatePriceForUnit(price, baseUnit, selectedUnit);
@@ -141,7 +155,10 @@ const Overview: React.FC<Props> = ({
 
   // Update selected unit if the first unit changes
   useEffect(() => {
-    if (unitOptions.length > 0 && !unitOptions.some(u => u.key === selectedUnit)) {
+    if (
+      unitOptions.length > 0 &&
+      !unitOptions.some((u) => u.key === selectedUnit)
+    ) {
       setSelectedUnit(unitOptions[0].key);
     }
   }, [unitOptions, selectedUnit]);
@@ -156,18 +173,20 @@ const Overview: React.FC<Props> = ({
   const [isClient, setIsClient] = useState(false);
   const [loved, setLoved] = useState(false);
   const [isFavoriteState, setIsFavoriteState] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
     setIsClient(true);
-    
-    cartService.getCart().catch(error => {
+
+    cartService.getCart().catch((error) => {
       console.error("Failed to fetch cart for validation:", error);
     });
   }, []);
-  
-  const favoritesContext = FavoritesContext ? FavoritesContext.useFavorites() : null;
-  
+
+  const favoritesContext = FavoritesContext
+    ? FavoritesContext.useFavorites()
+    : null;
+
   useEffect(() => {
     if (isClient && favoritesContext && id) {
       const { isFavorite } = favoritesContext;
@@ -179,35 +198,35 @@ const Overview: React.FC<Props> = ({
 
   const availableUnits = React.useMemo(() => {
     const units: { [key: string]: string } = {};
-    
+
     // If KG is available, also add TON option
     if (isKG) {
-      units.kg = 'كيلو';
-      units.ton = 'طن';
+      units.kg = "كيلو";
+      units.ton = "طن";
     }
     // If TON is available without KG, still add both
     else if (isTON) {
       // units.kg = 'كيلو';
-      units.ton = 'طن';
+      units.ton = "طن";
     }
-    
+
     // If LITER is available, also add CUBIC_METER option
     if (isLITER) {
-      units.liter = 'لتر';
-      units.cubic_meter = 'متر مكعب';
+      units.liter = "لتر";
+      units.cubic_meter = "متر مكعب";
     }
     // If CUBIC_METER is available without LITER, still add both
     else if (isCUBIC_METER) {
       // units.liter = 'لتر';
-      units.cubic_meter = 'متر مكعب';
+      units.cubic_meter = "متر مكعب";
     }
-    
+
     // Add UNIT if specified
     if (isUNIT) {
-      units.unit = 'قطعة';
+      units.unit = "قطعة";
     }
-    
-    return Object.keys(units).length > 0 ? units : { unit: 'قطعة' };
+
+    return Object.keys(units).length > 0 ? units : { unit: "قطعة" };
   }, [isUNIT, isKG, isTON, isLITER, isCUBIC_METER]);
 
   const handleUnitSelect = (key: string) => {
@@ -224,7 +243,7 @@ const Overview: React.FC<Props> = ({
 
   const prevImage = () => {
     setCurrentImageIndex(
-      (prev) => (prev - 1 + imageList.length) % imageList.length
+      (prev) => (prev - 1 + imageList.length) % imageList.length,
     );
     setIsManualNavigation(true);
     setTimeout(() => setIsManualNavigation(false), 5000);
@@ -265,7 +284,7 @@ const Overview: React.FC<Props> = ({
 
   const handleAddToCart = async () => {
     if (stockQty === 0 || isAdding) return;
-    
+
     const hasConflict = checkProductUnitConflict(String(id), selectedUnit);
     if (hasConflict) {
       return;
@@ -279,21 +298,24 @@ const Overview: React.FC<Props> = ({
       }
 
       const cartItemKey = `cart_item_${id}`;
-      localStorage.setItem(cartItemKey, JSON.stringify({
-        unit: selectedUnit,
-        quantity: quantity
-      }));
+      localStorage.setItem(
+        cartItemKey,
+        JSON.stringify({
+          unit: selectedUnit,
+          quantity: quantity,
+        }),
+      );
 
       await cartService.addToCart({
         productId: String(id),
         quantity: quantity,
-        unit: selectedUnit, 
+        unit: selectedUnit,
       });
-      
+
       await cartService.getCart();
       router.push("/cart");
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
     } finally {
       setIsAdding(false);
     }
@@ -301,30 +323,30 @@ const Overview: React.FC<Props> = ({
 
   const toggleFavorite = async () => {
     if (!isMounted) return;
-    
+
     if (!isAuthenticated()) {
       setShowLoginAlert(true);
       return;
     }
-    
+
     if (!favoritesContext) {
       setShowLoginAlert(true);
       return;
     }
-    
+
     const newLovedState = !loved;
     setLoved(newLovedState);
-    
+
     try {
       const { toggle } = favoritesContext;
-      toggle({ 
-        id, 
-        name: title, 
-        price, 
-        image: imageList[0] || '/acessts/NoImage.jpg' 
+      toggle({
+        id,
+        name: title,
+        price,
+        image: imageList[0] || "/acessts/NoImage.jpg",
       });
     } catch (err) {
-      console.error('Failed to toggle favorite:', err);
+      console.error("Failed to toggle favorite:", err);
       setLoved(!newLovedState);
     }
   };
@@ -332,7 +354,7 @@ const Overview: React.FC<Props> = ({
   const handleLoginConfirm = () => {
     setShowLoginAlert(false);
     router.push(
-      "/login?redirect=" + encodeURIComponent(window.location.pathname)
+      "/login?redirect=" + encodeURIComponent(window.location.pathname),
     );
   };
 
@@ -430,8 +452,8 @@ const Overview: React.FC<Props> = ({
             <span
               className={`px-3 py-1 rounded-full text-xs border ${
                 stockQty > 0
-                  ? "bg-green-100 text-green-700 border-green-200"
-                  : "bg-red-100 text-red-700 border-red-200"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-disabled text-white border-primary-700 cursor-not-allowed"
               }`}
             >
               {stockQty > 0 ? "متوفر في المخزون" : "غير متوفر"}
@@ -449,14 +471,21 @@ const Overview: React.FC<Props> = ({
             aria-label={`التقييم ${rating} من 5`}
           >
             {Array.from({ length: 5 }).map((_, i) => (
-              <span
+              // <span
+              //   key={i}
+              //   className={
+              //     i < Math.round(rating) ? "text-amber-500" : "text-black16"
+              //   }
+              // >
+              <Star
                 key={i}
-                className={
-                  i < Math.round(rating) ? "text-amber-500" : "text-black16"
-                }
-              >
-                ★
-              </span>
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                  i < Math.round(rating)
+                    ? "fill-amber-500 text-amber-500"
+                    : "text-gray-300"
+                }`}
+              />
+              // </span>
             ))}
             <span className="text-black60 text-sm">({ratingCount})</span>
           </div>

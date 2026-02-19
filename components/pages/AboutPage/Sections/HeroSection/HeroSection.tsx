@@ -12,11 +12,11 @@ const HeroSection = () => {
           <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] animate-fade-in">
             <div className="relative w-full h-full">
               <Image
-                src="/logo/logo2.webp.png"
+                src="/logo/logo.jpeg"
                 alt="A2Z Company Logo - Improve People Life"
                 fill
                 priority
-                className="object-contain drop-shadow-2xl"
+                className="object-contain"
                 sizes="(max-width: 640px) 200px, (max-width: 1024px) 250px, 300px"
               />
             </div>
