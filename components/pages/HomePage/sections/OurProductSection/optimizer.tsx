@@ -346,8 +346,9 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             variant="outline" 
             size="sm" 
             onClick={clearAllFilters}
+              rounded={true}
           >
-            مسح الفلاتر ({activeFiltersCount})
+            إلغاء التصفية 
           </Button>
         )}
       </div>

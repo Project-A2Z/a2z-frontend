@@ -69,28 +69,22 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }, [data]);
 
   const updateRatingData = (productData: ProductData) => {
-    setCurrentRating(productData.averageRate || 0);
+    setCurrentRating(productData.reviewSummary?.averageRate || productData.averageRate || 0);
     setCurrentRatingCount(productData.reviewSummary?.totalReviews || 0);
-    
-    const distribution = productData.reviewSummary?.ratingDistribution 
-      ? Object.entries(productData.reviewSummary.ratingDistribution).map(([stars, count]) => ({
-          stars: parseInt(stars),
-          count: count as number
-        }))
-      : [];
-    
-    setRatingsDistribution(distribution);
-  };
 
-  useEffect(() => {
-    const getToken = () => {
-      if (typeof window !== 'undefined') {
-        return localStorage.getItem('authToken');
-      }
-      return null;
-    };
-    // setToken(getToken());
-  }, []);
+    // API field is "rateDistribution" (not "ratingDistribution")
+    const raw = productData.reviewSummary?.rateDistribution;
+
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const distribution = Object.entries(raw).map(([stars, count]) => ({
+        stars: parseInt(stars, 10),
+        count: Number(count),
+      }));
+      setRatingsDistribution(distribution);
+    } else {
+      setRatingsDistribution([]);
+    }
+  };
 
   const handleReviewAction = async () => {
     if (!product?._id) return;
@@ -165,11 +159,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
             
             <Suspense fallback={<SectionLoader />}>
               <Ratings
-                average={currentRating}
-                total={currentRatingCount}
-                distribution={ratingsDistribution}
-                interactive={true}
-              />
+  average={currentRating}
+  total={currentRatingCount}
+  distribution={ratingsDistribution}
+  interactive={true}
+  // onStarClick={handleStarFilter}
+  // onDistributionClick={handleDistributionFilter}
+/>
             </Suspense>
             
             <Suspense fallback={<SectionLoader />}>

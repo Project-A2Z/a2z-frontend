@@ -179,7 +179,7 @@ function Card({
 
     return (
         <>
-            <div className={`${styles.card} ${!available ? styles.unavailable : ''}`}>
+            <div className={`${styles.card} ${!available ? styles.unavailable : ''}`} onClick={() => handleCardClick()}>
                 {badge && (
                     <div className={styles.badge}>
                         {badge}
