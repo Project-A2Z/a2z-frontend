@@ -29,6 +29,7 @@ import { Button } from "../../UI/Buttons/Button";
 
 // Services
 import { getUnreadNotificationsCount } from "../../../services/notifications/notification";
+import cartService from "@/services/api/cart"; 
 
 // Icons
 import Logo from "@/public/logo/logo2.webp.png";
@@ -89,6 +90,7 @@ function Header({
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0); // ✅ NEW: cart items count
   const [chat, setChat] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -162,36 +164,58 @@ function Header({
     let intervalId: NodeJS.Timeout | null = null;
 
     const fetchUnreadCount = async () => {
-      if (!user || !isMounted) {
-        return;
-      }
-
+      if (!user || !isMounted) return;
       try {
         const count = await getUnreadNotificationsCount();
-
-        if (isMounted) {
-          setUnreadCount(count);
-        }
+        if (isMounted) setUnreadCount(count);
       } catch (error) {
-        if (isMounted) {
-          console.error("❌ Error fetching unread count:", error);
-        }
+        if (isMounted) console.error("❌ Error fetching unread count:", error);
       }
     };
 
     if (user) {
       fetchUnreadCount();
-
       intervalId = setInterval(() => {
-        if (isMounted) {
-          fetchUnreadCount();
-        }
+        if (isMounted) fetchUnreadCount();
       }, 300000);
     }
 
     return () => {
       isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+  }, [user]);
 
+  // ✅ NEW: Fetch cart item count — same pattern as notifications
+  useEffect(() => {
+    let isMounted = true;
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const fetchCartCount = async () => {
+      if (!user || !isMounted) return;
+      try {
+        const count = await cartService.getCartItemCount();
+        if (isMounted) setCartCount(count);
+      } catch (error) {
+        if (isMounted) console.error("❌ Error fetching cart count:", error);
+      }
+    };
+
+    if (user) {
+      fetchCartCount();
+      // Poll every 5 minutes to stay in sync
+      intervalId = setInterval(() => {
+        if (isMounted) fetchCartCount();
+      }, 300000);
+    } else {
+      setCartCount(0); // clear on logout
+    }
+
+    return () => {
+      isMounted = false;
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
@@ -226,14 +250,27 @@ function Header({
       }
     };
 
+    // ✅ NEW: Instant cart dot update when user adds/removes items anywhere in the app.
+    // Just fire: window.dispatchEvent(new Event("cartUpdated")) after any cart mutation.
+    const handleCartUpdate = async () => {
+      try {
+        const count = await cartService.getCartItemCount();
+        setCartCount(count);
+      } catch (error) {
+        console.error("❌ Error refreshing cart count:", error);
+      }
+    };
+
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("tokenExpired", handleTokenExpiry);
     window.addEventListener("authUpdated", handleAuthUpdate);
+    window.addEventListener("cartUpdated", handleCartUpdate); // ✅ NEW
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("tokenExpired", handleTokenExpiry);
       window.removeEventListener("authUpdated", handleAuthUpdate);
+      window.removeEventListener("cartUpdated", handleCartUpdate);
     };
   }, [router]);
 
@@ -302,7 +339,6 @@ function Header({
           <Link href="/" className={styles.logoLink}>
             <img src="/icons/logo.svg" alt="Logo" className={styles.logo} />
           </Link>
-          {/* <LanguageSelector /> */}
         </div>
 
         {showSearch && (
@@ -329,9 +365,8 @@ function Header({
         <div className={styles.left}>
           <Link href="/" className={styles.logoLink}>
             <img src={Logo.src} alt="Logo" className={styles.logo} />
-
           </Link>
-{/* <LanguageSelector /> */}
+          {/* <LanguageSelector /> */}
         </div>
 
         {/* Desktop Search - Hidden on Mobile */}
@@ -360,7 +395,12 @@ function Header({
               {isAuthenticated && user ? (
                 <>
                   <nav className={styles.navs}>
-                    <div className={styles.notification_btn}>
+                    {/* Notification bell — red dot via ::after when hasNotification */}
+                    <div
+                      className={`${styles.notification_btn} ${
+                        unreadCount > 0 ? styles.hasNotification : ""
+                      }`}
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
@@ -369,16 +409,6 @@ function Header({
                       >
                         <span className={styles.navText}>الإشعارات</span>
                       </Button>
-
-                      {unreadCount > 0 && (
-                        <div className={styles.unreadIndicator}>
-                          {unreadCount > 99
-                            ? "99+"
-                            : unreadCount > 5
-                            ? "5+"
-                            : unreadCount}
-                        </div>
-                      )}
                     </div>
 
                     <Link href="/favorites" className={styles.navLink}>
@@ -386,7 +416,13 @@ function Header({
                       <span className={styles.navText}>المفضلة</span>
                     </Link>
 
-                    <Link href="/cart" className={styles.navLink}>
+                    {/* ✅ Cart icon — red dot via ::after when hasNotification, no number */}
+                    <Link
+                      href="/cart"
+                      className={`${styles.navLink} ${
+                        cartCount > 0 ? styles.hasNotification : ""
+                      }`}
+                    >
                       <Cart className={styles.icon} />
                       <span className={styles.navText}>عربة التسوق</span>
                     </Link>
@@ -441,11 +477,6 @@ function Header({
       {showUserActions && user && (
         <nav className={styles.bottomNav}>
           {/* Floating Chat Button */}
-          {/* <button 
-            onClick={handleChat} 
-            aria-label="فتح الدردشة" 
-            className={styles.MessageCircle}
-          > */}
           {chat ? (
             <MessIcon
               onClick={handleChat}
@@ -459,7 +490,6 @@ function Header({
               className={styles.MessageCircle}
             />
           )}
-          {/* </button> */}
 
           {/* Navigation Items */}
           <div className={styles.bottomNavContent}>
@@ -476,6 +506,7 @@ function Header({
                   </button>
                 )}
 
+                {/* Notification — red dot only, no number */}
                 <button
                   onClick={handleNotificationClick}
                   className={styles.bottomNavItem}
@@ -483,11 +514,8 @@ function Header({
                 >
                   <Notification className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>الإشعارات</span>
-
                   {unreadCount > 0 && (
-                    <span className={styles.bottomNavBadge}>
-                      {unreadCount > 99 ? "99+" : unreadCount}
-                    </span>
+                    <span className={styles.bottomNavBadge} />
                   )}
                 </button>
 
@@ -500,6 +528,7 @@ function Header({
                   <span className={styles.bottomNavText}>المفضلة</span>
                 </Link>
 
+                {/* ✅ Cart — red dot only, no number */}
                 <Link
                   href="/cart"
                   className={styles.bottomNavItem}
@@ -507,6 +536,9 @@ function Header({
                 >
                   <Cart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>السلة</span>
+                  {cartCount > 0 && (
+                    <span className={styles.bottomNavBadge} />
+                  )}
                 </Link>
               </>
             )}

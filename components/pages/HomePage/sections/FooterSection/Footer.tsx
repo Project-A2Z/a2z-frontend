@@ -55,7 +55,7 @@ const Footer = () => {
       <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col mt-[-20px]" >
         
         {/* Main Footer Content */}
-        <div className="w-full lg:w-[93%] mx-auto flex-1 flex flex-col lg:flex-row justify-between items-start gap-8 lg:gap-4 py-8">
+        <div className="w-full lg:w-[93%] mx-auto flex-1 flex flex-col lg:flex-row justify-between items-start gap-10 lg:gap-4 py-8">
           <AboutUsSection /> 
           <CategoriesSection />
           <QuickLinks onContactClick={handleContactClick} />
