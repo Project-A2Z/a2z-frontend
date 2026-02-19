@@ -18,6 +18,7 @@ interface ImageProps {
   fill?: boolean;
   onClick?: () => void;
   style?: CSSProperties;
+  loading?: 'lazy' | 'eager';
 }
 
 export function CustomImage({
@@ -30,6 +31,7 @@ export function CustomImage({
   priority,
   rounded = "none",
   fallbackSrc = "/acessts/NoImage.jpg",
+  loading = "eager",
   fill,
   onClick,
   style,

@@ -14,23 +14,51 @@ type Props = {
   interactive?: boolean;
 };
 
+const StarIcon = ({ filled = true, size = 20 }: { filled?: boolean; size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? "#F59E0B" : "#D1D5DB"}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+);
+
 const Ratings: React.FC<Props> = React.memo(({
   average = 0,
   total = 0,
   distribution = [],
   onStarClick,
   onDistributionClick,
-  interactive = true
+  interactive = true,
 }) => {
-  const [hoveredStars, setHoveredStars] = useState<number | null>(null);
-  const [selectedStars, setSelectedStars] = useState<number | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
+  const [selectedStar, setSelectedStar] = useState<number | null>(null);
 
-  // Ensure distribution is always an array
-  const safeDistribution = Array.isArray(distribution) ? distribution : [];
-  
-  // Ensure average and total are valid numbers
-  const safeAverage = typeof average === 'number' && !isNaN(average) ? average : 0;
-  const safeTotal = typeof total === 'number' && !isNaN(total) ? total : 0;
+  const safeAverage = typeof average === "number" && !isNaN(average) ? average : 0;
+  const safeTotal = typeof total === "number" && !isNaN(total) ? total : 0;
+
+  // Normalize: always have all 5 stars, counts as real numbers
+  const rawDistribution: RatingsDistribution = Array.isArray(distribution) ? distribution : [];
+  const distributionMap = new Map<number, number>(
+    rawDistribution.map((d) => [Number(d.stars), Number(d.count)])
+  );
+  const safeDistribution: RatingsDistribution = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: distributionMap.get(stars) ?? 0,
+  }));
+
+  const totalFromDistribution = safeDistribution.reduce((sum, d) => sum + d.count, 0);
+  const displayTotal = safeTotal || totalFromDistribution;
+
+  // ✅ Bar width = percentage of TOTAL reviews (not relative to max bar)
+  // e.g. 13 out of 21 reviews = 62% wide bar
+  const getBarPct = (count: number) => {
+    if (displayTotal === 0) return 0;
+    return (count / displayTotal) * 100;
+  };
 
   const totalFromDistribution = safeDistribution.reduce((sum, d) => sum + d.count, 0);
   const displayTotal = safeTotal || totalFromDistribution;
@@ -40,11 +68,11 @@ const getBarPct = (count: number) => {
   };
   const handleStarClick = (starValue: number) => {
     if (!interactive || !onStarClick) return;
-    setSelectedStars(selectedStars === starValue ? null : starValue);
-    onStarClick(starValue);
+    setSelectedStar(selectedStar === val ? null : val);
+    onStarClick(val);
   };
 
-  const handleDistributionClick = (stars: number) => {
+  const handleRowClick = (stars: number) => {
     if (!interactive || !onDistributionClick) return;
     onDistributionClick(stars);
   };
@@ -69,24 +97,30 @@ const getBarPct = (count: number) => {
 
   if (safeTotal === 0) {
     return (
-      <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-        <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
-        <p className="text-black60">لا توجد تقييمات بعد.</p>
+      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5" dir="rtl">
+        <h2 className="text-base font-bold text-gray-900 mb-3 text-right">الآراء حول هذا المنتج</h2>
+        <p className="text-gray-400 text-sm">لا توجد تقييمات بعد.</p>
       </section>
     );
   }
 
   return (
-    <section className="bg-white rounded-2xl border shadow-sm p-4 sm:p-6">
-      <h2 className="text-right text-lg sm:text-xl font-bold text-black87 mb-3">الآراء حول هذا المنتج</h2>
+    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5" dir="rtl">
+      {/* Title */}
+      <h2 className="text-base font-bold text-gray-900 mb-3 text-right">
+        الآراء حول هذا المنتج
+      </h2>
 
-      <div className="flex items-center justify-start gap-4 mb-2">
-        <div className="flex items-center gap-1 text-amber-500" aria-label={`التقييم ${getDisplayAverage().toFixed(1)} من 5`}>
+      {/* Rating header */}
+      <div className="flex items-center gap-2.5" aria-label={`التقييم ${displayAverage.toFixed(1)} من 5`}>
+        <span className="text-xl font-bold text-gray-900 leading-none">
+          {displayAverage.toFixed(1)}
+        </span>
+        <div className="flex gap-1" dir="ltr">
           {Array.from({ length: 5 }).map((_, i) => {
-            const starValue = i + 1;
-            const isActive = starValue <= Math.round(getDisplayAverage());
-            const isClickable = interactive && onStarClick;
-
+            const val = i + 1;
+            const filled = val <= Math.round(displayAverage);
+            const isClickable = interactive && !!onStarClick;
             return (
               // <span
               //   key={i}
@@ -128,12 +162,6 @@ const getBarPct = (count: number) => {
             );
           })}
         </div>
-        <div className="text-black60 text-sm sm:text-base font-medium">
-          {getDisplayAverage().toFixed(1)}
-        </div>
-      </div>
-      <div className="text-right text-black40 text-xs mb-4">
-        تقييم {safeTotal} {selectedStars && `- تم تصفية ${selectedStars} نجوم`}
       </div>
 
       <div className="space-y-2 ">
@@ -178,13 +206,19 @@ const getBarPct = (count: number) => {
                 {row.count}
                   </span>
               </div>
-            );
-          })}
+
+              {/* LEFT in RTL: user count */}
+              <span className="w-5 text-left text-sm text-gray-500 shrink-0">
+                {row.count}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
 });
 
-Ratings.displayName = 'Ratings';
+Ratings.displayName = "Ratings";
 
 export default React.memo(Ratings);
