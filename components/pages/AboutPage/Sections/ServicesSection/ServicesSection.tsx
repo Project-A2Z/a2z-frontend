@@ -2,7 +2,6 @@
 
 import React from 'react';
 import ProductsSection from '../ProductsSection/ProducysSection';
-import CardSection from '../cardsSection/CardsSection';
 
 const ServicesSection = () => {
   return (

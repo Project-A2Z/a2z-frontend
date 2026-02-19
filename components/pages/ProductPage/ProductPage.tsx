@@ -22,24 +22,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [currentRatingCount, setCurrentRatingCount] = useState<number>(0);
   const [ratingsDistribution, setRatingsDistribution] = useState<{ stars: number; count: number }[]>([]);
 
-  const updateRatingData = (productData: ProductData) => {
-    setCurrentRating(productData.reviewSummary?.averageRate || productData.averageRate || 0);
-    setCurrentRatingCount(productData.reviewSummary?.totalReviews || 0);
-
-    // API field is "rateDistribution" (not "ratingDistribution")
-    const raw = productData.reviewSummary?.rateDistribution;
-
-    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-      const distribution = Object.entries(raw).map(([stars, count]) => ({
-        stars: parseInt(stars, 10),
-        count: Number(count),
-      }));
-      setRatingsDistribution(distribution);
-    } else {
-      setRatingsDistribution([]);
-    }
-  };
-
+  // console.log('ProductPage render with data:', data);
   useEffect(() => {
     const fetchProduct = async () => {
       if (data && data._id) {
