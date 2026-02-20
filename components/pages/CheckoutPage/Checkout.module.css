@@ -54,7 +54,7 @@
 }
 
 /* Responsive design for mobile */
-@media (max-width: 768px) {
+@media (max-width: 769px) {
   .Container {
     padding: 16px;
     gap: 12px;
@@ -62,6 +62,10 @@
 
   .SummaryContainer {
     padding: 20px;
+    justify-self: center;
+    min-width: 100%;
+    align-self: center;
+    margin-top: 15%;
   }
 
   .title {
@@ -72,4 +76,17 @@
     padding: 14px 20px !important;
     font-size: 15px !important;
   }
+  .right{
+    justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 6% 0;
+  }
+  .left{
+    justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 6% 0;
+  }
+
 }

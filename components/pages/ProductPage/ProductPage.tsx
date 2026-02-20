@@ -1,9 +1,7 @@
 "use client";
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Product } from '@/services/api/products';
-// import { console } from 'inspector';
 
-// Lazy load heavy components
 const Overview = lazy(() => import('./Sections/Overview'));
 const Specs = lazy(() => import('./Sections/Specs'));
 const Ratings = lazy(() => import('./Sections/Ratings'));
@@ -12,7 +10,6 @@ const RelatedProducts = lazy(() => import('@/components/UI/RelatedProducts/Relat
 
 export type ProductData = Product;
 
-// Loading component
 const SectionLoader = () => (
   <div className="animate-pulse bg-gray-200 rounded-lg h-32 w-full" />
 );
@@ -21,7 +18,6 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [product, setProduct] = useState<ProductData | null>(data || null);
   const [loading, setLoading] = useState<boolean>(!data);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [currentRating, setCurrentRating] = useState<number>(0);
   const [currentRatingCount, setCurrentRatingCount] = useState<number>(0);
   const [ratingsDistribution, setRatingsDistribution] = useState<{ stars: number; count: number }[]>([]);
@@ -38,17 +34,12 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
       try {
         setLoading(true);
         const productId = window.location.pathname.split('/').pop();
-        if (!productId) {
-          throw new Error('Product ID is missing');
-        }
+        if (!productId) throw new Error('Product ID is missing');
 
         const response = await fetch(
           `https://a2z-backend.fly.dev/app/v1/products/${productId}`
         );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch product');
-        }
+        if (!response.ok) throw new Error('Failed to fetch product');
 
         const result = await response.json();
         if (result.status === 'success' && result.product) {
@@ -69,40 +60,30 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }, [data]);
 
   const updateRatingData = (productData: ProductData) => {
-    setCurrentRating(productData.averageRate || 0);
+    setCurrentRating(productData.reviewSummary?.averageRate || productData.averageRate || 0);
     setCurrentRatingCount(productData.reviewSummary?.totalReviews || 0);
-    
-    const distribution = productData.reviewSummary?.ratingDistribution 
-      ? Object.entries(productData.reviewSummary.ratingDistribution).map(([stars, count]) => ({
-          stars: parseInt(stars),
-          count: count as number
-        }))
-      : [];
-    
-    setRatingsDistribution(distribution);
-  };
 
-  useEffect(() => {
-    const getToken = () => {
-      if (typeof window !== 'undefined') {
-        return localStorage.getItem('authToken');
-      }
-      return null;
-    };
-    // setToken(getToken());
-  }, []);
+    // API field is "rateDistribution" (not "ratingDistribution")
+    const raw = productData.reviewSummary?.rateDistribution;
+
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const distribution = Object.entries(raw).map(([stars, count]) => ({
+        stars: parseInt(stars, 10),
+        count: Number(count),
+      }));
+      setRatingsDistribution(distribution);
+    } else {
+      setRatingsDistribution([]);
+    }
+  };
 
   const handleReviewAction = async () => {
     if (!product?._id) return;
-    
     try {
       const response = await fetch(
         `https://a2z-backend.fly.dev/app/v1/products/${product._id}`
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to refresh product data');
-      }
+      if (!response.ok) throw new Error('Failed to refresh product data');
 
       const result = await response.json();
       if (result.status === 'success' && result.product) {
@@ -162,19 +143,21 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
             <Suspense fallback={<SectionLoader />}>
               <Specs specs={[]} />
             </Suspense>
-            
+
             <Suspense fallback={<SectionLoader />}>
               <Ratings
-                average={currentRating}
-                total={currentRatingCount}
-                distribution={ratingsDistribution}
-                interactive={true}
-              />
+  average={currentRating}
+  total={currentRatingCount}
+  distribution={ratingsDistribution}
+  interactive={true}
+  // onStarClick={handleStarFilter}
+  // onDistributionClick={handleDistributionFilter}
+/>
             </Suspense>
-            
+
             <Suspense fallback={<SectionLoader />}>
-              <Reviews 
-                productId={product._id} 
+              <Reviews
+                productId={product._id}
                 onReviewAdded={handleReviewAction}
               />
             </Suspense>

@@ -41,22 +41,21 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
   // Safely pick a primary image with fallback
   const PLACEHOLDER_SRC = '/acessts/NoImage.jpg';
   const getPrimaryImage = (p: Product): string => {
-    // Check if imageList exists and has valid images
-    if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
-      const firstValidImage = p.imageList.find((img) => typeof img === 'string' && img.trim() !== '');
+  if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
+    const firstValidImage = p.imageList.find((img) => typeof img === 'string' && img.trim() !== '');
 
-      if (firstValidImage) {
-        // Handle relative URLs by prepending the base URL
-        const imageUrl = firstValidImage.startsWith('http')
-          ? firstValidImage
-          : `${BASE_IMAGE_URL}${firstValidImage.startsWith('/') ? '' : '/'}${firstValidImage}`;
+    if (firstValidImage) {
+      const imageUrl = firstValidImage.startsWith('http')
+        ? firstValidImage
+        : `${BASE_IMAGE_URL}${firstValidImage.startsWith('/') ? '' : '/'}${firstValidImage}`;
 
-        return imageUrl;
-      }
+      console.log('Generated Image URL:', imageUrl); // ADD THIS
+      return imageUrl;
     }
+  }
 
-    return PLACEHOLDER_SRC;
-  };
+  return PLACEHOLDER_SRC;
+};
 
   // Fetch related products from API
   const fetchRelatedProducts = useCallback(async () => {
@@ -123,14 +122,14 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
       <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
       <div
         ref={sliderRef}
-        className="keen-slider"
+        className="keen-slider flex flex-row gap-2"
         onMouseEnter={stop}
         onMouseLeave={start}
       >
         {products.map((product) => (
           <div key={product._id} className="keen-slider__slide">
             <Link href={`/product/${product._id}`} className="block">
-              <div className="bg-white rounded-[20px] shadow-sm border p-4 mx-1 hover:shadow-md transition-shadow cursor-pointer" role="link" aria-label={product.name}>
+              <div className="bg-white p-4 mx-1 hover:shadow-md transition-shadow cursor-pointer" role="link" aria-label={product.name}>
                 <div className="relative w-full aspect-square bg-card rounded-lg mb-3 overflow-hidden">
                   <CustomImage
                     src={getPrimaryImage(product)}
@@ -138,6 +137,8 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
                     fill
                     objectFit="cover"
                     fallbackSrc={PLACEHOLDER_SRC}
+                    priority
+                    // loading="lazy"
                   />
                 </div>
                 <h3 className="font-medium text-black87 text-sm mb-2 truncate" title={product.name}>

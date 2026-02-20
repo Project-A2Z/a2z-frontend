@@ -121,7 +121,7 @@ export default async function ProductsPage() {
         }}
       />
       
-      <main className="products-page">
+      <main className="products-page" id="products">
         {error && (
           <div style={{ 
             padding: '20px', 

@@ -102,10 +102,10 @@ const CartItemsList: React.FC<Props> = React.memo(({
 
   if (cartItems.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white ">
         <div className="p-12 text-center">
           <ActionEmptyState
-            imageSrc="/icons/empty-cart.png"
+            imageSrc="/icons/noItems.svg"
             imageAlt="السلة فارغة"
             message="لا يوجد منتجات فالسلة"
             actionLabel="اذهب للتسوق"
@@ -117,12 +117,12 @@ const CartItemsList: React.FC<Props> = React.memo(({
   }
 
   return (
-    <div className="rounded-lg shadow-sm border bg-white">
-      <div className="divide-y pt-[5px] max-h-[60vh] md:max-h-[70vh] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="bg-white w-full">
+    <div className="divide-y pt-[5px]">
         {cartItems.map((item) => (
           <div 
             key={item.id} 
-            className="pt-[3px] sm:p-3 mt-[15px] mb-[15px] rounded-[10px] mx-[10px] bg-white border-[2px] border-gray-200"
+            className="pt-[3px] sm:p-3 mt-[15px] mb-[15px] rounded-[10px] bg-white border-[2px] border-gray-200 w-full"
           >
             
             <div className="flex sm:flex-row gap-4">
@@ -147,7 +147,7 @@ const CartItemsList: React.FC<Props> = React.memo(({
                     state="default"
                     leftIcon={<Trash className="w-4 h-4 sm:w-5 sm:h-5" />}
                     onClick={() => onRemove(item.id)}
-                    className="text-secondary1 hover:bg-gray-100 w-full sm:w-auto justify-start sm:justify-center p-1 sm:px-2"
+                    className="text-secondary1 hover:bg-gray-100 w-full sm:w-auto justify-start sm:justify-center  sm:px-2"
                   >
                     <span className="text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis">
                       حذف المنتج من السلة
@@ -165,39 +165,39 @@ const CartItemsList: React.FC<Props> = React.memo(({
                         return displayPrice.toLocaleString();
                       })()} ج.م / {item.unit}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    {/* <div className="text-xs text-gray-500 mt-1">
                       {(() => {
                         const unitPrice = (item.unit === 'طن' || item.unit === 'متر مكعب') 
                           ? (item.price ) 
                           : item.price;
                         return unitPrice.toLocaleString();
                       })()} ج.م / {item.unit}
-                    </div>
+                    </div> */}
                   </div>
                   
                   <div className="w-full flex justify-end  pr-2 sm:pr-4">
-                    <div className="flex items-center justify-end gap-3" dir="ltr">
-                      <IconButton
-                        aria-label="decrease quantity"
-                        title="إنقاص الكمية"
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                        icon={<Minus className="w-4 h-4" />}
-                      />
-                      <span className="w-8 text-center">
-                        {/* item.quantity is already the display quantity after reverse conversion in cart.ts */}
-                        {Number(item.quantity.toFixed(3))} 
-                      </span>
-                      <IconButton
-                        aria-label="increase quantity"
-                        title="زيادة الكمية"
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                        icon={<Plus className="w-4 h-4" />}
-                      />
-                      {/* <span className="text-gray-500 text-sm mr-2">{item.unit}</span> */}
-                    </div>
+                   <div className="w-full flex justify-end pr-2 sm:pr-4">
+  <div className="flex items-center justify-end gap-1 sm:gap-3 mb-3 ml-1" dir="ltr">
+    <IconButton
+      aria-label="decrease quantity"
+      title="إنقاص الكمية"
+      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-gray-300 hover:bg-gray-100"
+      onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+      disabled={item.quantity <= 1}
+      icon={<Minus className="w-3 h-3 sm:w-4 sm:h-4" />}
+    />
+    <span className="w-6 sm:w-8 text-center text-sm sm:text-base">
+      {Number(item.quantity.toFixed(3))}
+    </span>
+    <IconButton
+      aria-label="increase quantity"
+      title="زيادة الكمية"
+      className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-gray-300 hover:bg-gray-100"
+      onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+      icon={<Plus className="w-3 h-3 sm:w-4 sm:h-4" />}
+    />
+  </div>
+</div>
                   </div>
                 </div>
               </div>

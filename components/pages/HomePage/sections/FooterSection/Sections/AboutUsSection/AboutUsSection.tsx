@@ -9,7 +9,7 @@ const AboutUsSection = () => {
           </div>
           
           {/* logo - positioned on the right */}
-          <div className="w-[40%] sm:w-[30%] md:w-[40%]   lg:w-[40%] h-[4vh] sm:h-[4.5vh] md:h-[5vh] lg:h-[90%] flex  ">
+          <div className="w-[40%] sm:w-[30%] md:w-[40%]   lg:w-[40%] h-[4vh] sm:h-[4.5vh] md:h-[5vh] lg:h-[90%] flex   ">
             <img
             src="/logo/logo2.webp.png"
             alt="A2Z Logo"
@@ -17,13 +17,17 @@ const AboutUsSection = () => {
             />
           </div>
         </div>
-        <p className="w-full h-auto lg:h-[70%] opacity-100 rotate-0 text-sm sm:text-base leading-relaxed sm:leading-none tracking-normal text-right font-medium font-beiruti pt-4 sm:pt-6 md:pt-7 lg:pt-8 px-2 sm:px-3 md:px-4 lg:px-0">
-          شركة متخصصة في جميع انواع الكيماويات
+       <p className="max-w-60 h-auto lg:h-[70%] opacity-100 rotate-0 
+              flex flex-col justify-end
+              text-sm sm:text-base leading-relaxed sm:leading-none tracking-normal 
+              text-right font-medium font-beiruti 
+              pt-4 sm:pt-6 md:pt-7 lg:pt-8 px-2 sm:px-3 md:px-4 lg:px-0 self-baseline">
+  شركة متخصصة في جميع انواع الكيماويات
           وخاصة كيماويات البناء الحديث والدهانات
           المتخصصة وكيماويات الصباغة والتجهيز 
           والمواد المساعدة وكيماويات صناعة 
           المنظفات ومستحضرات التجميل
-        </p>
+</p>
       </div>
     );
   };
