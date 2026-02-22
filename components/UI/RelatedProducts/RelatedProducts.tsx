@@ -1,33 +1,64 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useKeenSlider } from 'keen-slider/react';
-import 'keen-slider/keen-slider.min.css';
-import Link from 'next/link';
-import { Product, productService, ProductFilters } from '@/services/api/products';
-import { CustomImage } from '../Image/Images';
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useKeenSlider } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
+import {
+  Product,
+  productService,
+  ProductFilters,
+} from "@/services/api/products";
+import Card from "@/components/UI/Card/Card";
+import styles from "@/components/UI/RelatedProducts/RelatedProducts.module.css";
 
-const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProductId }) => {
+const BASE_IMAGE_URL = "https://a2z-backend.fly.dev";
+const PLACEHOLDER_SRC = "/acessts/NoImage.jpg";
+
+const getPrimaryImage = (p: Product): string => {
+  if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
+    const firstValidImage = p.imageList.find(
+      (img) => typeof img === "string" && img.trim() !== "",
+    );
+    if (firstValidImage) {
+      return firstValidImage.startsWith("http")
+        ? firstValidImage
+        : `${BASE_IMAGE_URL}${firstValidImage.startsWith("/") ? "" : "/"}${firstValidImage}`;
+    }
+  }
+  return PLACEHOLDER_SRC;
+};
+
+interface RelatedProductsProps {
+  currentProductId?: string;
+  currentCategory?: string;
+}
+
+const RelatedProducts: React.FC<RelatedProductsProps> = ({
+  currentProductId,
+  currentCategory,
+}) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: true,
-    mode: 'free-snap',
+    mode: "free-snap",
     slides: { perView: 2, spacing: 12 },
     breakpoints: {
-      '(min-width: 768px)': { slides: { perView: 3, spacing: 16 } },
-      '(min-width: 1024px)': { slides: { perView: 6, spacing: 16 } },
+      "(min-width: 768px)": { slides: { perView: 3, spacing: 16 } },
+      "(min-width: 1024px)": { slides: { perView: 4, spacing: 16 } },
     },
   });
 
   const timerRef = useRef<number | null>(null);
+
   const start = () => {
     if (timerRef.current) return;
     const slider = instanceRef.current;
     if (!slider) return;
     timerRef.current = window.setInterval(() => slider.next(), 2500);
   };
+
   const stop = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -35,56 +66,39 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
     }
   };
 
-  // Base URL for images (adjust based on your backend)
-  const BASE_IMAGE_URL = 'https://a2z-backend.fly.dev';
-
-  // Safely pick a primary image with fallback
-  const PLACEHOLDER_SRC = '/acessts/NoImage.jpg';
-  const getPrimaryImage = (p: Product): string => {
-  if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
-    const firstValidImage = p.imageList.find((img) => typeof img === 'string' && img.trim() !== '');
-
-    if (firstValidImage) {
-      const imageUrl = firstValidImage.startsWith('http')
-        ? firstValidImage
-        : `${BASE_IMAGE_URL}${firstValidImage.startsWith('/') ? '' : '/'}${firstValidImage}`;
-
-      console.log('Generated Image URL:', imageUrl); // ADD THIS
-      return imageUrl;
-    }
-  }
-
-  return PLACEHOLDER_SRC;
-};
-
-  // Fetch related products from API
   const fetchRelatedProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Build filters using the ProductFilters interface
       const filters: ProductFilters = {
-        limit: 8, // Limit to 8 related products
-        ...(currentProductId && { excludeId: currentProductId }) // Exclude current product if ID is provided
+        limit: 8,
+        ...(currentProductId && { excludeId: currentProductId }),
+        ...(currentCategory && { category: currentCategory }),
       };
 
-      // Use the product service to fetch products
       const response = await productService.getProducts(filters);
 
       if (response && Array.isArray(response.data)) {
-        setProducts(response.data);
+        // Extra client-side guard: exclude current product and match category
+        const filtered = response.data.filter((p) => {
+          const notCurrent = p._id !== currentProductId;
+          const sameCategory = currentCategory
+            ? p.category === currentCategory
+            : true;
+          return notCurrent && sameCategory;
+        });
+        setProducts(filtered);
       } else {
         setProducts([]);
       }
-    } catch (err) {
-      //console.error('Error fetching related products:', err);
-      setError('حدث خطأ أثناء تحميل المنتجات المتعلقة');
+    } catch {
+      setError("حدث خطأ أثناء تحميل المنتجات المتعلقة");
       setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, [currentProductId]);
+  }, [currentProductId, currentCategory]);
 
   useEffect(() => {
     fetchRelatedProducts();
@@ -98,8 +112,16 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
   if (loading) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
-        <div className="text-black60">جاري التحميل...</div>
+        <h2 className="text-2xl font-bold text-black87 mb-6">
+          منتجات قد تعجبك
+        </h2>
+        <div className="keen-slider">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="keen-slider__slide">
+              <Card isLoading />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -107,47 +129,43 @@ const RelatedProducts: React.FC<{ currentProductId?: string }> = ({ currentProdu
   if (error) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+        <h2 className="text-2xl font-bold text-black87 mb-6">
+          منتجات قد تعجبك
+        </h2>
         <div className="text-red-500">{error}</div>
       </div>
     );
   }
 
-  if (products.length === 0) {
-    return null; // Don't show the section if no products are available
-  }
+  if (products.length === 0) return null;
 
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
       <div
         ref={sliderRef}
-        className="keen-slider flex flex-row gap-2"
+        className="keen-slider relative"
         onMouseEnter={stop}
         onMouseLeave={start}
       >
         {products.map((product) => (
           <div key={product._id} className="keen-slider__slide">
-            <Link href={`/product/${product._id}`} className="block">
-              <div className="bg-white p-4 mx-1 hover:shadow-md transition-shadow cursor-pointer" role="link" aria-label={product.name}>
-                <div className="relative w-full aspect-square bg-card rounded-lg mb-3 overflow-hidden">
-                  <CustomImage
-                    src={getPrimaryImage(product)}
-                    alt={product.name}
-                    fill
-                    objectFit="cover"
-                    fallbackSrc={PLACEHOLDER_SRC}
-                    priority
-                    // loading="lazy"
-                  />
-                </div>
-                <h3 className="font-medium text-black87 text-sm mb-2 truncate" title={product.name}>
-                  {product.name}
-                </h3>
-                <div className="text-primary font-bold">{product.price.toLocaleString()} ج.م</div>
-                <div className="text-xs text-black60 mt-1">{product.stockQty} {product.stockType === 'unit' ? 'قطعة' : product.stockType}</div>
-              </div>
-            </Link>
+            <div
+              className={styles.slideWrapper}
+            >
+              <Card
+                productId={product._id}
+                productName={product.name}
+                productCategory={product.category}
+                productPrice={String(product.price)}
+                productImg={getPrimaryImage(product)}
+                available={product.stockQty > 0}
+                IsKG={product.IsKG}
+                IsTON={product.IsTON}
+                IsLITER={product.IsLITER}
+                IsCUBIC_METER={product.IsCUBIC_METER}
+              />
+            </div>
           </div>
         ))}
       </div>
