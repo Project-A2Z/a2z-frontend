@@ -39,11 +39,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         const response = await fetch(
           `https://a2z-backend.fly.dev/app/v1/products/${productId}`
         );
+        
         if (!response.ok) throw new Error('Failed to fetch product');
 
         const result = await response.json();
         if (result.status === 'success' && result.product) {
           setProduct(result.product);
+          console.log('Fetch response:', result.product);
           updateRatingData(result.product);
         } else {
           throw new Error('Invalid product data');
@@ -117,7 +119,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }
 
   return (
-    <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+    <div className="min-h-screen bg-background font-beiruti mt-40">
       <div className="mx-auto max-w-[95%] px-4 py-6 space-y-6">
         <Suspense fallback={<SectionLoader />}>
           <Overview
@@ -165,7 +167,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         </div>
 
         <Suspense fallback={<SectionLoader />}>
-          <RelatedProducts />
+          <RelatedProducts currentCategory={product.category} />
         </Suspense>
       </div>
     </div>
