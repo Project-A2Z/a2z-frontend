@@ -4,10 +4,10 @@
   gap: 24px;
   padding: 40px 24px;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 6rem auto 0 auto;
   direction: rtl;
   min-height: 100vh;
-  background-color: #fafafa;
+  /* background-color: #fafafa; */
 }
 
 .right {

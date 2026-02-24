@@ -40,7 +40,6 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
   };
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, type: string, value: string) => {
-    // For email and address, open in new tab
     if (type === "email" || type === "address") {
       e.preventDefault();
       window.open(getLink(type, value), "_blank", "noopener,noreferrer");
@@ -54,34 +53,33 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
       </h3>
       <div className="text-left w-full mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:flex md:flex-col md:gap-y-3">
         {finalContacts.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-start gap-3 text-black87"
-          >
-            {/* icon */}
-            {icons[item.type]}
-            {/* content */}
+          <div key={index} className="text-black87">
             {Array.isArray(item.value) ? (
-              <div className="text-sm text-left leading-snug">
+              <div className="flex flex-col gap-2">
                 {item.value.map((v, i) => (
-                  <a
-                    key={i}
-                    href={getLink(item.type, v)}
-                    onClick={(e) => handleClick(e, item.type, v)}
-                    className="block hover:text-secondary1 transition-colors duration-200 hover:underline cursor-pointer"
-                  >
-                    {v}
-                  </a>
+                  <div key={i} className="flex items-center justify-start gap-3">
+                    {icons[item.type]}
+                    <a
+                      href={getLink(item.type, v)}
+                      onClick={(e) => handleClick(e, item.type, v)}
+                      className="text-sm text-left leading-snug hover:text-secondary1 transition-colors duration-200 hover:underline cursor-pointer"
+                    >
+                      {v}
+                    </a>
+                  </div>
                 ))}
               </div>
             ) : (
-              <a
-                href={getLink(item.type, item.value as string)}
-                onClick={(e) => handleClick(e, item.type, item.value as string)}
-                className="text-sm text-left leading-snug hover:text-secondary1 transition-colors duration-200 hover:underline cursor-pointer"
-              >
-                {item.value}
-              </a>
+              <div className="flex items-center justify-start gap-3">
+                {icons[item.type]}
+                <a
+                  href={getLink(item.type, item.value as string)}
+                  onClick={(e) => handleClick(e, item.type, item.value as string)}
+                  className="text-sm text-left leading-snug hover:text-secondary1 transition-colors duration-200 hover:underline cursor-pointer"
+                >
+                  {item.value}
+                </a>
+              </div>
             )}
           </div>
         ))}

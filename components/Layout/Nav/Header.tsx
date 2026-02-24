@@ -158,7 +158,9 @@ function Header({
       const sectionId = tab.href.slice(2); // e.g. "products"
       if (pathname === "/") {
         // Already on homepage — just scroll
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+        document
+          .getElementById(sectionId)
+          ?.scrollIntoView({ behavior: "smooth" });
       } else {
         // Navigate to homepage first; scroll happens via hash
         router.push(tab.href);
@@ -230,9 +232,14 @@ function Header({
     };
     if (user) {
       fetchUnreadCount();
-      intervalId = setInterval(() => { if (isMounted) fetchUnreadCount(); }, 300000);
+      intervalId = setInterval(() => {
+        if (isMounted) fetchUnreadCount();
+      }, 300000);
     }
-    return () => { isMounted = false; if (intervalId) clearInterval(intervalId); };
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -247,11 +254,16 @@ function Header({
     };
     if (user) {
       fetchCartCount();
-      intervalId = setInterval(() => { if (isMounted) fetchCartCount(); }, 300000);
+      intervalId = setInterval(() => {
+        if (isMounted) fetchCartCount();
+      }, 300000);
     } else {
       setCartCount(0);
     }
-    return () => { isMounted = false; if (intervalId) clearInterval(intervalId); };
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -261,13 +273,18 @@ function Header({
         else setUser(null);
       }
     };
-    const handleTokenExpiry = () => { setUser(null); router.push("/login"); };
+    const handleTokenExpiry = () => {
+      setUser(null);
+      router.push("/login");
+    };
     const handleAuthUpdate = () => {
       if (isUserAuthenticated()) setUser(getCurrentUser());
       else setUser(null);
     };
     const handleCartUpdate = async () => {
-      try { setCartCount(await cartService.getCartItemCount()); } catch {}
+      try {
+        setCartCount(await cartService.getCartItemCount());
+      } catch {}
     };
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("tokenExpired", handleTokenExpiry);
@@ -291,24 +308,33 @@ function Header({
     `${firstName} ${lastName}`.trim();
 
   const handleLogin = () => router.push("/login");
-  const handleChat = () => { setChat(!chat); setOpen(!open); };
+  const handleChat = () => {
+    setChat(!chat);
+    setOpen(!open);
+  };
   const handleNotificationClick = () => setIsNotificationsOpen(true);
   const handleNotificationsClose = () => {
     setIsNotificationsOpen(false);
-    if (user) getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
+    if (user)
+      getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
   };
   const handleSearchClick = () => setIsSearchModalOpen(true);
 
   const getVariantClass = () => {
     switch (variant) {
-      case "auth": return styles.headerAuth;
-      case "minimal": return styles.headerMinimal;
-      case "transparent": return styles.headerTransparent;
-      default: return "";
+      case "auth":
+        return styles.headerAuth;
+      case "minimal":
+        return styles.headerMinimal;
+      case "transparent":
+        return styles.headerTransparent;
+      default:
+        return "";
     }
   };
 
-  const headerWrapperClasses = `${styles.headerWrapper} ${getVariantClass()} ${className}`.trim();
+  const headerWrapperClasses =
+    `${styles.headerWrapper} ${getVariantClass()} ${className}`.trim();
   const isAuthenticated = user !== null && !isLoading;
 
   // ─── Loading skeleton ─────────────────────────────────────────────────────────
@@ -327,7 +353,9 @@ function Header({
             </div>
           )}
           <div className={styles.right}>
-            <div className={styles.loadingSpinner}><span>...</span></div>
+            <div className={styles.loadingSpinner}>
+              <span>...</span>
+            </div>
           </div>
         </header>
         {/* Skeleton nav */}
@@ -342,7 +370,6 @@ function Header({
     <>
       {/* ── Wrapper keeps header + sub-nav together as a single fixed block ── */}
       <div className={headerWrapperClasses} style={customStyles}>
-
         {/* ── Main header bar ── */}
         <header className={styles.header}>
           <div className={styles.left}>
@@ -379,15 +406,10 @@ function Header({
                         className={`${styles.notification_btn} ${
                           unreadCount > 0 ? styles.hasNotification : ""
                         }`}
+                        onClick={handleNotificationClick}
                       >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleNotificationClick}
-                          leftIcon={<Notification className={styles.icon} />}
-                        >
-                          <span className={styles.navText}>الإشعارات</span>
-                        </Button>
+                        <Notification className={styles.icon} />
+                        <span className={styles.navText}>الإشعارات</span>
                       </div>
 
                       <Link href="/favorites" className={styles.navLink}>
@@ -411,7 +433,10 @@ function Header({
                         <div
                           className={styles.avatar}
                           onClick={() => router.push("/profile")}
-                          title={getUserDisplayName(user.firstName, user.lastName)}
+                          title={getUserDisplayName(
+                            user.firstName,
+                            user.lastName,
+                          )}
                         >
                           {user.image ? (
                             <Image
@@ -451,7 +476,9 @@ function Header({
           {NAV_TABS.map((tab, index) => (
             <button
               key={tab.id}
-              ref={(el) => { if (el) tabRefs.current[index] = el; }}
+              ref={(el) => {
+                if (el) tabRefs.current[index] = el;
+              }}
               onClick={() => handleTabClick(tab)}
               className={`${styles.subNavItem} ${
                 activeTab === tab.id ? styles.subNavItemActive : ""
@@ -476,33 +503,59 @@ function Header({
       {showUserActions && user && (
         <nav className={styles.bottomNav}>
           {chat ? (
-            <MessIcon onClick={handleChat} aria-label="فتح الدردشة" className={styles.MessageCircle} />
+            <MessIcon
+              onClick={handleChat}
+              aria-label="فتح الدردشة"
+              className={styles.MessageCircle}
+            />
           ) : (
-            <MessageCircle onClick={handleChat} aria-label="فتح الدردشة" className={styles.MessageCircle} />
+            <MessageCircle
+              onClick={handleChat}
+              aria-label="فتح الدردشة"
+              className={styles.MessageCircle}
+            />
           )}
 
           <div className={styles.bottomNavContent}>
             {isAuthenticated && user && (
               <>
                 {showSearch && (
-                  <button onClick={handleSearchClick} className={styles.bottomNavItem} aria-label="البحث">
+                  <button
+                    onClick={handleSearchClick}
+                    className={styles.bottomNavItem}
+                    aria-label="البحث"
+                  >
                     <SearchIcon className={styles.bottomNavIcon} />
                     <span className={styles.bottomNavText}>البحث</span>
                   </button>
                 )}
 
-                <button onClick={handleNotificationClick} className={styles.bottomNavItem} aria-label="الإشعارات">
+                <button
+                  onClick={handleNotificationClick}
+                  className={styles.bottomNavItem}
+                  aria-label="الإشعارات"
+                >
                   <Notification className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>الإشعارات</span>
-                  {unreadCount > 0 && <span className={styles.bottomNavBadge} />}
+                  {unreadCount > 0 && (
+                    <span className={styles.bottomNavBadge} />
+                  )}
                 </button>
 
-                <Link href="/favorites" className={styles.bottomNavItem} aria-label="المفضلة">
+                <Link
+                  href="/favorites"
+                  className={styles.bottomNavItem}
+                  aria-label="المفضلة"
+                >
                   <Heart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>المفضلة</span>
                 </Link>
 
-                <Link href="/cart" className={styles.bottomNavItem} aria-label="السلة">
+                <Link
+                  href="/cart"
+                  className={styles.bottomNavItem}
+                  aria-label="السلة"
+                >
                   <Cart className={styles.bottomNavIcon} />
                   <span className={styles.bottomNavText}>السلة</span>
                   {cartCount > 0 && <span className={styles.bottomNavBadge} />}
@@ -531,20 +584,43 @@ function Header({
                 </div>
                 <form className="p-6 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input type="text" placeholder="الاسم"
-                      defaultValue={user ? getUserDisplayName(user.firstName, user.lastName) : ""}
-                      className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" required />
-                    <input type="tel" placeholder="رقم الهاتف"
+                    <input
+                      type="text"
+                      placeholder="الاسم"
+                      defaultValue={
+                        user
+                          ? getUserDisplayName(user.firstName, user.lastName)
+                          : ""
+                      }
+                      className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      required
+                    />
+                    <input
+                      type="tel"
+                      placeholder="رقم الهاتف"
                       defaultValue={user?.phoneNumber || ""}
-                      className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" required />
+                      className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      required
+                    />
                   </div>
-                  <input type="email" placeholder="البريد الإلكتروني"
+                  <input
+                    type="email"
+                    placeholder="البريد الإلكتروني"
                     defaultValue={user?.email || ""}
-                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" required />
-                  <textarea rows={4} placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
-                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all" required />
+                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    required
+                  />
+                  <textarea
+                    rows={4}
+                    placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
+                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+                    required
+                  />
                   <div className="pt-2">
-                    <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors">
+                    <button
+                      type="submit"
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
+                    >
                       إرسال
                     </button>
                   </div>
