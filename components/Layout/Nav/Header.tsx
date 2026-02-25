@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import styles from "./Header.module.css";
-import "../../../app/globals.css";
+import "./../../../app/globals.css";
 
 // Import your authentication service
 import {
@@ -38,6 +38,7 @@ import Notification from "./../../../public/icons/Header/Bell Bing.svg";
 import SearchIcon from "./../../../public/icons/Header/Rounded Magnifer.svg";
 import MessageCircle from "./../../../public/icons/Header/float-btn.svg";
 import MessIcon from "./../../../public/icons/Header/float-btn (1).svg";
+import LanguageSelector from "@/components/UI/Language/language";
 
 export interface User {
   _id: string;
@@ -377,6 +378,8 @@ function Header({
               <img src={Logo.src} alt="Logo" className={styles.logo} />
             </Link>
           </div>
+
+          <LanguageSelector />
 
           {showSearch && (
             <div className={styles.mid}>

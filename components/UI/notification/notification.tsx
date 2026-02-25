@@ -313,8 +313,8 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
       <div className={styles.backdrop} onClick={onClose} />
 
       <div className={styles.notificationPanel}>
-        {/* Header */}
-        <div className={styles.header}>
+       
+        {/* <div className={styles.header}>
           <h2 className={styles.title}>
             الإشعارات
             {unreadCount > 0 && (
@@ -330,7 +330,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
           </button>
         </div>
 
-        {/* Filter and Actions */}
+     
         <div className={styles.actions}>
           <div className={styles.filterButtons}>
             <button
@@ -374,7 +374,7 @@ const NotificationsComponent: React.FC<NotificationsComponentProps> = ({
               تعليم الكل كمقروء
             </button>
           )}
-        </div>
+        </div> */}
 
         {/* Notifications List */}
         <div
