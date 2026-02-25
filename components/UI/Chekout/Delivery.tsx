@@ -58,11 +58,11 @@ const Delivery: React.FC<DeliveryProp> = ({ deliveryInfo, orders, editProp, setE
         <span className={styles.price}>
           {deliveryInfo.price === 0 ? (
             <>
-              <span style={{ textDecoration: "line-through" }}>
+              {/* <span style={{ textDecoration: "line-through" }}>
                 {deliveryInfo.price} ج
-              </span>
+              </span> */}
               <span className={styles.priceNote}>
-                ( يتم التحديد من قبل أحد المسؤولين لاحقاً ){" "}
+                 يتم التحديد من قبل أحد المسؤولين لاحقاً 
               </span>
             </>
           ) : (
@@ -71,9 +71,7 @@ const Delivery: React.FC<DeliveryProp> = ({ deliveryInfo, orders, editProp, setE
         </span>{" "}
         <br />
         <span className={styles.details}>
-          التوصيل بين يومي {deliveryInfo.start} و {deliveryInfo.ends}
-
-          (التوصيل يكون من يومين إلى أسبوع)
+                 يتم التحديد من قبل أحد المسؤولين لاحقاً 
         </span>
         {edit ? (
           <div className={styles.mineContainer}>

@@ -37,7 +37,7 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--black60);
-  direction: ltr;
+  direction: rtl;
   font-family: var(--font-primary);
 }
 .depositNote{
@@ -1318,7 +1318,7 @@
     color: #333;
     margin-bottom: 12px;
     display: block;
-    text-align: left;
+    /* text-align: left; */
   }
 
   .button {
@@ -1388,7 +1388,9 @@
   }
   
   .SummaryContainer {
+    width: 100%;
     margin: 3% auto;
+    align-self: center;
   }
   
   .Container {
@@ -1404,6 +1406,10 @@
     padding: 16px 20px;
     gap: 12px;
     min-height: 60px;
+  }
+
+  .SummaryContainer{
+    align-self: center;
   }
   
   .radio {
