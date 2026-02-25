@@ -4,10 +4,10 @@
   gap: 24px;
   padding: 40px 24px;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 6rem auto 0 auto;
   direction: rtl;
   min-height: 100vh;
-  background-color: #fafafa;
+  /* background-color: #fafafa; */
 }
 
 .right {
@@ -60,33 +60,27 @@
     gap: 12px;
   }
 
+  .left {
+    justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 6% 0;
+    align-items: center;        /* ← ADD THIS */
+    display: flex;              /* ← ADD THIS (ensure it's flex) */
+    flex-direction: column;     /* ← ADD THIS */
+  }
+
+  .right {
+    justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 6% 0;
+  }
+
   .SummaryContainer {
     padding: 20px;
-    justify-self: center;
-    min-width: 100%;
-    align-self: center;
-    margin-top: 15%;
+    width: 100%;               /* ← CHANGE from min-width: 100% to width: 100% */
+    margin-top: 0;             /* ← REMOVE the 15% top margin */
+    align-self: center;       /* ← ADD THIS to fill the flex parent */
   }
-
-  .title {
-    font-size: 1.1rem;
-  }
-
-  .button {
-    padding: 14px 20px !important;
-    font-size: 15px !important;
-  }
-  .right{
-    justify-self: center;
-    min-width: 90%;
-    margin: 0;
-    padding: 6% 0;
-  }
-  .left{
-    justify-self: center;
-    min-width: 90%;
-    margin: 0;
-    padding: 6% 0;
-  }
-
 }

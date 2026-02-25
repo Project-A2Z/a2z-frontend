@@ -37,7 +37,7 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--black60);
-  direction: ltr;
+  direction: rtl;
   font-family: var(--font-primary);
 }
 .depositNote{
@@ -85,6 +85,14 @@
   background-color: var(--disabled) !important;
   transform: none !important;
   box-shadow: none !important;
+}
+/* .price{
+  display: inline-block;
+  justify-content: space-between;
+} */
+
+.priceNote{
+  padding: 0 0.25rem;
 }
 
 /* Error message styling */
@@ -601,7 +609,7 @@
 }
 
 .priceForm {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--black60);
   font-family: var(--font-primary);
@@ -633,8 +641,29 @@
   text-align: right;
 }
 
+.selectionInput{
+  padding: 12px 16px 12px 2.5rem; /* left padding last so arrow has room */
+  border: 1px solid var(--black16);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-primary);
+  direction: rtl;
+  text-align: right;
+  background: var(--background);
+  color: var(--black87);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  /* Custom arrow */
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555555' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0.85rem center;
+}
+
 .customInput {
   padding: 12px 16px;
+  padding-left: 2rem;
   border: 1px solid var(--black16);
   border-radius: 8px;
   font-size: 14px;
@@ -1289,7 +1318,7 @@
     color: #333;
     margin-bottom: 12px;
     display: block;
-    text-align: left;
+    /* text-align: left; */
   }
 
   .button {
@@ -1359,7 +1388,9 @@
   }
   
   .SummaryContainer {
+    width: 100%;
     margin: 3% auto;
+    align-self: center;
   }
   
   .Container {
@@ -1375,6 +1406,10 @@
     padding: 16px 20px;
     gap: 12px;
     min-height: 60px;
+  }
+
+  .SummaryContainer{
+    align-self: center;
   }
   
   .radio {

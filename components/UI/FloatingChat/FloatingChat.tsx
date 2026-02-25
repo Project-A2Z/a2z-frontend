@@ -11,7 +11,7 @@ import { UserStorage } from '@/services/auth/login';
  */
 const getAuthToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('authToken'); // Optional; sends if available
+    return localStorage.getItem('authToken');
   }
   return null;
 };
@@ -24,10 +24,9 @@ interface FloatingChatProps {
 export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: FloatingChatProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [internalOpen, setInternalOpen] = useState(false);
-  
-  // Use externalOpen if provided, otherwise use internal state
+
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
-  
+
   const setOpen = (value: boolean) => {
     if (onOpenChange) {
       onOpenChange(value);
@@ -35,6 +34,7 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
       setInternalOpen(value);
     }
   };
+
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',
@@ -54,14 +54,6 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
     }
   }, []);
 
-  useEffect(() => {
-    // Format user's name from first and last name
-    const formatUserName = (user: User | null): string => {
-      if (!user) return '';
-      return `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
-    };
-  }, []);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -76,33 +68,27 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
     setSubmitStatus(null);
 
     try {
-      // Basic form validation
       if (!formData.name || !formData.phoneNumber || !formData.description) {
         throw new Error('الرجاء ملء جميع الحقول المطلوبة');
       }
 
-      // Name validation (2-100 characters)
       if (formData.name.length < 2 || formData.name.length > 100) {
         throw new Error('الاسم يجب أن يكون بين 2 و100 حرف');
       }
 
-      // Phone number validation (Egyptian number: starts with 01, 11 digits)
       const phoneRegex = /^01[0-9]{9}$/;
       if (!phoneRegex.test(formData.phoneNumber.trim())) {
         throw new Error('رقم الهاتف غير صالح. يجب أن يبدأ بـ 01 ويحتوي على 11 رقمًا');
       }
 
-      // Description validation (10-1000 characters)
       if (formData.description.length < 10 || formData.description.length > 1000) {
         throw new Error('الوصف يجب أن يكون بين 10 و1000 حرف');
       }
 
-      // Email validation (if provided)
       if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
         throw new Error('البريد الإلكتروني غير صالح');
       }
 
-      // Prepare the request data
       const inquiryData = {
         name: formData.name.trim(),
         phoneNumber: formData.phoneNumber.trim(),
@@ -110,26 +96,15 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
         description: formData.description.trim()
       };
 
-      //console.log('Submitting inquiry:', inquiryData);
-
-      // Call the API to create inquiry
       await inquiryService.createInquiry(inquiryData);
 
-      // Show success message
       setSubmitStatus({
         success: true,
         message: 'تم إرسال استفسارك بنجاح. سنتواصل معك قريباً!'
       });
 
-      // Reset form
-      setFormData({
-        name: '',
-        phoneNumber: '',
-        email: '',
-        description: ''
-      });
-      
-      // Auto-close after 3 seconds
+      setFormData({ name: '', phoneNumber: '', email: '', description: '' });
+
       setTimeout(() => {
         setOpen(false);
         setSubmitStatus(null);
@@ -141,22 +116,16 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
         cause: error.cause,
         stack: error.stack
       });
-      
+
       let errorMessage = error.message || 'حدث خطأ أثناء إرسال الاستفسار';
-      
-      // Handle validation errors
+
       if (error.name === 'ValidationError' && error.cause?.length) {
         errorMessage = 'خطأ في البيانات:\n' + error.cause.map((err: any) => `- ${err.message}`).join('\n');
-      }
-      // Handle 400 errors
-      else if (error.message.includes('البيانات المرسلة غير صالحة')) {
+      } else if (error.message.includes('البيانات المرسلة غير صالحة')) {
         errorMessage = 'البيانات المرسلة غير صالحة. تحقق من الاسم، رقم الهاتف، والوصف.';
       }
 
-      setSubmitStatus({
-        success: false,
-        message: errorMessage
-      });
+      setSubmitStatus({ success: false, message: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +133,7 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
 
   return (
     <div className="fixed right-4 bottom-24 md:bottom-4 z-50 flex flex-col-reverse gap-4">
-      {/* Chat button - Only render after component mounts to prevent hydration mismatch */}
+      {/* Chat button */}
       {isMounted && (
         <button
           onClick={() => setOpen(true)}
@@ -181,7 +150,7 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
         </button>
       )}
 
-      {/* WhatsApp button - Always show on all screen sizes */}
+      {/* WhatsApp button */}
       <a
         href={whatsappHref}
         target="_blank"
@@ -195,113 +164,114 @@ export default function FloatingChat({ isOpen: externalOpen, onOpenChange }: Flo
         </span>
       </a>
 
-      
-
       {/* Modal */}
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50"
+          <div
+            className="absolute inset-0 bg-black/40"
             onClick={() => !isSubmitting && setOpen(false)}
             aria-hidden="true"
           />
 
           {/* Modal Content */}
-          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Header */}
-            <div className="bg-primary text-white p-4 text-center relative">
-              <h3 className="text-lg font-semibold">اتصل بنا</h3>
-              <button 
-                onClick={() => !isSubmitting && setOpen(false)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 disabled:opacity-50"
-                disabled={isSubmitting}
-                aria-label="إغلاق"
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
+          <div
+            className="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"
+            dir="rtl"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => !isSubmitting && setOpen(false)}
+              className="absolute left-4 top-4 text-gray-400 hover:text-gray-600 disabled:opacity-40 text-xl leading-none"
+              disabled={isSubmitting}
+              aria-label="إغلاق"
+              type="button"
+            >
+              ✕
+            </button>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="الاسم"
-                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    placeholder="رقم الهاتف"
-                    className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                    pattern="01[0-9]{9}"
-                    title="يجب إدخال رقم هاتف صحيح (يبدأ بـ 01 ويحتوي على 11 رقم)"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
+            <form onSubmit={handleSubmit} className="px-8 pt-10 pb-8 space-y-4">
+              {/* Title */}
+              <h3 className="text-center text-xl font-semibold text-gray-800 mb-6">
+                للشكاوي والاستفسارات
+              </h3>
 
-              <div>
+              {/* Name + Phone row */}
+              <div className="grid grid-cols-2 gap-3">
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleChange}
-                  placeholder="البريد الإلكتروني"
-                  className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="رقم الهاتف"
+                  className="w-full rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-right placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60"
                   required
+                  pattern="01[0-9]{9}"
+                  title="يجب إدخال رقم هاتف صحيح (يبدأ بـ 01 ويحتوي على 11 رقم)"
+                  disabled={isSubmitting}
+                />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="الاسم"
+                  className="w-full rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-right placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60"
+                  required
+                  minLength={2}
+                  maxLength={100}
                   disabled={isSubmitting}
                 />
               </div>
 
-              <div>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={4}
-                  placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
-                  className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  required
-                  minLength={10}
-                  maxLength={1000}
-                  disabled={isSubmitting}
-                />
-              </div>
+              {/* Email */}
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="البريد الإلكتروني"
+                className="w-full rounded-full border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-right placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-60"
+                required
+                disabled={isSubmitting}
+              />
+
+              {/* Textarea */}
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={5}
+                placeholder="اكتب الشكوي او الاستفسار لنتمكن من تقديم المساعدة"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-right placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none disabled:opacity-60"
+                required
+                minLength={10}
+                maxLength={1000}
+                disabled={isSubmitting}
+              />
 
               {/* Status Message */}
               {submitStatus && (
-                <div className={`p-3 rounded-lg text-sm ${
-                  submitStatus.success 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <div
+                  className={`p-3 rounded-xl text-sm text-right ${
+                    submitStatus.success
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+                >
                   {submitStatus.message.split('\n').map((line, index) => (
                     <p key={index} className={index > 0 ? 'mt-1' : ''}>{line}</p>
                   ))}
                 </div>
               )}
 
-              <div className="pt-2">
+              {/* Submit button */}
+              <div className="pt-1 flex justify-center">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors ${
+                  className={`bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-16 rounded-full transition-colors text-base ${
                     isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                 >

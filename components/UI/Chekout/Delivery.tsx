@@ -52,68 +52,79 @@ const Delivery: React.FC<DeliveryProp> = ({ deliveryInfo, orders, editProp, setE
     }
     
     return (
-        <div className={styles.Container}>
-            <span className={styles.title}>تفاصيل التوصيل</span>
-            <span className={styles.details}>مصاريف التوصيل: {deliveryInfo.price}ج</span>
-            <br/>
-            <span className={styles.details}>التوصيل بين يومي {deliveryInfo.start} و {deliveryInfo.ends}</span>
-           
-            {edit ? (
-                <div className={styles.mineContainer}>
-                    <span className={styles.orderTitle}>طرد</span>
-                   
-                    {/* Scrollable container for order items */}
-                    <div className={styles.orderItemsContainer}>
-                        {orders.map((order, index) => (
-                            <div 
-                                key={order.id} 
-                                className={styles.orderItem}
-                                style={{
-                                    animationDelay: `${index * 0.1}s`
-                                }}
-                            >
-                                <div className={styles.orderImage}>
-                                    <img
-                                        src={order.image}
-                                        alt={order.name}
-                                        className={styles.itemImage}
-                                    />
-                                </div>
-                                <div className={styles.orderDetails}>
-                                    <span className={styles.orderName}>
-                                        {order.name}
-                                    </span>
-                                    <span className={styles.orderPrice}>
-                                        {order.price}ج
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    
-                    <Button
-                        variant="primary"
-                        size="md"
-                        onClick={handleConfirmClick}
-                        rounded={true}
-                        className={styles.confirm}
-                    >
-                        تأكيد تفاصيل التوصيل
-                    </Button>
-                </div>
-            ) : (
-                <Button
-                    variant="custom"
-                    rightIcon={<Edit />}
-                    size='sm'
-                    onClick={handleEditClick}
-                    className={styles.editbtn}
+      <div className={styles.Container}>
+        <span className={styles.title}>تفاصيل التوصيل</span>
+        <span className={styles.details}>مصاريف التوصيل: </span>
+        <span className={styles.price}>
+          {deliveryInfo.price === 0 ? (
+            <>
+              {/* <span style={{ textDecoration: "line-through" }}>
+                {deliveryInfo.price} ج
+              </span> */}
+              <span className={styles.priceNote}>
+                 يتم التحديد من قبل أحد المسؤولين لاحقاً 
+              </span>
+            </>
+          ) : (
+            `${deliveryInfo.price} ج `
+          )}
+        </span>{" "}
+        <br />
+        <span className={styles.details}>
+                 يتم التحديد من قبل أحد المسؤولين لاحقاً 
+        </span>
+        {edit ? (
+          <div className={styles.mineContainer}>
+            <span className={styles.orderTitle}>طرد</span>
+
+            {/* Scrollable container for order items */}
+            <div className={styles.orderItemsContainer}>
+              {orders.map((order, index) => (
+                <div
+                  key={order.id}
+                  className={styles.orderItem}
+                  style={{
+                    animationDelay: `${index * 0.1}s`,
+                  }}
                 >
-                    تعديل
-                </Button>
-            )}
-        </div>
-    )
+                  <div className={styles.orderImage}>
+                    <img
+                      src={order.image}
+                      alt={order.name}
+                      className={styles.itemImage}
+                    />
+                  </div>
+                  <div className={styles.orderDetails}>
+                    <span className={styles.orderName}>{order.name}</span>
+                    <span className={styles.orderPrice}>{order.price}ج</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleConfirmClick}
+              rounded={true}
+              className={styles.confirm}
+            >
+              تأكيد تفاصيل التوصيل
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="custom"
+            rightIcon={<Edit />}
+            size="sm"
+            onClick={handleEditClick}
+            className={styles.editbtn}
+          >
+            تعديل
+          </Button>
+        )}
+      </div>
+    );
 }
 
 export default Delivery
