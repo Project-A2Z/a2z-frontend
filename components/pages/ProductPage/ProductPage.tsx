@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { Product } from '@/services/api/products';
+import { Product, ProductVariant } from '@/services/api/products';
 
 const Overview = lazy(() => import('./Sections/Overview'));
 const Specs = lazy(() => import('./Sections/Specs'));
@@ -22,7 +22,6 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   const [currentRatingCount, setCurrentRatingCount] = useState<number>(0);
   const [ratingsDistribution, setRatingsDistribution] = useState<{ stars: number; count: number }[]>([]);
 
-  // console.log('ProductPage render with data:', data);
   useEffect(() => {
     const fetchProduct = async () => {
       if (data && data._id) {
@@ -37,16 +36,19 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         if (!productId) throw new Error('Product ID is missing');
 
         const response = await fetch(
-          `https://a2z-backend.fly.dev/app/v1/products/${productId}`
+          `https://a2z-backend--dkreq.fly.dev/app/v1/products/${productId}`
         );
-        
+
         if (!response.ok) throw new Error('Failed to fetch product');
 
         const result = await response.json();
-        if (result.status === 'success' && result.product) {
-          setProduct(result.product);
-          console.log('Fetch response:', result.product);
-          updateRatingData(result.product);
+
+        // Backend now returns { status, product } — not { status, data }
+        const productData = result.product ?? result.data;
+
+        if (result.status === 'success' && productData) {
+          setProduct(productData);
+          updateRatingData(productData);
         } else {
           throw new Error('Invalid product data');
         }
@@ -62,13 +64,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }, [data]);
 
   const updateRatingData = (productData: ProductData) => {
-    setCurrentRating(productData.reviewSummary?.averageRate || productData.averageRate || 0);
-    setCurrentRatingCount(productData.reviewSummary?.totalReviews || 0);
+    setCurrentRating(productData.reviewSummary?.averageRate ?? productData.averageRate ?? 0);
+    setCurrentRatingCount(productData.reviewSummary?.totalReviews ?? 0);
 
-    // API field is "rateDistribution" (not "ratingDistribution")
+    // rateDistribution is now { "1": 0, "2": 0, ... "5": 0 }
     const raw = productData.reviewSummary?.rateDistribution;
 
-    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
       const distribution = Object.entries(raw).map(([stars, count]) => ({
         stars: parseInt(stars, 10),
         count: Number(count),
@@ -83,14 +85,16 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     if (!product?._id) return;
     try {
       const response = await fetch(
-        `https://a2z-backend.fly.dev/app/v1/products/${product._id}`
+        `https://a2z-backend--dkreq.fly.dev/app/v1/products/${product._id}`
       );
       if (!response.ok) throw new Error('Failed to refresh product data');
 
       const result = await response.json();
-      if (result.status === 'success' && result.product) {
-        setProduct(result.product);
-        updateRatingData(result.product);
+      const productData = result.product ?? result.data;
+
+      if (result.status === 'success' && productData) {
+        setProduct(productData);
+        updateRatingData(productData);
       }
     } catch (err) {
       console.error('Error refreshing product data:', err);
@@ -126,17 +130,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
             id={product._id}
             title={product.name}
             description={product.description || 'لا يوجد وصف متاح'}
-            price={product.price}
-            imageList={product.imageList?.length ? product.imageList : ['/placeholder-product.jpg']}
-            rating={product.averageRate || 0}
-            ratingCount={product.reviewSummary?.totalReviews || 0}
+            imageList={product.imageList?.length ? product.imageList : ['/acessts/NoImage.jpg']}
+            rating={currentRating}
+            ratingCount={currentRatingCount}
             category={product.category}
-            stockQty={product.stockQty}
-            isUNIT={product.IsUNIT}
-            isKG={product.IsKG}
-            isTON={product.IsTON}
-            isLITER={product.IsLITER}
-            isCUBIC_METER={product.IsCUBIC_METER}
+            // Pass the variants array — Overview now derives units/price/stock from it
+            variants={product.productVariants ?? []}
+            advProduct={product.advProduct ?? []}
           />
         </Suspense>
 
@@ -148,13 +148,11 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
 
             <Suspense fallback={<SectionLoader />}>
               <Ratings
-  average={currentRating}
-  total={currentRatingCount}
-  distribution={ratingsDistribution}
-  interactive={true}
-  // onStarClick={handleStarFilter}
-  // onDistributionClick={handleDistributionFilter}
-/>
+                average={currentRating}
+                total={currentRatingCount}
+                distribution={ratingsDistribution}
+                interactive={true}
+              />
             </Suspense>
 
             <Suspense fallback={<SectionLoader />}>

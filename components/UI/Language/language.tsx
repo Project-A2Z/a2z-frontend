@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { getLocale , setLocale , Locale} from '@/services/api/language';
 
 const LanguageSelector = () => {
   const [currentLanguage, setCurrentLanguage] = useState('ar');
@@ -14,7 +15,7 @@ const LanguageSelector = () => {
   ];
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('selectedLanguage') || 'ar';
+    const savedLang = getLocale() || 'ar';
     setCurrentLanguage(savedLang);
     
     if (savedLang !== 'ar') {
@@ -33,7 +34,7 @@ const LanguageSelector = () => {
     }
   }, []);
 
-  const triggerTranslation = (langCode: string) => {
+  const triggerTranslation = (langCode: Locale) => {
     try {
       const selectElement = document.querySelector('.goog-te-combo') as HTMLSelectElement;
       if (selectElement && selectElement.value !== langCode) {
@@ -58,10 +59,11 @@ const LanguageSelector = () => {
     }
   };
 
-  const handleLanguageChange = (langCode: string) => {
+  const handleLanguageChange = (langCode: Locale) => {
     if (isTranslating) return;
     
     setCurrentLanguage(langCode);
+    setLocale(langCode);
     setIsOpen(false);
     localStorage.setItem('selectedLanguage', langCode);
     
@@ -80,7 +82,7 @@ const LanguageSelector = () => {
         window.location.href = window.location.pathname;
       }, 3000);
     } else {
-      html.setAttribute('dir', langCode === 'ar' ? 'rtl' : 'ltr');
+      html.setAttribute('dir', langCode === ('ar' as Locale) ? 'rtl' : 'ltr');
       html.setAttribute('lang', langCode);
       
       const checkAndTranslate = () => {
@@ -123,7 +125,7 @@ const LanguageSelector = () => {
             {languages.map((language) => (
               <button
                 key={language.code}
-                onClick={() => handleLanguageChange(language.code)}
+                onClick={() => handleLanguageChange(language.code as Locale)}
                 className={`w-full px-4 py-2.5 text-sm flex justify-between items-center 
                   hover:bg-gray-50 transition-colors
                   ${currentLanguage === language.code 

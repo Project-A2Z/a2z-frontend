@@ -18,7 +18,7 @@ interface FormData {
 
 interface Form {
   Total: number;
-  way: "cash" | "online";
+  way: "Cash" | "Online";
   onDataChange?: (data: FormData) => void;
 }
 
@@ -48,7 +48,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
 
   // Calculate price based on payment method
   useEffect(() => {
-    if (way === "cash") {
+    if (way === "Cash") {
       setPrice(Math.round((Total * 10) / 100));
     } else {
       setPrice(Total);
@@ -140,7 +140,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     transactionId &&
     transactionDate &&
     receiptFile &&
-    (way === "cash" || (way === "online" && paymentWith));
+    (way === "Cash" || (way === "Online" && paymentWith));
 
   return (
     <>
@@ -162,7 +162,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
             {price.toLocaleString("ar-EG")} ج
           </span>
 
-          {way === "cash" && (
+          {way === "Cash" && (
             <span className={styles.depositNote}>
               (مقدم 10% من إجمالي المبلغ)
             </span>
@@ -181,8 +181,8 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
               disabled={isConfirmed}
             >
               <option value="">اختر وسيلة الدفع</option>
-              <option value="instaPay">InstaPay (انستا باي)</option>
-              <option value="vodafone">Vodafone Cash (فودافون كاش)</option>
+              <option value="InstaPay">InstaPay (انستا باي)</option>
+              <option value="Vodafone">Vodafone Cash (فودافون كاش)</option>
             </select>
           </div>
 

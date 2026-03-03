@@ -2,30 +2,18 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
+
 import {
-  Product,
-  productService,
-  ProductFilters,
-} from "@/services/api/products";
+  // Product,
+  ProductVariant,
+  fetchProductsByCategory,
+  getProductsWithState,
+} from "@/services/product/products";
+import { Product } from "@/services/product/products";
 import Card from "@/components/UI/Card/Card";
 import styles from "@/components/UI/RelatedProducts/RelatedProducts.module.css";
 
-const BASE_IMAGE_URL = "https://a2z-backend.fly.dev";
-const PLACEHOLDER_SRC = "/acessts/NoImage.jpg";
-
-const getPrimaryImage = (p: Product): string => {
-  if (p?.imageList && Array.isArray(p.imageList) && p.imageList.length > 0) {
-    const firstValidImage = p.imageList.find(
-      (img) => typeof img === "string" && img.trim() !== "",
-    );
-    if (firstValidImage) {
-      return firstValidImage.startsWith("http")
-        ? firstValidImage
-        : `${BASE_IMAGE_URL}${firstValidImage.startsWith("/") ? "" : "/"}${firstValidImage}`;
-    }
-  }
-  return PLACEHOLDER_SRC;
-};
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface RelatedProductsProps {
   currentProductId?: string;
@@ -40,6 +28,11 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Track selected variant per product  { [productIdStr]: variantId }
+  const [activeVariants, setActiveVariants] = useState<Record<string, string>>({});
+
+  // ── slider ────────────────────────────────────────────────────────────────
+
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     loop: true,
     mode: "free-snap",
@@ -52,46 +45,74 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
 
   const timerRef = useRef<number | null>(null);
 
-  const start = () => {
+  const start = useCallback(() => {
     if (timerRef.current) return;
     const slider = instanceRef.current;
     if (!slider) return;
     timerRef.current = window.setInterval(() => slider.next(), 2500);
-  };
+  }, [instanceRef]);
 
-  const stop = () => {
+  const stop = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  };
+  }, []);
+
+  // ── variant selection ─────────────────────────────────────────────────────
+
+  const handleVariantSelect = useCallback(
+    (productId: string | number, variantId: string) => {
+      setActiveVariants((prev) => ({
+        ...prev,
+        [String(productId)]: variantId,
+      }));
+    },
+    []
+  );
+
+  // ── fetch ─────────────────────────────────────────────────────────────────
 
   const fetchRelatedProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const filters: ProductFilters = {
-        limit: 8,
-        ...(currentProductId && { excludeId: currentProductId }),
-        ...(currentCategory && { category: currentCategory }),
-      };
+      // Fetch by category if available; fall back to all products
+      let allProducts: Product[];
+      try {
+        allProducts = currentCategory
+          ? await fetchProductsByCategory(currentCategory)
+          : await getProductsWithState();
+      } catch {
+        // If category fetch fails (backend 500), fall back to all products
+        allProducts = await getProductsWithState();
+      }
 
-      const response = await productService.getProducts(filters);
-
-      if (response && Array.isArray(response.data)) {
-        // Extra client-side guard: exclude current product and match category
-        const filtered = response.data.filter((p) => {
-          const notCurrent = p._id !== currentProductId;
+      // Client-side: exclude current product, limit to 8
+      const filtered = allProducts
+        .filter((p) => {
+          const idStr = p.id?.toString() || "";
+          const notCurrent = idStr !== currentProductId;
           const sameCategory = currentCategory
             ? p.category === currentCategory
             : true;
           return notCurrent && sameCategory;
-        });
-        setProducts(filtered);
-      } else {
-        setProducts([]);
+        })
+        .slice(0, 8);
+
+      setProducts(filtered);
+
+      // Pre-select the first variant for each product
+      const initialVariants: Record<string, string> = {};
+      for (const p of filtered) {
+        const key = p.id?.toString() || "";
+        const firstVariant = p.productVariants?.[0];
+        if (key && firstVariant) {
+          initialVariants[key] = firstVariant._id ?? firstVariant.id;
+        }
       }
+      setActiveVariants(initialVariants);
     } catch {
       setError("حدث خطأ أثناء تحميل المنتجات المتعلقة");
       setProducts([]);
@@ -107,14 +128,14 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   useEffect(() => {
     start();
     return () => stop();
-  }, [instanceRef]);
+  }, [start, stop]);
+
+  // ── render states ─────────────────────────────────────────────────────────
 
   if (loading) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">
-          منتجات قد تعجبك
-        </h2>
+        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
         <div className="keen-slider">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="keen-slider__slide">
@@ -129,15 +150,15 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   if (error) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">
-          منتجات قد تعجبك
-        </h2>
+        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
         <div className="text-red-500">{error}</div>
       </div>
     );
   }
 
   if (products.length === 0) return null;
+
+  // ── main render ───────────────────────────────────────────────────────────
 
   return (
     <div className="mt-12">
@@ -148,26 +169,55 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
         onMouseEnter={stop}
         onMouseLeave={start}
       >
-        {products.map((product) => (
-          <div key={product._id} className="keen-slider__slide">
-            <div
-              className={styles.slideWrapper}
-            >
-              <Card
-                productId={product._id}
-                productName={product.name}
-                productCategory={product.category}
-                productPrice={String(product.price)}
-                productImg={getPrimaryImage(product)}
-                available={product.stockQty > 0}
-                IsKG={product.IsKG}
-                IsTON={product.IsTON}
-                IsLITER={product.IsLITER}
-                IsCUBIC_METER={product.IsCUBIC_METER}
-              />
+        {products.map((product, index) => {
+          // product.id is already normalised by processProductImagesStatic
+          const productIdStr = product.id?.toString() || String(index);
+
+          const activeVariantId = activeVariants[productIdStr];
+
+          // Resolve the active variant (fall back to first)
+          const activeVariant: ProductVariant | null =
+            product.productVariants?.find(
+              (v) => (v.id || v._id) === activeVariantId
+            ) ?? product.productVariants?.[0] ?? null;
+
+          // Price: active variant overrides the pre-derived product.price
+          const effectivePrice = activeVariant?.price ?? product.price ?? 0;
+
+          // Stock: active variant's quantity, or pre-derived inStock flag
+          const effectiveStock =
+            activeVariant != null
+              ? activeVariant.totalQuantity > 0
+              : product.inStock;
+
+          return (
+            <div key={`${productIdStr}-${index}`} className="keen-slider__slide">
+              <div className={styles.slideWrapper}>
+                <Card
+                  // Identity
+                  productId={productIdStr}
+                  productName={product.nameAr || product.name}
+                  productCategory={product.category || "غير محدد"}
+                  // Full product object — Card uses it for variants, unit labels, etc.
+                  product={product}
+                  // Image — already resolved by processProductImagesStatic
+                  productImg={product.image || "/acessts/NoImage.jpg"}
+                  // Price & availability
+                  productPrice={effectivePrice.toString()}
+                  available={effectiveStock}
+                  // Optional display fields — pre-derived by the service
+                  originalPrice={product.originalPrice?.toString()}
+                  discount={product.discount}
+                  rating={product.rating}
+                  reviewsCount={product.reviewsCount}
+                  // Variant selection
+                  activeVariantId={activeVariantId}
+                  onVariantSelect={handleVariantSelect}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -151,7 +151,7 @@ class ReviewService {
 
   constructor() {
     this.baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://a2z-backend.fly.dev/app/v1";
+      process.env.NEXT_PUBLIC_API_URL || "https://a2z-backend--dkreq.fly.dev/app/v1";
   }
 
   private getAuthHeaders(token?: string) {

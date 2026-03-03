@@ -1,5 +1,4 @@
-"use client"
-import { useState, useRef } from 'react';
+"use client";
 import Card from '@/components/UI/Card/Card';
 import styles from '@/components/UI/Product/ProductSlider.module.css';
 import { Product } from '@/services/product/products';
@@ -9,15 +8,20 @@ interface ProductSliderProps {
   title?: string;
   isLoading?: boolean;
   error?: string | null;
+  // NEW: variant state passed down from OptimizedProductSection
+  selectedVariants?: Record<string, string>;   // productId → variantId
+  onVariantSelect?: (productId: string | number, variantId: string) => void;
 }
 
-function ProductSlider({ 
+function ProductSlider({
   products = [],
   title = "المنتجات المميزة",
   isLoading = false,
-  error = null
+  error = null,
+  selectedVariants = {},
+  onVariantSelect,
 }: ProductSliderProps) {
-  
+
   if (isLoading) {
     return (
       <div className={styles.sliderContainer}>
@@ -69,11 +73,6 @@ function ProductSlider({
     return '/acessts/NoImage.jpg';
   };
 
-  const getProductStatus = (product: Product): boolean => {
-    if (typeof product.inStock === 'boolean') return product.inStock;
-    return true;
-  };
-
   const getProductName = (product: Product): string => {
     return product.nameAr || product.name || 'منتج غير محدد';
   };
@@ -82,27 +81,46 @@ function ProductSlider({
     <div className={styles.sliderContainer}>
       <div className={styles.gridWrapper}>
         <div className={styles.productGrid}>
-          {products.map((product, index) => (
-            <div key={`${product.id || product.name}-${index}`} className={styles.gridItem}>
-              <Card
-                productId={product.id?.toString() || index.toString()}
-                productImg={getProductImage(product)}
-                productName={getProductName(product)}
-                productCategory={product.category || 'غير محدد'}
-                productPrice={product.price?.toString() || '0'}
-                available={getProductStatus(product)}
-                originalPrice={product.originalPrice?.toString()}
-                discount={product.discount}
-                rating={product.rating}
-                reviewsCount={product.reviewsCount}
-                product={product}
-                IsKG={product.IsKG}
-                IsTON={product.IsTON}
-                IsLITER={product.IsLITER}
-                IsCUBIC_METER={product.IsCUBIC_METER}
-              />
-            </div>
-          ))}
+          {products.map((product, index) => {
+            const productIdStr = product.id?.toString() || index.toString();
+            const activeVariantId = selectedVariants[productIdStr];
+
+            // Find the currently selected variant (if any)
+            const activeVariant = product.productVariants?.find(
+              v => (v.id || v._id) === activeVariantId
+            ) || product.productVariants?.[0] || null;
+
+            // Derive price & stock from active variant
+            const effectivePrice = activeVariant?.price ?? product.price ?? 0;
+            const effectiveStock =
+              activeVariant != null
+                ? activeVariant.totalQuantity > 0
+                : product.inStock;
+
+            return (
+              <div
+                key={`${product.id || product.name}-${index}`}
+                className={styles.gridItem}
+              >
+                <Card
+                  productId={productIdStr}
+                  productImg={getProductImage(product)}
+                  productName={getProductName(product)}
+                  productCategory={product.category || 'غير محدد'}
+                  productPrice={effectivePrice.toString()}
+                  available={effectiveStock}
+                  originalPrice={product.originalPrice?.toString()}
+                  discount={product.discount}
+                  rating={product.rating}
+                  reviewsCount={product.reviewsCount}
+                  product={product}
+                  // NEW: pass variant state to Card
+                  activeVariantId={activeVariantId}
+                  onVariantSelect={onVariantSelect}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
