@@ -183,10 +183,10 @@ const Summary: React.FC<SummaryInter> = ({
             width: "100%",
           }}
         >
-          <span className={styles.details}>عدد المنتجات </span>
-          <span className={`${styles.price} notranslate `}>
-            ({numberItems})
-          </span>
+          <span className={styles.details}>عدد المنتجات ({numberItems})</span>
+          {/* <span className={`${styles.price} notranslate `}>
+            
+          </span> */}
 
           <span className={`${styles.price} `}> {Total} ج.م </span>
           {/* <span className={styles.currency}> ج.م </span> */}

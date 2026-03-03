@@ -2,9 +2,9 @@ import { Api, buildUrl } from './../api/endpoints';
 
 
 // Types
-export type PaymentStatus = 'paid' | 'deposit' | 'refunded' | 'cancelled';
-export type PaymentWay = 'cash' | 'online';
-export type PaymentWith = 'instaPay' | 'vodafone';
+export type PaymentStatus = 'Paid' | 'Deposit' | 'Refunded' | 'Cancelled';
+export type PaymentWay = 'Cash' | 'Online';
+export type PaymentWith = 'InstaPay' | 'Vodafone' ;
 export type OrderStatus = string;
 
 export interface CreateOrderData {
@@ -96,15 +96,15 @@ class OrderValidator {
   }
 
   static validatePaymentStatus(status: string): status is PaymentStatus {
-    return ['paid', 'deposit', 'refunded', 'cancelled'].includes(status);
+    return ['Paid', 'Deposit', 'Refunded', 'Cancelled'].includes(status);
   }
 
   static validatePaymentWay(way: string): way is PaymentWay {
-    return ['cash', 'online'].includes(way);
+    return ['Cash', 'Online'].includes(way);
   }
 
   static validatePaymentWith(paymentWith: string): paymentWith is PaymentWith {
-    return ['instaPay', 'vodafone'].includes(paymentWith);
+    return ['InstaPay', 'Vodafone'].includes(paymentWith);
   }
 
   static validate(data: CreateOrderData): string[] {
@@ -136,11 +136,11 @@ class OrderValidator {
     }
 
     // Payment with validation for online payments
-    if (data.paymentWay === 'online') {
+    if (data.paymentWay === 'Online') {
       if (!data.paymentWith) {
         errors.push('Payment with is required for online payments');
       } else if (!this.validatePaymentWith(data.paymentWith)) {
-        errors.push('Payment with must be one of: instaPay, vodafone');
+        errors.push('Payment with must be one of: InstaPay, Vodafone');
       }
     }
 

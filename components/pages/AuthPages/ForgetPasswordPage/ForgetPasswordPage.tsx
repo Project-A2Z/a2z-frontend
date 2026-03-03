@@ -156,7 +156,7 @@ export default function ForgetPasswordPage() {
         "فشل التحقق من الرمز. تأكد من ترتيب الأرقام من اليسار إلى اليمين.";
       for (const body of variants) {
         const res = await fetchWithTimeout(
-          "https://a2z-backend.fly.dev/app/v1/users/OTPVerification?lang=en",
+          "https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPVerification?lang=en",
           {
             method: "PATCH",
             headers: {
@@ -204,7 +204,7 @@ export default function ForgetPasswordPage() {
       setSubmitting(true);
       setError("");
       const res = await fetchWithTimeout(
-        "https://a2z-backend.fly.dev/app/v1/users/OTPResend",
+        "https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPResend",
         {
           method: "POST",
           headers: {
@@ -252,7 +252,7 @@ export default function ForgetPasswordPage() {
       setEmailError("");
       const emailTrimmed = email.trim();
       const res = await fetchWithTimeout(
-        "https://a2z-backend.fly.dev/app/v1/users/forgetPassword?lang=en",
+        "https://a2z-backend--dkreq.fly.dev/app/v1/users/forgetPassword?lang=en",
         {
           method: "POST",
           headers: {
@@ -291,7 +291,7 @@ export default function ForgetPasswordPage() {
       setError("");
       const emailTrimmed = email.trim();
       const res = await fetchWithTimeout(
-        "https://a2z-backend.fly.dev/app/v1/users/ResetPassword?lang=en",
+        "https://a2z-backend--dkreq.fly.dev/app/v1/users/ResetPassword?lang=en",
         {
           method: "PATCH",
           headers: {

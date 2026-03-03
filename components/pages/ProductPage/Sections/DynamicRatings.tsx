@@ -131,7 +131,7 @@ const Ratings: React.FC<Props> = ({
 
       {/* Stars row */}
       <div className="flex items-center justify-start gap-4 mb-2 ">
-        <div className="flex items-center gap-1 text-amber-500 items-start" aria-label={`التقييم ${getDisplayAverage().toFixed(1)} من 5`}>
+        <div className="flex gap-1 text-amber-500 items-start" aria-label={`التقييم ${getDisplayAverage().toFixed(1)} من 5`}>
           {Array.from({ length: 5 }).map((_, i) => {
             const starValue = i + 1;
             const isActive = starValue <= Math.round(getDisplayAverage());
