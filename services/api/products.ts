@@ -55,11 +55,6 @@ export interface ProductVariant {
   id: string;
 }
 
-export interface AdvProduct {
-  _id?: string;
-  text?: string;         // e.g. "1 Year Warranty", "Free Shipping"
-  [key: string]: any;
-}
 
 export interface ReviewSummary {
   averageRate: number;
@@ -96,7 +91,7 @@ export interface Product {
   averageRate?: number;
 
   // New fields
-  advProduct?: AdvProduct[];
+  advProduct?: string[];
   productReview?: any[];
   reviewSummary?: ReviewSummary;
 

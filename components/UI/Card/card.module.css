@@ -21,12 +21,6 @@
   transform: translateY(-3px);
 }
 
-/* Card Header */
-.cardHeader {
-  position: absolute;
-  width: 80%;
-  height: 70%;
-  overflow: hidden;/* card.module.css - FIXED VERSION */
 .card {
   background: var(--background);
   border-radius: 16px;
@@ -34,6 +28,8 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: all 0.3s ease;
+    border-radius: 16px;
+  justify-self: center;
   width: 100%;
   max-width: 17rem;
   height: 100%;
@@ -111,7 +107,7 @@
 
 .availableText ,.unavailableText{
   position: absolute;
-  background: var(--primary);
+  background-color: var(--primary);
   color: var(--onPrimary);
   padding: 0.1rem 1rem;
   border-radius: 1.5rem;
@@ -127,6 +123,12 @@
   min-width: 6.75rem;
   /* background-color: aquamarine; */
   padding-bottom: 1rem;
+  max-height: fit-content;
+}
+
+.unavailableText{
+  background: var(--disabled);
+  color: var(--onPrimary);
 }
 
 
@@ -279,7 +281,12 @@
   border-color: var(--primary);
   color: var(--onPrimary);
 }
-
+/* Card Header */
+.cardHeader {
+  position: absolute;
+  width: 80%;
+  height: 70%;
+}
 /* ========================================
    RESPONSIVE DESIGN - MOBILE BREAKPOINTS
    ======================================== */
@@ -380,6 +387,18 @@
 
   .attributeLabel {
     font-size: 0.62rem;
+  }
+}
+@media (max-width: 1024px) {
+  .availableText, .unavailableText {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.55rem;
+    height: auto;
+    min-width: 4rem;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(80% , 50%);
   }
 }
 
@@ -524,9 +543,8 @@
     padding: 0px 3px;
   }
 }
-  border-radius: 16px;
-  justify-self: center;
-}
+
+
 
 /* Heart Icon */
 .icon {
@@ -580,8 +598,8 @@
 
 .availableText,.unavailableText{
   position: absolute;
-  background: var(--primary);
-  color: var(--onPrimary);
+  /* background: var(--primary);
+  color: var(--onPrimary); */
   padding: 0.1rem 1rem;
   border-radius: 1.5rem;
   top: 50%;
@@ -788,6 +806,7 @@
     top: 50%;
     left: 50%;
     transform: translate(75% , 50%);
+    max-height: fit-content;
 
   }
 

@@ -48,7 +48,7 @@ const ProductsSection = () => {
 
   return (
     <section className="w-full bg-white py-4 sm:py-8 lg:py-12" dir="rtl">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 lg:mb-12">
+      <div className="  justify-self-center connected align-middle">
         {/* Main Header */}
         <h2
           className="text-lg sm:text-xl lg:text-2xl font-semibold text-secondary1 text-center pb-3 sm:pb-4 border-b border-gray-200"
@@ -63,7 +63,7 @@ const ProductsSection = () => {
         </h2>
 
         {/* Tabs Navigation */}
-        <div className="relative flex flex-wrap justify-center gap-2 sm:gap-8 mt-6 sm:mt-8 border-b border-gray-200 pb-4">
+        <div className="relative flex  justify-center gap-1 sm:gap-0 mt-6 sm:mt-8 border-b border-gray-200 pb-4">
           {productsData.tabs.map((tab, index) => (
             <button
               key={tab.id}
@@ -71,7 +71,7 @@ const ProductsSection = () => {
                 if (el) tabRefs.current[index] = el;
               }}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors duration-300 whitespace-nowrap relative ${
+              className={`pr-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-xs font-medium transition-colors duration-300 whitespace-nowrap relative ${
                 activeTab === tab.id
                   ? 'text-primary'
                   : 'text-gray-600 hover:text-gray-800'

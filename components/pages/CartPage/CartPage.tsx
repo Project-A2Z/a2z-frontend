@@ -175,15 +175,15 @@ const CartPage = () => {
     );
   }
 return (
-    <div className="min-h-screen bg-gray-50 font-beiruti">
+    <div className="min-h-screen bg-gray-50 font-beiruti pt-5">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6">
         {/* Main Grid Layout */}
-        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-12' : 'w-full'} gap-4 md:gap-6`}>
+        <div className={`grid ${cartItems.length > 0 ? 'lg:grid-cols-12' : 'w-full'} gap-4 md:gap-6 mt-24`}>
           {/* Cart Items Section */}
           <div className={`${cartItems.length > 0 ? 'lg:col-span-8 xl:col-span-9' : 'w-full'}`}>
-            <div className={`bg-white p-3 sm:p-4 md:p-6 flex flex-col gap-2 ${cartItems.length === 0 ? 'mt-14 sm:mt-20' : ''}`}>
+            <div className={`bg-white flex flex-col gap-2 ${cartItems.length === 0 ? 'mt-14 sm:mt-20' : ''}`}>
               {cartItems.length > 0 && <CartHeader itemCount={cartItems.length} />}
-              <div className="mt-4">
+              <div className="mt-0">
                 <CartItemsList 
                   items={cartItems} 
                   onUpdateQuantity={updateQuantity} 
