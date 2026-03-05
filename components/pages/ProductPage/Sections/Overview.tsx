@@ -14,7 +14,7 @@ import { cartService, checkProductUnitConflict } from "@/services/api/cart";
 import { useRouter } from "next/navigation";
 import { isAuthenticated } from "@/utils/auth";
 import Alert from "@/components/UI/Alert/alert";
-import { ProductVariant, AdvProduct } from "@/services/api/products";
+import { ProductVariant} from "@/services/api/products";
 
 // Import the FavoritesContext directly but mark it as client-side only
 let FavoritesContext: any;
@@ -33,7 +33,7 @@ type Props = {
   /** Replaces isUNIT / isKG / isTON / isLITER / isCUBIC_METER */
   variants?: ProductVariant[];
   /** Advantages/features array ("1 Year Warranty", "Free Shipping", …) */
-  advProduct?: AdvProduct[];
+  advProduct?: string[];
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -293,7 +293,7 @@ const Overview: React.FC<Props> = ({
                 </span>
               </div>
 
-              <span className={`px-3 py-1 rounded-full text-xs border ${stockQty > 0 ? "bg-primary text-white border-primary" : "bg-disabled text-white border-primary-700 cursor-not-allowed"}`}>
+              <span className={`px-3 py-1 rounded-full text-xs border ${stockQty > 0 ? "bg-primary text-white border-primary" : "bg-disabled text-white  cursor-not-allowed"}`}>
                 {stockQty > 0 ? `متوفر (${stockQty})` : "غير متوفر"}
               </span>
             </div>
@@ -366,7 +366,7 @@ const Overview: React.FC<Props> = ({
             </div>
 
             {/* ── Advantages / features strip ── */}
-            {advProduct.length > 0 && (
+            {/* {advProduct.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
                 {advProduct.map((adv, i) => (
                   <span key={adv._id ?? i} className="flex items-center gap-1 text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
@@ -375,7 +375,7 @@ const Overview: React.FC<Props> = ({
                   </span>
                 ))}
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -392,14 +392,7 @@ const Overview: React.FC<Props> = ({
         )}
       </section>
 
-      {/* Description section */}
-      {description && (
-        <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6">
-          <p className="text-black60 text-sm sm:text-base leading-relaxed">
-            {description}
-          </p>
-        </section>
-      )}
+   
     </>
   );
 };

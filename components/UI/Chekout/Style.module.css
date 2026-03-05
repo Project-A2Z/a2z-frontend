@@ -860,7 +860,7 @@
   
   .SummaryContainer {
     margin: 8% auto; /* Increased margin for iPad Pro */
-    max-width: 380px; /* Slightly larger for iPad Pro */
+    max-width: 100%; /* Slightly larger for iPad Pro */
     padding: 32px;
   }
   
@@ -896,6 +896,7 @@
   .SummaryContainer {
     padding: 18px;
     margin: 5% auto;
+    max-width: 100%;
   }
   
   .price {
@@ -940,7 +941,7 @@
   }
   
   .SummaryContainer {
-    max-width: 100%;
+    width: 100%;
     margin: 0;
     padding: 20px;
   }
@@ -1026,16 +1027,16 @@
   }
   
   .orderItem {
-    flex-direction: column;
+    /* flex-direction: column; */
     text-align: center;
     gap: 8px;
     margin-bottom: 8px;
   }
   
-  .orderDetails {
+  /* .orderDetails {
     text-align: center;
   }
-  
+   */
   .orderImage {
     align-self: center;
   }
@@ -1372,7 +1373,7 @@
   
   .SummaryContainer {
     margin: 6% auto;
-    max-width: 350px;
+    /* max-width: 350px; */
     padding: 28px;
   }
   

@@ -377,9 +377,10 @@ function Header({
             <Link href="/" className={styles.logoLink}>
               <img src={Logo.src} alt="Logo" className={styles.logo} />
             </Link>
+            <LanguageSelector />
           </div>
 
-          <LanguageSelector />
+          
 
           {showSearch && (
             <div className={styles.mid}>

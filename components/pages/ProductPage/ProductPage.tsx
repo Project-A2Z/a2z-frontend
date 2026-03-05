@@ -92,6 +92,8 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
       const result = await response.json();
       const productData = result.product ?? result.data;
 
+      console.log('Refreshed product data after review action:', productData);
+
       if (result.status === 'success' && productData) {
         setProduct(productData);
         updateRatingData(productData);
@@ -143,7 +145,8 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         <div className="flex flex-col lg:flex-row gap-6 max-w-[95%] mx-auto">
           <div className="flex flex-col order-2 lg:order-1 flex-1 space-y-6">
             <Suspense fallback={<SectionLoader />}>
-              <Specs specs={[]} />
+           
+<Specs specs={product.advProduct ?? []} />
             </Suspense>
 
             <Suspense fallback={<SectionLoader />}>

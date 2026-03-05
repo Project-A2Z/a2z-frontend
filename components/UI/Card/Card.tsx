@@ -356,7 +356,7 @@ function Card({
           </h2>
 
           {/* ── NEW: Attribute selectors ─────────────────────────────── */}
-          {hasAttributes && (
+          {/* {hasAttributes && (
             <div
               className={styles.attributesSection}
               onClick={e => e.stopPropagation()} // prevent card navigation on attr click
@@ -367,7 +367,6 @@ function Card({
 
                 return (
                   <div key={attrName} className={styles.attributeGroup}>
-                    {/* Only show label when there's more than one attribute type */}
                     {Object.keys(attributeGroups).length > 1 && (
                       <span className={styles.attributeLabel}>{attrName}:</span>
                     )}
@@ -408,7 +407,7 @@ function Card({
                 );
               })}
             </div>
-          )}
+          )} */}
 
           {/* Price */}
           <div className={styles.priceSection}>
