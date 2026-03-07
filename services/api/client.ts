@@ -2,7 +2,7 @@ import axios from 'axios';
 import {Api ,  API_ENDPOINTS } from './endpoints';
 
 // Fallback to production backend if env is not set
-const BASE_URL =Api ?? 'https://a2z-backend.fly.dev/app/v1';
+const BASE_URL =Api ??  'https://a2z-backend--dkreq.fly.dev/app/v1';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

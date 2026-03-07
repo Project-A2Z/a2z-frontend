@@ -39,12 +39,24 @@
 
   .right {
     grid-column: span 1;
-    order: 2;
+    order: 1;
+     justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 0% 0;
+    align-items: center;        
+    display: flex;             
+    flex-direction: column;    
+   
   }
 
   .left {
     grid-column: span 1;
-    order: 1;
+    order: 2;
+     justify-self: center;
+    min-width: 90%;
+    margin: 0;
+    padding: 6% 0;
   }
 
   .SummaryContainer {
@@ -52,35 +64,32 @@
     max-width: 100%;
   }
 }
-
-/* Responsive design for mobile */
 @media (max-width: 769px) {
   .Container {
     padding: 16px;
     gap: 12px;
   }
-
   .left {
+    order: 2; /* ← ADD THIS */
     justify-self: center;
     min-width: 90%;
     margin: 0;
-    padding: 6% 0;
-    align-items: center;        /* ← ADD THIS */
-    display: flex;              /* ← ADD THIS (ensure it's flex) */
-    flex-direction: column;     /* ← ADD THIS */
+    padding: 0% 0;
+    align-items: center;        
+    display: flex;             
+    flex-direction: column;    
   }
-
   .right {
+    order: 1; /* ← ADD THIS */
     justify-self: center;
     min-width: 90%;
     margin: 0;
     padding: 6% 0;
   }
-
   .SummaryContainer {
     padding: 20px;
-    width: 100%;               /* ← CHANGE from min-width: 100% to width: 100% */
-    margin-top: 0;             /* ← REMOVE the 15% top margin */
-    align-self: center;       /* ← ADD THIS to fill the flex parent */
+    width: 100%;
+    margin-top: 0;
+    align-self: center;
   }
 }

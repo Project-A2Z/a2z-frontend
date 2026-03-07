@@ -27,8 +27,8 @@ interface CategoryCache {
   timestamp: number;
 }
 
-// Global cache for categories
-let categoriesCache: CategoryCache | null = null as CategoryCache | null;
+// Global cache per language
+const categoriesCacheMap: Record<string, CategoryCache> = {};
 let isLoadingCategories = false;
 let pendingCategoryPromises: Array<{ resolve: (value: string[]) => void; reject: (error: any) => void }> = [];
 
@@ -36,107 +36,83 @@ const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 const MIN_REQUEST_INTERVAL = 10000; // 10 seconds
 let lastCategoryRequestTime = 0;
 
-// Request config
+// Request config — no auth required for this endpoint
 const getRequestConfig = (revalidate: number = 60) => ({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...(process.env.API_KEY && { 'Authorization': `Bearer ${process.env.API_KEY}` }),
   },
-  next: { 
-        revalidate, 
-        tags: ['categories'] 
-      },
+  next: {
+    revalidate,
+    tags: ['categories'],
+  },
 });
+
+// Build URL with optional lang param
+const buildCategoryUrl = (lang?: 'ar' | 'en'): string => {
+  const base = `${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`;
+  return lang ? `${base}?lang=${lang}` : base;
+};
 
 // ============================================
 // FETCH ALL CATEGORIES WITH CACHING
 // ============================================
-export const fetchCategories = async (): Promise<string[]> => {
+export const fetchCategories = async (lang?: 'ar' | 'en'): Promise<string[]> => {
   const now = Date.now();
+  const cacheKey = lang ?? 'default';
+  const cachedEntry = categoriesCacheMap[cacheKey];
 
   // Return cached data if available and not expired
-  if (categoriesCache && (now - categoriesCache.timestamp) < CACHE_DURATION) {
-    // console.log('✅ Using cached categories');
-    return [...categoriesCache.categories]; // Return a copy
+  if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION) {
+    return [...cachedEntry.categories];
   }
 
   // If already loading, wait for the existing request
   if (isLoadingCategories) {
-    // console.log('⏳ Waiting for existing categories request...');
     return new Promise((resolve, reject) => {
       pendingCategoryPromises.push({ resolve, reject });
     });
   }
 
   // Rate limiting
-  if (lastCategoryRequestTime && (now - lastCategoryRequestTime) < MIN_REQUEST_INTERVAL) {
+  if (lastCategoryRequestTime && now - lastCategoryRequestTime < MIN_REQUEST_INTERVAL) {
     const waitTime = MIN_REQUEST_INTERVAL - (now - lastCategoryRequestTime);
-    // console.log(`⏱️ Rate limiting: waiting ${waitTime}ms before making request`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 
-  // Start new loading process
   isLoadingCategories = true;
   lastCategoryRequestTime = now;
 
-  try {
-    // console.log('🔄 Fetching categories from API...');
+  const url = buildCategoryUrl(lang);
 
-    const response = await fetch(`${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`, {
-      method: 'GET',
-      ...getRequestConfig(),
-    });
+  const doFetch = () =>
+    fetch(url, { method: 'GET', ...getRequestConfig() });
+
+  try {
+    let response = await doFetch();
 
     // Handle rate limiting
     if (response.status === 429) {
       console.warn('⏱️ Rate limited, using cached data if available');
-      if (categoriesCache && categoriesCache.categories) {
+      if (cachedEntry?.categories) {
         isLoadingCategories = false;
-        const cachedData = [...categoriesCache.categories];
+        const cachedData = [...cachedEntry.categories];
         pendingCategoryPromises.forEach(({ resolve }) => resolve(cachedData));
         pendingCategoryPromises = [];
         return cachedData;
       }
 
-      // Retry with exponential backoff
       const retryAfter = Math.min(30000, Math.pow(2, 1) * 5000);
-      // console.log(`⏳ Retrying after ${retryAfter}ms due to rate limiting`);
       await new Promise(resolve => setTimeout(resolve, retryAfter));
+      response = await doFetch();
 
-      const retryResponse = await fetch(`${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`, {
-        method: 'GET',
-        ...getRequestConfig(),
-      });
-
-      if (retryResponse.status === 429 && categoriesCache && categoriesCache.categories) {
+      if (response.status === 429 && cachedEntry?.categories) {
         isLoadingCategories = false;
-        const cachedData = [...categoriesCache.categories];
+        const cachedData = [...cachedEntry.categories];
         pendingCategoryPromises.forEach(({ resolve }) => resolve(cachedData));
         pendingCategoryPromises = [];
         return cachedData;
       }
-
-      if (!retryResponse.ok) {
-        throw new Error(`API Error: ${retryResponse.status} ${retryResponse.statusText}`);
-      }
-
-      const data: CategoriesResponse = await retryResponse.json();
-      const categories = data.data || [];
-
-      // Update cache
-      categoriesCache = {
-        categories,
-        timestamp: now
-      };
-
-      // console.log(`✅ Successfully fetched ${categories.length} categories on retry`);
-
-      isLoadingCategories = false;
-      pendingCategoryPromises.forEach(({ resolve }) => resolve(categories));
-      pendingCategoryPromises = [];
-
-      return categories;
     }
 
     if (!response.ok) {
@@ -146,13 +122,7 @@ export const fetchCategories = async (): Promise<string[]> => {
     const data: CategoriesResponse = await response.json();
     const categories = data.data || [];
 
-    // Update cache
-    categoriesCache = {
-      categories,
-      timestamp: now
-    };
-
-    // console.log(`✅ Successfully fetched ${categories.length} categories`);
+    categoriesCacheMap[cacheKey] = { categories, timestamp: now };
 
     isLoadingCategories = false;
     pendingCategoryPromises.forEach(({ resolve }) => resolve(categories));
@@ -163,11 +133,9 @@ export const fetchCategories = async (): Promise<string[]> => {
   } catch (error) {
     console.error('❌ Error fetching categories:', error);
 
-    // Return cached data as fallback
-    if (categoriesCache && categoriesCache.categories) {
-      // console.log('🔄 Using cached categories as fallback');
+    if (cachedEntry?.categories) {
       isLoadingCategories = false;
-      const cachedData = [...categoriesCache.categories];
+      const cachedData = [...cachedEntry.categories];
       pendingCategoryPromises.forEach(({ resolve }) => resolve(cachedData));
       pendingCategoryPromises = [];
       return cachedData;
@@ -183,20 +151,25 @@ export const fetchCategories = async (): Promise<string[]> => {
 // ============================================
 // CLEAR CATEGORIES CACHE
 // ============================================
-export const clearCategoriesCache = () => {
-  categoriesCache = null;
-  // console.log('🗑️ Categories cache cleared');
+export const clearCategoriesCache = (lang?: 'ar' | 'en') => {
+  if (lang) {
+    delete categoriesCacheMap[lang];
+  } else {
+    Object.keys(categoriesCacheMap).forEach(k => delete categoriesCacheMap[k]);
+  }
 };
 
 // ============================================
 // GET CACHE INFO
 // ============================================
-export const getCategoriesCacheInfo = () => {
+export const getCategoriesCacheInfo = (lang?: 'ar' | 'en') => {
+  const cacheKey = lang ?? 'default';
+  const entry = categoriesCacheMap[cacheKey];
   return {
-    hasCache: !!categoriesCache,
-    cacheSize: categoriesCache?.categories.length || 0,
-    cacheAge: categoriesCache ? Date.now() - categoriesCache.timestamp : 0,
+    hasCache: !!entry,
+    cacheSize: entry?.categories.length || 0,
+    cacheAge: entry ? Date.now() - entry.timestamp : 0,
     isLoading: isLoadingCategories,
-    pendingRequests: pendingCategoryPromises.length
+    pendingRequests: pendingCategoryPromises.length,
   };
 };

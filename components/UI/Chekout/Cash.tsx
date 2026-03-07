@@ -9,10 +9,10 @@ import Form from '@/components/UI/Chekout/CashForm'
 
 
 export interface PaymentData {
-    paymentWay: 'cash' | 'online' | '';
-    paymentWith?: 'instaPay' | 'vodafone';
+    paymentWay: 'Cash' | 'Online' | '';
+    paymentWith?: 'InstaPay' | 'Vodafone';
     NumOperation?: string;
-    paymentStatus: 'paid' | 'deposit';
+    paymentStatus: 'Paid' | 'Deposit';
     image?: File;
 }
 
@@ -24,16 +24,16 @@ interface Cash {
 }
 
 const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChange }) => {
-    const [way, setWay] = useState<'cash' | 'online' | ''>('')
-    const [paymentWith, setPaymentWith] = useState<'instaPay' | 'vodafone' | undefined>()
+    const [way, setWay] = useState<'Cash' | 'Online' | ''>('')
+    const [paymentWith, setPaymentWith] = useState<'InstaPay' | 'Vodafone' | undefined>()
     const [opId, setOpId] = useState('')
     const [opImg, setOpImg] = useState<File | undefined>()
     const [edit, setEdit] = useState(false)
 
     // Update parent component with payment data
     useEffect(() => {
-        // Payment way is required - must be 'cash' or 'online'
-        if (!way || (way !== 'cash' && way !== 'online')) {
+        // Payment way is required - must be 'Cash' or 'Online'
+        if (!way || (way !== 'Cash' && way !== 'Online')) {
             setEdit(true);
             setEditProp(true);
             return;
@@ -43,18 +43,18 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
             paymentWay: way,
             paymentWith:paymentWith || undefined,
             NumOperation: opId || undefined,
-            paymentStatus: way === 'cash' ? 'deposit' : 'paid',
+            paymentStatus: way === 'Cash' ? 'Deposit' : 'Paid',
             image: opImg
         };
         
         // Check if data is complete
         // Required: way, opId, opImg
-        // For online: also need paymentWith
+        // For Online: also need paymentWith
         const isComplete = 
-            (way === 'cash' || way === 'online') &&
+            (way === 'Cash' || way === 'Online') &&
             opId &&
             opImg &&
-            (way === 'cash' || (way === 'online' && paymentWith));
+            (way === 'Cash' || (way === 'Online' && paymentWith));
         
         if (isComplete) {
             setEdit(false);
@@ -67,7 +67,7 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [way, paymentWith, opId, opImg]);
 
-    const handleClick = (paymentMethod: 'cash' | 'online') => {
+    const handleClick = (paymentMethod: 'Cash' | 'Online') => {
         setWay(paymentMethod)
     }
 
@@ -91,54 +91,54 @@ const Cash: React.FC<Cash> = ({ Total, editProp, setEditProp, onPaymentDataChang
                 </div>
             )}
             
-            <div className={styles.In} onClick={() => handleClick('cash')}>
+            <div className={styles.In} onClick={() => handleClick('Cash')}>
                 <input
                     type="radio"
                     name="paymentMethod"
-                    value="cash"
+                    value="Cash"
                     className={styles.radio}
-                    checked={way === 'cash'}
-                    onChange={() => handleClick('cash')}
+                    checked={way === 'Cash'}
+                    onChange={() => handleClick('Cash')}
                 />
                 <label className={styles.radioLabel}>
                     الدفع كاش عند الاستلام + مبلغ أولي بقيمة 10% من إجمالي المبلغ
                 </label>
             </div>
             
-            {way === 'cash' && (
+            {way === 'Cash' && (
                <Form
                     way={way}
                     Total={Total }
                     onDataChange={(data) => {
                         setOpId(data.opId);
                         setOpImg(data.opImg);
-                        setPaymentWith(data.paymentWith as 'instaPay' | 'vodafone');
+                        setPaymentWith(data.paymentWith as 'InstaPay' | 'Vodafone');
                     }}
                 />
             )}
             
-            <div className={styles.In} onClick={() => handleClick('online')}>
+            <div className={styles.In} onClick={() => handleClick('Online')}>
                 <input
                     type="radio"
                     name="paymentMethod"
-                    value="online"
+                    value="Online"
                     className={styles.radio}
-                    checked={way === 'online'}
-                    onChange={() => handleClick('online')}
+                    checked={way === 'Online'}
+                    onChange={() => handleClick('Online')}
                 />
                 <label className={styles.radioLabel}>
                     الدفع أونلاين - دفع كامل المبلغ
                 </label>
             </div>
             
-            {way === 'online' && (
+            {way === 'Online' && (
                 <Form
                     way={way}
                     Total={Total}
                     onDataChange={(data) => {
                         setOpId(data.opId);
                         setOpImg(data.opImg);
-                        setPaymentWith(data.paymentWith as 'instaPay' | 'vodafone');
+                        setPaymentWith(data.paymentWith as 'InstaPay' | 'Vodafone');
                     }}
                 />
             )}

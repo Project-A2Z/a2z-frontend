@@ -202,7 +202,7 @@ export const buildUrl = (endpoint: string, params: Record<string, string | numbe
   return url;
 };
 
-export const Api = 'https://a2z-backend.fly.dev/app/v1';
+export const Api =  'https://a2z-backend--dkreq.fly.dev/app/v1';
 
 export type ApiEndpoint = typeof API_ENDPOINTS;
 export type EndpointPath = string; 
