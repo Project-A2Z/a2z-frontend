@@ -854,13 +854,13 @@
 /* iPad Pro specific styles (1024px x 1366px) */
 @media (min-width: 1024px) and (max-width: 1366px) {
   .Container {
-    margin: 6% 8%; /* Increased margins for iPad Pro */
+    margin: 6% 8%; 
     padding: 3%;
   }
   
   .SummaryContainer {
-    margin: 8% auto; /* Increased margin for iPad Pro */
-    max-width: 100%; /* Slightly larger for iPad Pro */
+    margin: 8% auto;
+    max-width: 100%;
     padding: 32px;
   }
   
@@ -900,15 +900,15 @@
   }
   
   .price {
-    margin-top: -8%; /* Reduced negative margin to move price down */
-    margin-bottom: 8px; /* Added bottom margin */
+    margin-top: -8%;
+    margin-bottom: 8px;
   }
   
   /* Fix for radio button alignment in cash component */
   .radioOption {
-    padding: 20px 16px; /* Increased padding for better spacing */
-    align-items: flex-start; /* Align items to start instead of center */
-    gap: 12px; /* Add gap between radio and label */
+    padding: 20px 16px; 
+    align-items: flex-start;
+    gap: 12px; 
   }
   
   .radio {
