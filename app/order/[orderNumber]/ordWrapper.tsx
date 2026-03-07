@@ -8,7 +8,6 @@ import OrderStepper from "@/components/UI/Profile/leftSection/Orders/OrderSteppe
 import type { OrderStatus } from "@/components/UI/Profile/leftSection/Orders/OrderStepper";
 import InfoCard from "@/components/UI/Profile/leftSection/Orders/InfoCard";
 import ItemCard from "@/components/UI/Profile/leftSection/Orders/ItemCard";
-import img from "@/public/acessts/Frame.png";
 
 // Import order service
 import orderService, { OrderItem } from "@/services/profile/orders";
@@ -52,23 +51,23 @@ export default function ordWrapper() {
         // Try to get from cache first by fetching all orders
         const allOrders = await orderService.getUserOrders();
         const foundOrder = allOrders.find(
-          (o) => o._id === orderId || o.orderId === orderId
+          (o) => o._id === orderId || o.orderId === orderId,
         );
 
         if (foundOrder) {
-          console.log('✅ Order found in cache:', foundOrder);
+          console.log("✅ Order found in cache:", foundOrder);
           setOrder(foundOrder);
         } else {
           // If not found in list, try to fetch specific order details
           const orderDetails = await orderService.getOrderDetails(orderId);
-          console.log('✅ Order details fetched:', orderDetails);
+          console.log("✅ Order details fetched:", orderDetails);
           setOrder(orderDetails);
         }
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "حدث خطأ أثناء تحميل تفاصيل الطلب"
+            : "حدث خطأ أثناء تحميل تفاصيل الطلب",
         );
       } finally {
         setLoading(false);
@@ -168,24 +167,32 @@ export default function ordWrapper() {
           </div>
 
           <div className={styles.Items_container}>
-  <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
-  <div className={styles.items_list}>
-    {order.cartId?.items?.length > 0 ? (
-      order.cartId.items
-        .filter((item) => item?.productId !== null && item?.productId !== undefined)
-        .map((item) => (
-          <ItemCard
-            key={item._id}
-            image={item.productId.imageList == null ? ['/acessts/NoImage.jpg'] : item.productId.imageList }
-            name={item.productId?.name || 'منتج غير متوفر'}
-            price={`${item.productId?.price || 0} ج.م`}
-          />
-        ))
-    ) : (
-      <p className={styles.no_items}>لا توجد منتجات في هذا الطلب</p>
-    )}
-  </div>
-</div>
+            <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
+            <div className={styles.items_list}>
+              {order.cartId?.items?.length > 0 ? (
+                order.cartId.items
+                  .filter(
+                    (item) =>
+                      item?.variantId !== null && item?.variantId !== undefined,
+                  )
+                  .map((item) => (
+                    <ItemCard
+                      key={item._id}
+                      // id={item.variantId?.productId?._id || ""}
+                      image={
+                        !item.variantId?.productId?.imageList?.length
+                          ? ["/acessts/NoImage.jpg"]
+                          : item.variantId.productId.imageList
+                      }
+                      name={item.variantId?.productId?.name || "منتج غير متوفر"}
+                      price={`${item.variantId?.price || 0} ج.م`}
+                    />
+                  ))
+              ) : (
+                <p className={styles.no_items}>لا توجد منتجات في هذا الطلب</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
