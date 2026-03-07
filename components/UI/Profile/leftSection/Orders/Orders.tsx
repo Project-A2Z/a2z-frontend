@@ -24,7 +24,9 @@ const Orders: React.FC<OrdersProps> = ({orders}) => {
   const router = useRouter();
   const [selectedFilters, setSelectedFilters] = React.useState<string[]>([]);
 
-  // console.log('📦 Orders received in Orders component:', orders);
+
+
+  console.log('📦 Orders received in Orders component:', orders);
   
   const filterOptions: FilterOption[] = [
     { 

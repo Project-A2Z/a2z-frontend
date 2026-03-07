@@ -1,5 +1,17 @@
 // services/orders/orderService.ts
 import { API_ENDPOINTS, Api } from '../api/endpoints';
+export interface Variant {
+  _id: string;
+  productId: Product;
+  sku: string;
+  unitId: any;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  id: string;
+}
+
 
 // Order Types matching your API response
 export interface OrderAddress {
@@ -34,13 +46,12 @@ export interface Product {
 export interface CartItem {
   _id: string;
   cartId: string;
-  productId: Product;
+  variantId: Variant;  // ← was productId: Product
   itemQty: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
 }
-
 export interface Cart {
   _id: string;
   userId: string;
