@@ -154,7 +154,7 @@ export const cartService = {
         .filter((item): item is ClientCartItem => item !== null);
 
       setClientCartItems(mappedItems);
-      console.log('Processed cart items:', mappedItems);
+      //console.log('Processed cart items:', mappedItems);
       return response.data;
     } catch (error: any) {
       if (handleAuthError(error)) return;
@@ -188,7 +188,7 @@ export const cartService = {
       };
       if (item.attributeValueId) payload.attributeValueId = item.attributeValueId;
 
-      console.log('Cart Service – addToCart payload:', payload);
+      //console.log('Cart Service – addToCart payload:', payload);
 
       const response = await apiClient.post('/cartItems/', payload);
 
@@ -224,7 +224,7 @@ export const cartService = {
       if (resolvedUnit === 'ton' || resolvedUnit === 'cubic_meter') dbQuantity = safeQuantity * 1000;
 
       const url = buildUrl('/cartItems/:itemId', { itemId: cartItemId });
-      console.log('Cart Service – updateCartItem:', { cartItemId, safeQuantity, resolvedUnit, dbQuantity });
+      //console.log('Cart Service – updateCartItem:', { cartItemId, safeQuantity, resolvedUnit, dbQuantity });
 
       const response = await apiClient.put(url, { itemQty: dbQuantity });
       return response.data;

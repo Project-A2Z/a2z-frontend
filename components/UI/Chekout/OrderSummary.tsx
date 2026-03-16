@@ -1,15 +1,17 @@
 "use client";
 import React, { useState } from "react";
+import { useTranslations } from 'next-intl';
+import { getLocale } from "@/services/api/language";
 
-//styles
+// styles
 import styles from "@/components/UI/Chekout/Style.module.css";
 
-//components
+// components
 import { Button } from "@/components/UI/Buttons/Button";
 import { PaymentData } from "@/components/UI/Chekout/Cash";
 import Alert, { AlertButton } from "@/components/UI/Alert/alert";
 
-//services
+// services
 import { useRouter } from "next/navigation";
 import { orderService, CreateOrderData } from "@/services/checkout/order";
 import { getAuthToken } from "@/services/auth/login";
@@ -43,10 +45,12 @@ const Summary: React.FC<SummaryInter> = ({
   paymentData,
 }) => {
   const router = useRouter();
+  const isRTL = getLocale() === 'ar'
+  const t = useTranslations('checkout.summary');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Alert state
   const [alertConfig, setAlertConfig] = useState<{
     show: boolean;
     message: string;
@@ -62,7 +66,7 @@ const Summary: React.FC<SummaryInter> = ({
   const showAlert = (
     message: string,
     type: "warning" | "error" | "info" | "success" = "info",
-    buttons?: AlertButton[]
+    buttons?: AlertButton[],
   ) => {
     setAlertConfig({
       show: true,
@@ -70,7 +74,7 @@ const Summary: React.FC<SummaryInter> = ({
       type,
       buttons: buttons || [
         {
-          label: "حسناً",
+          label: t('alerts.ok'),
           onClick: () => setAlertConfig((prev) => ({ ...prev, show: false })),
           variant: "primary",
         },
@@ -79,16 +83,15 @@ const Summary: React.FC<SummaryInter> = ({
   };
 
   const handleSubmit = async () => {
-    // Validate data
     if (!addressData) {
-      setError("يرجى تحديد عنوان التوصيل");
-      showAlert("حدث خطأ", "warning");
+      setError(t('alerts.selectAddress'));
+      showAlert(t('alerts.error'), "warning");
       return;
     }
 
     if (!paymentData || !paymentData.paymentWay) {
-      setError("يرجى تحديد طريقة الدفع");
-      showAlert("حدث خطأ", "warning");
+      setError(t('alerts.selectPayment'));
+      showAlert(t('alerts.error'), "warning");
       return;
     }
 
@@ -96,20 +99,14 @@ const Summary: React.FC<SummaryInter> = ({
     setError(null);
 
     try {
-      // Get auth token
       const token = getAuthToken();
-      if (!token) {
-        throw new Error("يرجى تسجيل الدخول أولاً");
-      }
+      if (!token) throw new Error(t('alerts.loginRequired'));
       orderService.setToken(token);
 
-      // Parse name from address
       const nameParts = addressData.name.split(" ");
       const firstName = addressData.firstName || nameParts[0] || "";
-      const lastName =
-        addressData.lastName || nameParts.slice(1).join(" ") || "";
+      const lastName = addressData.lastName || nameParts.slice(1).join(" ") || "";
 
-      // Prepare order data
       const orderData: CreateOrderData = {
         firstName,
         lastName,
@@ -124,43 +121,33 @@ const Summary: React.FC<SummaryInter> = ({
         image: paymentData.image,
       };
 
-      console.log('📦 Creating order:', orderData);
-
-      // Create order
       const response = await orderService.createOrder(orderData);
 
-      //console.log('✅ Order created successfully:', response);
-
-      // Show success message with redirect
       showAlert(
-        `تم إنشاء الطلب بنجاح برقم ${response.data.orderId}`,
+        t('alerts.success', { orderId: response.data.orderId }),
         "success",
         [
           {
-            label: "عرض الطلبات",
+            label: t('alerts.viewOrders'),
             onClick: () => {
               setAlertConfig((prev) => ({ ...prev, show: false }));
               router.push(`/order/${response.data.orderId}`);
             },
             variant: "primary",
           },
-        ]
+        ],
       );
     } catch (error: any) {
-      console.error("❌ Error creating order:", error);
-      setError(error.message || "حدث خطأ أثناء إنشاء الطلب");
-
-      // Show error alert
-      showAlert("حدث خطأ", "error");
+      console.error("Error creating order:", error);
+      setError(error.message || t('alerts.error'));
+      showAlert(t('alerts.error'), "error");
     } finally {
       setIsSubmitting(false);
     }
   };
-  //console.log('Summary Component Rendered with:', { Total, delivery, numberItems, disabled, addressData, paymentData });
 
   return (
     <>
-      {/* Custom Alert */}
       {alertConfig.show && (
         <Alert
           message={alertConfig.message}
@@ -170,66 +157,24 @@ const Summary: React.FC<SummaryInter> = ({
         />
       )}
 
-      <div className={styles.SummaryContainer}>
-        <span className={styles.title}>ملخص الطلب</span>
+      <div className={styles.SummaryContainer} style={{direction: isRTL ? 'rtl' : 'ltr'}}>
+        <span className={styles.title}>{t('title')}</span>
 
-        {/* Row 1: Product count */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "8px",
-            width: "100%",
-          }}
-        >
-          <span className={styles.details}>عدد المنتجات ({numberItems})</span>
-          {/* <span className={`${styles.price} notranslate `}>
-            
-          </span> */}
-
-          <span className={`${styles.price} `}> {Total} ج.م </span>
-          {/* <span className={styles.currency}> ج.م </span> */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", width: "100%" }}>
+          <span className={styles.details}>{t('itemCount', { count: numberItems })}</span>
+          <span className={styles.price}>{Total} {t('currency')}</span>
         </div>
 
-        {/* Row 2: Delivery */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "8px",
-            width: "100%",
-          }}
-        >
-          <span className={styles.details}>التوصيل</span>
-          <span className={`${styles.price} `}>
-            يتم التحديد من قبل أحد المسؤولين لاحقا
-          </span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", width: "100%" }}>
+          <span className={styles.details}>{t('delivery')}</span>
+          <span className={styles.price}>{t('deliveryNote')}</span>
         </div>
 
-        {/* Row 3: Total */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
-            paddingTop: "8px",
-            borderTop: "1px solid var(--black16)",
-            width: "100%",
-          }}
-        >
-          <span className={styles.details} style={{ fontWeight: 600 }}>
-            الإجمالي
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", paddingTop: "8px", borderTop: "1px solid var(--black16)", width: "100%" }}>
+          <span className={styles.details} style={{ fontWeight: 600 }}>{t('total')}</span>
+          <span className={styles.price} style={{ fontWeight: 600, fontSize: "18px" }}>
+            {Total + delivery} {t('currency')}
           </span>
-          <span
-            className={`${styles.price} `}
-            style={{ fontWeight: 600, fontSize: "18px" }}
-          >
-            {Total + delivery} ج.م{" "}
-          </span>
-          {/* <span className={styles.currency} style={{ fontWeight: 600, fontSize: '18px' }}></span> */}
         </div>
 
         <Button
@@ -241,7 +186,7 @@ const Summary: React.FC<SummaryInter> = ({
           onClick={handleSubmit}
           disabled={disabled || isSubmitting}
         >
-          {isSubmitting ? "جاري الإرسال..." : "إتمام عملية الشراء"}
+          {isSubmitting ? t('submitting') : t('submit')}
         </Button>
       </div>
     </>

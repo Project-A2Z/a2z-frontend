@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import  AuthenticationError  from "@/services/Utils/alertHandler";
 import { wishlistService } from '@/services/api/wishlist';
 import { UserStorage } from '@/services/auth/login';
+import { getLocale , getLangQueryParam } from "../api/language";
 
 export type FavoriteItem = {
   id: number | string;
@@ -46,20 +47,20 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         if (isUserAuthenticated) {
           try {
             const res = await wishlistService.getAll();
-            //console.log('🔍 Raw API Response:', res);
+            ////console.log('🔍 Raw API Response:', res);
 
             const list = res?.data?.wishItems ?? [];
-            //console.log('🔍 Wishlist items:', list);
+            ////console.log('🔍 Wishlist items:', list);
 
             if (list.length > 0) {
-              //console.log('🔍 First item structure:', list[0]);
-              //console.log('🔍 First item productId:', list[0]?.productId);
+              ////console.log('🔍 First item structure:', list[0]);
+              ////console.log('🔍 First item productId:', list[0]?.productId);
             }
 
             const mapped: FavoriteItem[] = list.map((w: any) => {
               // According to API documentation, productId should be populated with product details
               const p = w.productId || {};
-              //console.log('🔍 Product data for item:', w._id, p);
+              ////console.log('🔍 Product data for item:', w._id, p);
 
               const images = p.imageList || p.images || [];
               const img = Array.isArray(images) ? (images[0] || '/acessts/NoImage.jpg') : (images || '/acessts/NoImage.jpg');
@@ -72,12 +73,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
               };
             });
             setItems(mapped);
-            //console.log('✅ Mapped favorites:', mapped);
+            ////console.log('✅ Mapped favorites:', mapped);
             return;
           } catch (e: any) {
             console.warn('Failed to load wishlist from backend:', e);
             if (e?.response?.status === 404) {
-              //console.log('ℹ️ Wishlist not found (404) - starting with empty list');
+              ////console.log('ℹ️ Wishlist not found (404) - starting with empty list');
               setItems([]);
               return;
             }
@@ -99,7 +100,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
               const parsed = JSON.parse(raw) as FavoriteItem[];
               if (Array.isArray(parsed)) {
                 setItems(parsed);
-                //console.log('✅ Wishlist loaded from localStorage:', parsed.length, 'items');
+                ////console.log('✅ Wishlist loaded from localStorage:', parsed.length, 'items');
               }
             }
           } catch (e) {
@@ -271,7 +272,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           void wishlistService.remove(String(item.id)).catch(err => {
             console.error('Failed to remove wishlist item:', err);
             if (err?.response?.status === 404) {
-              //console.log('ℹ️ Item not found in wishlist (404) - this is expected if already removed');
+              ////console.log('ℹ️ Item not found in wishlist (404) - this is expected if already removed');
               return; // Don't show error for 404 (item not found)
             }
             if (err instanceof AuthenticationError) {
@@ -288,11 +289,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           void wishlistService.add(String(item.id)).catch(err => {
             console.error('Failed to add wishlist item:', err);
             if (err?.response?.status === 409) {
-              //console.log('ℹ️ Item already exists in wishlist (409) - this is expected');
+              ////console.log('ℹ️ Item already exists in wishlist (409) - this is expected');
               return; // Don't show error for 409
             }
             if (err?.status === 'error' && err?.message?.includes('موجود بالفعل')) {
-              //console.log('ℹ️ Item already exists in wishlist - this is expected');
+              ////console.log('ℹ️ Item already exists in wishlist - this is expected');
               return; // Don't show error for conflict
             }
             if (err instanceof AuthenticationError) {

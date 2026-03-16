@@ -1,75 +1,53 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react'; // Import NextAuth signOut
 
+// import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { signOut } from 'next-auth/react';
 import { AuthService } from '@/services/auth/login';
-
-//styles
 import styles from '@/components/UI/Profile/leftSection/Logout/Logout.module.css';
+import { getLocale } from '@/services/api/language';
 
 interface LogoutProps {
   onCancel?: (value: string) => void;
   onLogout?: () => void;
 }
 
-export default function Logout({ onCancel, onLogout }: LogoutProps) {
-  const router = useRouter();
-  
+export default function Logout({ onCancel }: LogoutProps) {
+  const t = useTranslations('profile.left');
+  // const router = useRouter();
+  const isRtl = getLocale() === 'ar';
   const handleLogout = async () => {
-  try {
-    console.log('🚪 Starting logout...');
-    
-    // 1. Mark user as logged out
-    sessionStorage.setItem('user_logged_out', 'true');
-    sessionStorage.removeItem('social_login_pending');
-    
-    // 2. Clear localStorage
-    await AuthService.logout();
-    
-    // 3. Sign out from NextAuth (this clears the session)
-    await signOut({ 
-      redirect: true, 
-      callbackUrl: '/' 
-    });
-    
-    console.log('✅ Logout complete');
-    
-  } catch (error) {
-    console.error('❌ Logout error:', error);
-    
-    // Force logout even if error
-    sessionStorage.setItem('user_logged_out', 'true');
-    AuthService.clearAuthData();
-    window.location.href = '/';
-  }
-};
-  
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel('');
+    try {
+      sessionStorage.setItem('user_logged_out', 'true');
+      sessionStorage.removeItem('social_login_pending');
+      await AuthService.logout();
+      await signOut({ redirect: true, callbackUrl: '/' });
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      sessionStorage.setItem('user_logged_out', 'true');
+      AuthService.clearAuthData();
+      window.location.href = '/';
     }
   };
-  
+
   return (
-    <div className={styles.overlay}>
-      <div className={styles.container}>
-        <div className={styles.question}>
-          هل تريد تسجيل الخروج ؟
+    <div className={styles.overlay} style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+      <div className={styles.container} style={{ textAlign: isRtl ? 'right' : 'left' }}>
+        <div className={styles.question}  style={{ textAlign: isRtl ? 'right' : 'left' }}>
+          {t('logout.question')}
         </div>
-       
         <div className={styles.buttonGroup}>
           <button
             className={`${styles.button} ${styles.logoutButton}`}
             onClick={handleLogout}
           >
-            تسجيل الخروج
+            {t('logout.confirm')}
           </button>
-         
           <button
             className={`${styles.button} ${styles.cancelButton}`}
-            onClick={handleCancel}
+            onClick={() => onCancel?.('')}
           >
-            إلغاء
+            {t('logout.cancel')}
           </button>
         </div>
       </div>

@@ -223,7 +223,7 @@ const response = await authService.login({
 });
 
 if (response.success) {
-  console.log('User logged in:', response.data.user);
+  //console.log('User logged in:', response.data.user);
 }
 ```
 

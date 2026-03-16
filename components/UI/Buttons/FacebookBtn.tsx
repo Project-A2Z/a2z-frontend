@@ -21,22 +21,22 @@ const FacebookBtn = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSuccess = async (response: SuccessResponse) => {
-    console.log('✅ Facebook Login Success!', response);
-    console.log('🔑 Facebook Access Token:', response.accessToken);
+    //console.log('✅ Facebook Login Success!', response);
+    //console.log('🔑 Facebook Access Token:', response.accessToken);
     
     setMessage({ text: "جاري تسجيل الدخول...", severity: "success" });
     setIsLoading(true);
 
     try {
       // Call your backend social login with Facebook access token
-      console.log('📞 Calling backend social login with Facebook token...');
+      //console.log('📞 Calling backend social login with Facebook token...');
       
       const backendResponse = await socialLogin({
         provider: 'facebook',
         idToken: response.accessToken // Facebook uses accessToken
       });
 
-      console.log('✅ Backend social login successful!', backendResponse);
+      //console.log('✅ Backend social login successful!', backendResponse);
       
       setMessage({ text: "تم تسجيل الدخول بنجاح", severity: "success" });
       
@@ -83,12 +83,12 @@ const FacebookBtn = ({
   };
 
   const handleProfileSuccess = (response: any) => {
-    console.log('✅ Facebook Get Profile Success!', response);
-    console.log('👤 User Profile:', {
-      name: response.name,
-      email: response.email,
-      id: response.id
-    });
+    //console.log('✅ Facebook Get Profile Success!', response);
+    //console.log('👤 User Profile:', {
+    //   name: response.name,
+    //   email: response.email,
+    //   id: response.id
+    // });
   };
 
   return (

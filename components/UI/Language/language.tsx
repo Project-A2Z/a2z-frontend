@@ -58,45 +58,20 @@ const LanguageSelector = () => {
       document.body.classList.remove('translating');
     }
   };
+const handleLanguageChange = (langCode: Locale) => {
+  if (isTranslating) return;
 
-  const handleLanguageChange = (langCode: Locale) => {
-    if (isTranslating) return;
-    
-    setCurrentLanguage(langCode);
-    setLocale(langCode);
-    setIsOpen(false);
-    localStorage.setItem('selectedLanguage', langCode);
-    
-    const html = document.documentElement;
-    
-    if (langCode === 'ar') {
-      html.setAttribute('dir', 'rtl');
-      html.setAttribute('lang', 'ar');
-      
-      // Clear Google Translate cookies
-      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + window.location.hostname;
-      
-      // IMPROVED: Use proper navigation instead of reload
-      setTimeout(() => {
-        window.location.href = window.location.pathname;
-      }, 3000);
-    } else {
-      html.setAttribute('dir', langCode === ('ar' as Locale) ? 'rtl' : 'ltr');
-      html.setAttribute('lang', langCode);
-      
-      const checkAndTranslate = () => {
-        const selectElement = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-        if (selectElement) {
-          triggerTranslation(langCode);
-        } else {
-          setTimeout(checkAndTranslate, 3000);
-        }
-      };
-      
-      checkAndTranslate();
-    }
-  };
+  setCurrentLanguage(langCode);
+  setLocale(langCode); // writes the cookie
+  setIsOpen(false);
+
+  const html = document.documentElement;
+  html.setAttribute('dir', langCode === 'ar' ? 'rtl' : 'ltr');
+  html.setAttribute('lang', langCode);
+
+  // Hard reload so next-intl server config re-runs and picks up new cookie
+  window.location.reload();
+};
 
   return (
     <div className="relative notranslate" translate="no">

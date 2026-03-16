@@ -118,7 +118,7 @@ if (typeof window !== 'undefined') {
     // Clean expired entries from review detail cache
     reviewDetailCache.cleanup();
 
-    //console.log('🧹 Reviews cache cleanup completed');
+    ////console.log('🧹 Reviews cache cleanup completed');
   }, 3 * 60 * 1000); // 3 minutes
 }
 
@@ -204,7 +204,7 @@ class ReviewService {
     const cachedData = reviewsCache.get(cacheKey);
 
     if (cachedData) {
-      //console.log(`✅ Using cached reviews data for product ${productId}`);
+      ////console.log(`✅ Using cached reviews data for product ${productId}`);
       return cachedData;
     }
 
@@ -310,7 +310,7 @@ class ReviewService {
     productId: string,
     token?: string
   ): Promise<ApiResponse> {
-    //console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
+    ////console.log('🔧 ReviewService.deleteReview called with reviewId:', reviewId);
     
     try {
       const res = await apiClient.delete<ApiResponse>(
@@ -318,7 +318,7 @@ class ReviewService {
         { headers: this.getAuthHeaders(token) }
       );
 
-      //console.log('✅ Delete API response:', res.data);
+      ////console.log('✅ Delete API response:', res.data);
       
       // Clear cache for this product after deleting a review
       this.clearProductReviewsCache(productId);
@@ -375,14 +375,14 @@ class ReviewService {
         reviewsCache.delete(key);
       }
     }
-    //console.log(`🧹 Reviews cache cleared for product ${productId}`);
+    ////console.log(`🧹 Reviews cache cleared for product ${productId}`);
   }
 
   // Public method to clear all reviews cache
   clearCache() {
     reviewsCache.clear();
     reviewDetailCache.clear();
-    //console.log('🧹 Reviews cache cleared');
+    ////console.log('🧹 Reviews cache cleared');
   }
 
   calculateRatingsDistribution(reviews: Review[]): RatingsDistribution {

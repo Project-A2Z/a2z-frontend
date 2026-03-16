@@ -15,7 +15,7 @@ const AppShell: React.FC<Props> = ({ children }) => {
 
   const noHeaderFooterPaths = [
     "/login",
-    "/active-code",
+    // "/active-code",
     "/register",
     "/reset-password",
   ];
@@ -26,7 +26,7 @@ const AppShell: React.FC<Props> = ({ children }) => {
 
   const shouldShowFloatingChat = ![
     "/login",
-    "/active-code",
+    // "/active-code",
     "/register",
     "/reset-password",
   ].some((path) => pathname?.startsWith(path));

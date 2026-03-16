@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/UI//Buttons/Button';
-import Input from '@/components/UI//Inputs/Input';
+import { useTranslations } from 'next-intl';
+import { getLocale } from '@/services/api/language';
+
+// Components
+import { Button } from '@/components/UI/Buttons/Button';
+import Input from '@/components/UI/Inputs/Input';
 import styles from '@/components/UI/Profile/leftSection/PassChange/pass.module.css';
 
-// Eye icons for password visibility toggle
+// Icons
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -47,30 +51,25 @@ interface ModalProps {
   title: string;
   message: string;
   onClose: () => void;
+  okLabel: string;
 }
 
 interface PassChangeProps {
   onChangePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, type, title, message, onClose }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, type, title, message, onClose, okLabel }) => {
   if (!isOpen) return null;
-
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
         <div className={`${styles.modalIcon} ${styles[type]}`}>
           {type === 'success' ? <SuccessIcon /> : <ErrorIcon />}
         </div>
-        
         <h3 className={styles.modalTitle}>{title}</h3>
         <p className={styles.modalMessage}>{message}</p>
-        
-        <button 
-          className={`${styles.modalButton} ${styles[type]}`}
-          onClick={onClose}
-        >
-          موافق
+        <button className={`${styles.modalButton} ${styles[type]}`} onClick={onClose}>
+          {okLabel}
         </button>
       </div>
     </div>
@@ -78,94 +77,63 @@ const Modal: React.FC<ModalProps> = ({ isOpen, type, title, message, onClose }) 
 };
 
 const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
+  const t = useTranslations('profile.left');
+  const isRtl = getLocale() === 'ar';
+
+
+
   const [formData, setFormData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  });
-
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<PasswordFormData>>({});
-  
-  // Modal state
+
   const [modal, setModal] = useState<{
     isOpen: boolean;
     type: 'success' | 'error';
     title: string;
     message: string;
-  }>({
-    isOpen: false,
-    type: 'success',
-    title: '',
-    message: ''
-  });
+  }>({ isOpen: false, type: 'success', title: '', message: '' });
 
   const showModal = (type: 'success' | 'error', title: string, message: string) => {
-    setModal({
-      isOpen: true,
-      type,
-      title,
-      message
-    });
+    setModal({ isOpen: true, type, title, message });
   };
 
-  const closeModal = () => {
-    setModal(prev => ({ ...prev, isOpen: false }));
+  const handleInputChange = (field: keyof PasswordFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const handleInputChange = (field: keyof PasswordFormData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
-  };
-
-  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
+  const toggleVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<PasswordFormData> = {};
 
-    if (!formData.currentPassword.trim()) {
-      newErrors.currentPassword = 'كلمة المرور الحالية مطلوبة';
-    }
+    if (!formData.currentPassword.trim())
+      newErrors.currentPassword = t('passChange.fields.current.required');
 
     if (!formData.newPassword.trim()) {
-      newErrors.newPassword = 'كلمة المرور الجديدة مطلوبة';
+      newErrors.newPassword = t('passChange.fields.new.required');
     } else if (formData.newPassword.length < 8) {
-      newErrors.newPassword = 'كلمة المرور الجديدة يجب أن تكون على الأقل 8 أحرف';
+      newErrors.newPassword = t('passChange.fields.new.minLength');
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.newPassword)) {
-      newErrors.newPassword = 'كلمة المرور يجب أن تحتوي على حرف كبير وصغير ورقم';
+      newErrors.newPassword = t('passChange.fields.new.complexity');
     }
 
     if (!formData.confirmPassword.trim()) {
-      newErrors.confirmPassword = 'تأكيد كلمة المرور مطلوب';
+      newErrors.confirmPassword = t('passChange.fields.confirm.required');
     } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'كلمة المرور غير متطابقة';
+      newErrors.confirmPassword = t('passChange.fields.confirm.mismatch');
     }
 
     if (formData.currentPassword === formData.newPassword && formData.currentPassword.trim()) {
-      newErrors.newPassword = 'كلمة المرور الجديدة يجب أن تكون مختلفة عن الحالية';
+      newErrors.newPassword = t('passChange.fields.new.sameAsCurrent');
     }
 
     setErrors(newErrors);
@@ -174,113 +142,77 @@ const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
-    
     try {
-      // Call the password change API
       await onChangePassword({
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+        newPassword: formData.newPassword,
       });
-      
-      console.log('Password changed successfully');
-      
-      // Reset form
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      // Show success modal
-      showModal(
-        'success',
-        'تم بنجاح!',
-        'تم تغيير كلمة المرور بنجاح. يمكنك الآن استخدام كلمة المرور الجديدة لتسجيل الدخول.'
-      );
+      setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      showModal('success', t('passChange.modal.success.title'), t('passChange.modal.success.message'));
     } catch (error: any) {
-      console.error('Error changing password:', error);
-      
-      // Extract error message
-      let errorMessage = 'فشل في تغيير كلمة المرور. يرجى التأكد من صحة كلمة المرور الحالية والمحاولة مرة أخرى.';
-      
-      if (error?.message) {
-        errorMessage = error.message;
-      }
-      
-      // Show error modal
       showModal(
         'error',
-        'فشل في التحديث',
-        errorMessage
+        t('passChange.modal.error.title'),
+        error?.message || t('passChange.modal.error.message')
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleIconClick = (field: 'current' | 'new' | 'confirm') => {
-    togglePasswordVisibility(field);
-  };
-
   return (
     <>
-      <div className={styles.container_form}>
-        <div className={styles.formCard}>
-          <h1 className={styles.title}>تغيير كلمة المرور</h1>
-          
+      <div className={styles.container_form} style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+        <div className={styles.formCard} style={{ textAlign: isRtl ? 'right' : 'left' }}>
+          <h1 className={styles.title}>{t('passChange.title')}</h1>
+
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.inputGroup}>
               <Input
-                type={showPasswords.current ? "text" : "password"}
-                placeholder="أدخل كلمة المرور القديمة"
+                type={showPasswords.current ? 'text' : 'password'}
+                placeholder={t('passChange.fields.current.placeholder')}
                 value={formData.currentPassword}
                 onChange={handleInputChange('currentPassword')}
                 icon={showPasswords.current ? <EyeOffIcon /> : <EyeIcon />}
-                onIconClick={() => handleIconClick('current')}
+                onIconClick={() => toggleVisibility('current')}
                 error={!!errors.currentPassword}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.currentPassword && (
-                <span className={styles.errorText}>{errors.currentPassword}</span>
-              )}
+              {errors.currentPassword && <span className={styles.errorText}>{errors.currentPassword}</span>}
             </div>
 
             <div className={styles.inputGroup}>
               <Input
-                type={showPasswords.new ? "text" : "password"}
-                placeholder="أدخل كلمة المرور الجديدة"
+                type={showPasswords.new ? 'text' : 'password'}
+                placeholder={t('passChange.fields.new.placeholder')}
                 value={formData.newPassword}
                 onChange={handleInputChange('newPassword')}
                 icon={showPasswords.new ? <EyeOffIcon /> : <EyeIcon />}
-                onIconClick={() => handleIconClick('new')}
+                onIconClick={() => toggleVisibility('new')}
                 error={!!errors.newPassword}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.newPassword && (
-                <span className={styles.errorText}>{errors.newPassword}</span>
-              )}
+              {errors.newPassword && <span className={styles.errorText}>{errors.newPassword}</span>}
             </div>
 
             <div className={styles.inputGroup}>
               <Input
-                type={showPasswords.confirm ? "text" : "password"}
-                placeholder="تأكيد كلمة المرور الجديدة"
+                type={showPasswords.confirm ? 'text' : 'password'}
+                placeholder={t('passChange.fields.confirm.placeholder')}
                 value={formData.confirmPassword}
                 onChange={handleInputChange('confirmPassword')}
                 icon={showPasswords.confirm ? <EyeOffIcon /> : <EyeIcon />}
-                onIconClick={() => handleIconClick('confirm')}
+                onIconClick={() => toggleVisibility('confirm')}
                 error={!!errors.confirmPassword}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.confirmPassword && (
-                <span className={styles.errorText}>{errors.confirmPassword}</span>
-              )}
+              {errors.confirmPassword && <span className={styles.errorText}>{errors.confirmPassword}</span>}
             </div>
 
             <div className={styles.buttonGroup}>
@@ -289,26 +221,26 @@ const PassChange: React.FC<PassChangeProps> = ({ onChangePassword }) => {
                 variant="primary"
                 size="lg"
                 state={isLoading ? 'loading' : 'default'}
-                loadingText="جاري التحديث..."
+                loadingText={t('passChange.buttons.loading')}
                 fullWidth
                 className={styles.submitButton}
                 rounded={true}
                 onClick={handleSubmit}
               >
-                متابعة
+                {t('passChange.buttons.submit')}
               </Button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Custom Modal */}
       <Modal
         isOpen={modal.isOpen}
         type={modal.type}
         title={modal.title}
         message={modal.message}
-        onClose={closeModal}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        okLabel={t('passChange.buttons.ok')}
       />
     </>
   );

@@ -9,11 +9,18 @@ import InputsFieldsSection from "@/components/pages/AuthPages/ForgetPasswordPage
 import CodeInputSection from "@/components/pages/AuthPages/ActiveCodePage/sections/CodeInputSection/CodeInputSection";
 import VerifyButtonSection from "@/components/pages/AuthPages/ActiveCodePage/sections/VerifyButtonSection/VerifyButtonSection";
 import ResendTimerSection from "@/components/pages/AuthPages/ActiveCodePage/sections/ResendTimerSection/ResendTimerSection";
+import { useTranslations } from "next-intl";
+
+import { getLangQueryParam, getLocale } from "@/services/api/language";
 
 type FormState = { password: string; confirmPassword: string };
 
 export default function ForgetPasswordPage() {
   const router = useRouter();
+  const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+  const t = useTranslations("forgetPassword");
+
   // Steps: 1) get email, 2) enter active code, 3) set new password
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
@@ -54,15 +61,11 @@ export default function ForgetPasswordPage() {
   }, [step, timeLeft]);
 
   const handleInputChange = (field: keyof FormState, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setError("");
   };
 
   const isPwdDisabled = useMemo(() => {
-    // Allow common special characters including '#'
     const strongPasswordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     return (
@@ -75,9 +78,8 @@ export default function ForgetPasswordPage() {
     );
   }, [formData, submitting]);
 
-  const isValidEmail = (value: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  };
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -112,158 +114,35 @@ export default function ForgetPasswordPage() {
       .padStart(2, "0")}`;
   };
 
-  const handleVerify = async () => {
-    if (submitting) return;
-    const normal = code.join("");
-    const emailTrimmed = email.trim();
-    if (normal.length !== 6) {
-      setError("يرجى إدخال الرمز الكامل (6 أرقام)");
-      return;
-    }
-    const reversed = [...code].reverse().join("");
-    try {
-      setSubmitting(true);
-      setError("");
-      // Try multiple payload variants to match backend expectations
-      const typeVariants = [
-        "passwordReset",
-        "resetPassword",
-        "PasswordReset",
-        "Passwordreset",
-      ];
-      const variants: Array<Record<string, any>> = [];
-      for (const t of typeVariants) {
-        variants.push(
-          { email: emailTrimmed, otp: normal, type: t },
-          { email: emailTrimmed, otp: reversed, type: t },
-          { email: emailTrimmed, OTP: normal, type: t },
-          { email: emailTrimmed, OTP: reversed, type: t },
-          { email: emailTrimmed, code: normal, type: t },
-          { email: emailTrimmed, code: reversed, type: t },
-          { email: emailTrimmed, verificationCode: normal, type: t },
-          { email: emailTrimmed, verificationCode: reversed, type: t },
-          { email: emailTrimmed, otpCode: normal, type: t },
-          { email: emailTrimmed, otpCode: reversed, type: t },
-          { email: emailTrimmed, otp: Number(normal), type: t },
-          { email: emailTrimmed, otp: Number(reversed), type: t },
-          { email: emailTrimmed, otp: normal, Type: t },
-          { email: emailTrimmed, OTP: normal, Type: t }
-        );
-      }
-
-      let success = false;
-      let lastErrorMessage =
-        "فشل التحقق من الرمز. تأكد من ترتيب الأرقام من اليسار إلى اليمين.";
-      for (const body of variants) {
-        const res = await fetchWithTimeout(
-          "https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPVerification?lang=en",
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify(body),
-          }
-        );
-        if (res.ok) {
-          success = true;
-          break;
-        }
-        try {
-          const data = await res.json();
-          if (data?.message) lastErrorMessage = data.message as string;
-          console.warn(
-            "[OTPVerification] attempt failed with body:",
-            body,
-            "response:",
-            data
-          );
-        } catch (e) {
-          console.warn(
-            "[OTPVerification] attempt failed and response not JSON. Body:",
-            body
-          );
-        }
-      }
-      if (!success) throw new Error(lastErrorMessage);
-      setStep(3);
-    } catch (err: any) {
-      setError(
-        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleResend = async () => {
-    if (!email) return;
-    const emailTrimmed = email.trim();
-    try {
-      setSubmitting(true);
-      setError("");
-      const res = await fetchWithTimeout(
-        "https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPResend",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ email: emailTrimmed, type: "passwordReset" }),
-        }
-      );
-      if (!res.ok) {
-        let message = "فشل إرسال الرمز. حاول مرة أخرى.";
-        try {
-          const data = await res.json();
-          if (data?.message) message = data.message as string;
-          console.warn("OTPResend error:", data);
-        } catch {}
-        throw new Error(message);
-      }
-      setCode(["", "", "", "", "", ""]);
-      setTimeLeft(60);
-      setCanResend(false);
-    } catch (err: any) {
-      setError(
-        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  // Step 1 — Send forget-password OTP to email
   const handleNextFromEmail = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
     if (!email) {
-      setEmailError("يرجى إدخال البريد الإلكتروني");
+      setEmailError(t("email.required"));
       return;
     }
     if (!isValidEmail(email)) {
-      setEmailError("بريد إلكتروني غير صالح");
+      setEmailError(t("email.invalid"));
       return;
     }
     try {
       setSubmitting(true);
       setEmailError("");
-      const emailTrimmed = email.trim();
       const res = await fetchWithTimeout(
-        "https://a2z-backend--dkreq.fly.dev/app/v1/users/forgetPassword?lang=en",
+        `https://a2z-backend--dkreq.fly.dev/app/v1/users/forgetPassword?lang=${langQuery}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ email: emailTrimmed }),
+          body: JSON.stringify({ email: email.trim() }),
         }
       );
       if (!res.ok) {
-        let message = "تعذر إرسال رمز التحقق.";
+        let message = t("email.sendFailed");
         try {
           const data = await res.json();
           if (data?.message) message = data.message as string;
@@ -276,22 +155,26 @@ export default function ForgetPasswordPage() {
       setCode(["", "", "", "", "", ""]);
     } catch (err: any) {
       setEmailError(
-        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+        typeof err?.message === "string" ? err.message : t("verify.unexpectedError")
       );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (isPwdDisabled) return;
+  // Step 2 — Verify OTP  ✅ matches: PATCH /users/OTPVerification { email, OTP, type }
+  const handleVerify = async () => {
+    if (submitting) return;
+    const otpValue = code.join("");
+    if (otpValue.length !== 6) {
+      setError(t("verify.incomplete"));
+      return;
+    }
     try {
       setSubmitting(true);
       setError("");
-      const emailTrimmed = email.trim();
       const res = await fetchWithTimeout(
-        "https://a2z-backend--dkreq.fly.dev/app/v1/users/ResetPassword?lang=en",
+        `https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPVerification${langQuery}`,
         {
           method: "PATCH",
           headers: {
@@ -299,24 +182,100 @@ export default function ForgetPasswordPage() {
             Accept: "application/json",
           },
           body: JSON.stringify({
-            email: emailTrimmed,
+            email: email.trim(),
+            OTP: otpValue,         // ← capital OTP as required by the API
+            type: "passwordReset", // ← exact enum value from the docs
+          }),
+        }
+      );
+      if (!res.ok) {
+        let message = t("verify.failed");
+        try {
+          const data = await res.json();
+          if (data?.message) message = data.message as string;
+        } catch {}
+        throw new Error(message);
+      }
+      setStep(3);
+    } catch (err: any) {
+      setError(
+        typeof err?.message === "string" ? err.message : t("verify.unexpectedError")
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Step 2 — Resend OTP
+  const handleResend = async () => {
+    if (!email) return;
+    try {
+      setSubmitting(true);
+      setError("");
+      const res = await fetchWithTimeout(
+        `https://a2z-backend--dkreq.fly.dev/app/v1/users/OTPResend${langQuery}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ email: email.trim(), type: "passwordReset" }),
+        }
+      );
+      if (!res.ok) {
+        let message = t("resend.failed");
+        try {
+          const data = await res.json();
+          if (data?.message) message = data.message as string;
+        } catch {}
+        throw new Error(message);
+      }
+      setCode(["", "", "", "", "", ""]);
+      setTimeLeft(60);
+      setCanResend(false);
+    } catch (err: any) {
+      setError(
+        typeof err?.message === "string" ? err.message : t("verify.unexpectedError")
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Step 3 — Reset password
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (isPwdDisabled) return;
+    try {
+      setSubmitting(true);
+      setError("");
+      const res = await fetchWithTimeout(
+        "https://a2z-backend--dkreq.fly.dev/app/v1/users/ResetPassword",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            email: email.trim(),
             Newpassword: formData.password,
           }),
         }
       );
       if (!res.ok) {
-        let message = "تعذر إعادة تعيين كلمة المرور";
+        let message = t("resetPassword.failed");
         try {
           const data = await res.json();
           if (data?.message) message = data.message as string;
-          console.warn("ResetPassword error:", data);
         } catch {}
         throw new Error(message);
       }
       router.push("/login");
     } catch (err: any) {
       setError(
-        typeof err?.message === "string" ? err.message : "حدث خطأ غير متوقع"
+        typeof err?.message === "string" ? err.message : t("verify.unexpectedError")
       );
     } finally {
       setSubmitting(false);
@@ -324,18 +283,19 @@ export default function ForgetPasswordPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] xl:max-w-[850px] min-h-[280px] xs:min-h-[300px] sm:min-h-[350px] md:min-h-[380px] lg:min-h-[400px] rounded-[16px] xs:rounded-[20px] sm:rounded-[22px] lg:rounded-[24px] gap-3 xs:gap-4 sm:gap-6 lg:gap-8 p-3 xs:p-4 sm:p-5 lg:p-6 bg-card  backdrop-blur-sm shadow-lg border border-black16 mx-2 xs:mx-4 sm:mx-6 lg:mx-auto">
+    <div className="flex flex-col items-center justify-center w-full max-w-[95%] xs:max-w-[90%] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] xl:max-w-[850px] min-h-[280px] xs:min-h-[300px] sm:min-h-[350px] md:min-h-[380px] lg:min-h-[400px] rounded-[16px] xs:rounded-[20px] sm:rounded-[22px] lg:rounded-[24px] gap-3 xs:gap-4 sm:gap-6 lg:gap-8 p-3 xs:p-4 sm:p-5 lg:p-6 bg-card backdrop-blur-sm shadow-lg border border-black16 mx-2 xs:mx-4 sm:mx-6 lg:mx-auto">
       <div className="flex flex-col items-center justify-center gap-2 xs:gap-3 sm:gap-4 w-full max-w-[320px] xs:max-w-[340px] sm:max-w-[368px] min-h-[80px] xs:min-h-[90px] sm:min-h-[100px] lg:min-h-[124px]">
         <LogoSection />
-        <InstructionSection />
+        <InstructionSection title={t("title")} />
       </div>
+
       {step === 1 ? (
         <div className="w-full max-w-[420px]">
           <label
             htmlFor="email"
             className="block text-sm font-medium text-black87 mb-2"
           >
-            البريد الإلكتروني
+            {t("email.label")}
           </label>
           <input
             id="email"
@@ -345,10 +305,11 @@ export default function ForgetPasswordPage() {
               setEmail(e.target.value);
               setEmailError("");
             }}
-            placeholder="example@mail.com"
+            placeholder={t("email.placeholder")}
             className="w-full rounded-lg border border-black16 bg-white px-3 py-2 text-black87 placeholder-black60 focus:outline-none focus:ring-2 focus:ring-primary"
             autoComplete="email"
             inputMode="email"
+            dir={t("dir") as string}
           />
           {emailError && (
             <p className="mt-2 text-sm text-red-600">{emailError}</p>
@@ -371,12 +332,18 @@ export default function ForgetPasswordPage() {
           <VerifyButtonSection
             onVerify={handleVerify}
             isDisabled={code.some((c) => !c) || submitting}
+            loadingText={t("submit.loading")}
+            confirmationText={t("submit.default")}
           />
           <ResendTimerSection
             timeLeft={timeLeft}
             onResend={handleResend}
             canResend={canResend}
             formatTime={formatTime}
+            loadingText={t("submit.resend.loading")}
+            confirmationText={t("submit.resend.button")}
+            resendText={t("submit.resend.label")}
+            timerText={t("submit.resend.timer")}
           />
         </>
       ) : (

@@ -1,5 +1,8 @@
 import { Api, API_ENDPOINTS } from '../api/endpoints';
 import { UserStorage } from '../auth/login';
+import { getLocale, getLangQueryParam } from '@/services/api/language';
+
+// Types
 
 export interface ProfileMessages {
   _id: string;
@@ -58,8 +61,11 @@ export const fetchProfileMessages = async (): Promise<ProfileMessages[]> => {
     throw new ProfileMessagesError('User email not found. Please log in again.');
   }
 
+  const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+
   try {
-    const url = `${Api}${API_ENDPOINTS.USERS.MESSAGES}?email=${email}`;
+    const url = `${Api}${API_ENDPOINTS.USERS.MESSAGES}?email=${email}${langQuery}`;
     const token = UserStorage.getToken();
 
     const response = await fetch(url, {
@@ -71,7 +77,7 @@ export const fetchProfileMessages = async (): Promise<ProfileMessages[]> => {
       },
     });
 
-    //console.log('Fetch profile messages response status:', response.status);
+    ////console.log('Fetch profile messages response status:', response.status);
 
     if (!response.ok) {
       let errorMessage = 'Failed to fetch profile messages';
@@ -92,7 +98,7 @@ export const fetchProfileMessages = async (): Promise<ProfileMessages[]> => {
 
     const data: ProfileMessagesResponse = await response.json();
     
-    //console.log('Fetch profile messages response body:', data);
+    ////console.log('Fetch profile messages response body:', data);
     
     // Handle new response structure
     if (data.status === 'success' && Array.isArray(data.inquiries)) {
@@ -134,13 +140,15 @@ export const fetchProfileMessage = async (
   messageId: string
 ): Promise<ProfileMessages> => {
   const email = getEmail();
+  const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
   
   if (!email) {
     throw new ProfileMessagesError('User email not found. Please log in again.');
   }
 
   try {
-    const url = `${Api}${API_ENDPOINTS.USERS.MESSAGES}/${messageId}?email=${encodeURIComponent(email)}`;
+    const url = `${Api}${API_ENDPOINTS.USERS.MESSAGES}/${messageId}?email=${encodeURIComponent(email)}${langQuery}`;
     const token = UserStorage.getToken();
     
     const response = await fetch(url, {

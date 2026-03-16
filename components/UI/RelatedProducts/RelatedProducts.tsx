@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
+import { useTranslations } from "next-intl";
 
 import {
   // Product,
@@ -27,6 +28,8 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("about-us.products.relatedProducts");
+
 
   // Track selected variant per product  { [productIdStr]: variantId }
   const [activeVariants, setActiveVariants] = useState<Record<string, string>>({});
@@ -114,7 +117,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
       }
       setActiveVariants(initialVariants);
     } catch {
-      setError("حدث خطأ أثناء تحميل المنتجات المتعلقة");
+      setError(t("loading.error")); // "حدث خطأ أثناء تحميل المنتجات المتعلقة"
       setProducts([]);
     } finally {
       setLoading(false);
@@ -135,7 +138,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   if (loading) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+        <h2 className="text-2xl font-bold text-black87 mb-6">{t("title")}</h2>
         <div className="keen-slider">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="keen-slider__slide">
@@ -150,7 +153,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
   if (error) {
     return (
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+        <h2 className="text-2xl font-bold text-black87 mb-6">{t("title")}</h2>
         <div className="text-red-500">{error}</div>
       </div>
     );
@@ -162,7 +165,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
 
   return (
     <div className="mt-12">
-      <h2 className="text-2xl font-bold text-black87 mb-6">منتجات قد تعجبك</h2>
+      <h2 className="text-2xl font-bold text-black87 mb-6">{t("title")}</h2>
       <div
         ref={sliderRef}
         className="keen-slider relative"
@@ -197,7 +200,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
                   // Identity
                   productId={productIdStr}
                   productName={product.nameAr || product.name}
-                  productCategory={product.category || "غير محدد"}
+                  productCategory={product.category || t("unknownCategory")}
                   // Full product object — Card uses it for variants, unit labels, etc.
                   product={product}
                   // Image — already resolved by processProductImagesStatic

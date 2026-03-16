@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
+const withNextIntl = createNextIntlPlugin('./i18n/requests.ts');
 
 const nextConfig: NextConfig = {
   // Enable compression
@@ -136,5 +138,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Export with bundle analyzer wrapper
-export default withBundleAnalyzer(nextConfig);
+
+// ✅ Fixed
+export const config: NextConfig = withBundleAnalyzer(nextConfig);
+export default withNextIntl(withBundleAnalyzer(nextConfig));

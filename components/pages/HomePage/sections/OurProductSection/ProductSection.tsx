@@ -59,7 +59,7 @@ async function getProducts(): Promise<{
   const startTime = Date.now();
   
   try {
-    console.log("🏗️ [ISR] Fetching products at build time...");
+    //console.log("🏗️ [ISR] Fetching products at build time...");
     
     // 🚀 OPTIMIZATION: Only fetch first page (20 items) instead of all products
     const productsData = await fetchAllProducts({
@@ -69,9 +69,9 @@ async function getProducts(): Promise<{
     });
     
     const loadTime = Date.now() - startTime;
-    console.log(
-      `✅ [ISR] Fetched ${productsData.data.length} products in ${loadTime}ms`
-    );
+    //console.log(
+    //   `✅ [ISR] Fetched ${productsData.data.length} products in ${loadTime}ms`
+    // );
     
     return {
       data: productsData,

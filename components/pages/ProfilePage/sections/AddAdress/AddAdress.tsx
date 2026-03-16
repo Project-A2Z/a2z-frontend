@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import  { getLocale } from "@/services/api/language"
 import { Button } from "@/components/UI/Buttons/Button";
 import Input from "@/components/UI/Inputs/Input";
 import { ChevronDown, MapPin, Edit3 } from "lucide-react";
@@ -18,9 +20,10 @@ const MapLocationPicker = dynamic(
     loading: () => <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>جاري تحميل الخريطة...</div>
   }
 );
-import { locationData } from '@/public/data/locationData';
+// import { locationData } from '@/public/data/locationData';
+import { is } from "date-fns/locale";
 
-const LOCATION_DATA = locationData as Record<string, string[]>;
+// const LOCATION_DATA = locationData as Record<string, string[]>;
 
 interface Location {
   lat: number;
@@ -52,6 +55,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const t = useTranslations('Address')
+  const isRTL = getLocale() === 'ar';
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -72,7 +78,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   };
 
   return (
-    <div className={styles.container_drop} ref={dropdownRef}>
+    <div className={styles.container_drop} ref={dropdownRef} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
       <label className={styles.label}>{label}</label>
       <div className={styles.buttonContainer}>
         <button
@@ -87,7 +93,9 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           `}
         >
           <ChevronDown
-            className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
+            className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}` }
+            style={{textAlign : isRTL? 'right' : 'left'
+            }}
           />
           <span
             className={`
@@ -113,6 +121,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
                   ${index === options.length - 1 ? styles.optionButtonLast : ""}
                   ${value === option ? styles.optionButtonSelected : ""}
                 `}
+                style={{direction : isRTL ? 'rtl' : 'ltr' }}
               >
                 {option}
               </button>
@@ -151,6 +160,8 @@ const DRAFT_STORAGE_KEY = 'addressFormDraft';
 function AddressFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('Address')
+
 
   const isEditMode = searchParams?.get("mode") === "edit";
   const addressId = searchParams?.get("id");
@@ -159,6 +170,8 @@ function AddressFormContent() {
   const [showMap, setShowMap] = useState(false);
   const [mapLocation, setMapLocation] = useState<Location | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const locationData = t.raw('LocationData') as Record<string, string[]>;
 
   // Initialize with URL params only (for SSR compatibility)
   const getInitialFormData = (): AddressFormData => {
@@ -179,6 +192,8 @@ function AddressFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hasSavedDraft, setHasSavedDraft] = useState(false);
+  const isRTL = getLocale() === 'ar';
+
 
   // Load draft from localStorage after hydration (client-side only)
   useEffect(() => {
@@ -225,7 +240,7 @@ function AddressFormContent() {
 
   const governorateOptions = Object.keys(locationData);
   const cityOptions = formData.governorate
-    ? LOCATION_DATA[formData.governorate] || []
+    ? locationData[formData.governorate] || []
     : [];
 
   // Auto-save form data to localStorage whenever it changes (only for new addresses and after hydration)
@@ -306,29 +321,29 @@ function AddressFormContent() {
     const newErrors: FormErrors = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = "الاسم الأول مطلوب";
+      newErrors.firstName = t('addressForm.fields.firstName.label');
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = "الاسم الأخير مطلوب";
+      newErrors.lastName = t('addressForm.fields.lastName.label');
     }
 
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = "رقم الهاتف مطلوب";
+      newErrors.phoneNumber = t('addressForm.fields.phoneNumber.label');
     } else if (!/^[0-9]{11}$/.test(formData.phoneNumber.trim())) {
-      newErrors.phoneNumber = "رقم الهاتف يجب أن يكون 11 رقم";
+      newErrors.phoneNumber = t('addressForm.fields.phoneNumber.invalid');
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = "العنوان مطلوب";
+      newErrors.address = t('addressForm.fields.address.label');
     }
 
     if (!formData.governorate.trim()) {
-      newErrors.governorate = "المحافظة مطلوبة";
+      newErrors.governorate = t('addressForm.fields.governorate.label');
     }
 
     if (!formData.city.trim()) {
-      newErrors.city = "المدينة مطلوبة";
+      newErrors.city = t('addressForm.fields.city.label');
     }
 
     setErrors(newErrors);
@@ -394,7 +409,7 @@ function AddressFormContent() {
     } catch (error) {
       if (error instanceof AddressError) {
         if (error.statusCode === 401) {
-          setErrors({ general: "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى." });
+          setErrors({ general: t('addressForm.errors.sessionExpired') });
           setTimeout(() => router.push("/login"), 1000);
         } else if (error.errors) {
           const apiErrors: FormErrors = {};
@@ -407,9 +422,7 @@ function AddressFormContent() {
         }
       } else {
         setErrors({
-          general: `حدث خطأ أثناء ${
-            isEditMode ? "تحديث" : "إضافة"
-          } العنوان. يرجى المحاولة مرة أخرى.`,
+          general: `${isEditMode ? t('addressForm.errors.editFailed') : t('addressForm.errors.addFailed')}`,
         });
       }
     } finally {
@@ -425,31 +438,17 @@ function AddressFormContent() {
     router.back();
   };
 
-  const handleClearDraft = () => {
-    if (window.confirm("هل أنت متأكد من حذف المسودة والبدء من جديد؟ سيتم فقد جميع البيانات المدخلة.")) {
-      clearDraft();
-      setFormData({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
-        address: "",
-        governorate: "",
-        city: "",
-        isDefault: false,
-      });
-    }
-  };
-
-  const pageTitle = isEditMode ? "تعديل العنوان" : "أضف عنوان جديد";
-  const submitButtonText = isEditMode ? "حفظ التعديل" : "حفظ";
-  const successText = isEditMode ? "تم التعديل!" : "تم الحفظ!";
+ 
+  const pageTitle = isEditMode ? t('addressForm.pageTitles.edit') : t('addressForm.pageTitles.add');
+  const submitButtonText = isEditMode ? t('addressForm.buttons.saveEdit') : t('addressForm.buttons.save');
+  const successText = isEditMode ? t('addressForm.success.edited') : t('addressForm.success.saved');
 
   return (
-    <div className={styles.container_newaddress}>
+    <div className={styles.container_newaddress} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
       <div className={styles.header}>
         <h2 className={styles.title}>{pageTitle}</h2>
         {isEditMode && (
-          <p className={styles.editSubtitle}>تعديل بيانات العنوان المحدد</p>
+          <p className={styles.editSubtitle}>{pageTitle}</p>
         )}
         {/* {!isEditMode && hasSavedDraft && (
           <div
@@ -514,7 +513,7 @@ function AddressFormContent() {
             textAlign: "center",
           }}
         >
-          {successText} جاري التحويل...
+          {successText}{t('addressForm.success.redirecting')}
         </div>
       )}
 
@@ -522,12 +521,14 @@ function AddressFormContent() {
         <div className={styles.fieldGroup}>
           <Input
             type="text"
-            placeholder="الاسم الأول"
+            placeholder={t('addressForm.fields.firstName.placeholder')}
             value={formData.firstName}
             onChange={(e) => handleInputChange("firstName", e.target.value)}
             error={!!errors.firstName}
             className={styles.input}
             disabled={isSubmitting}
+             style={{textAlign: isRTL ? 'right' : 'left'}}
+
           />
           {errors.firstName && (
             <p className={styles.errorText}>{errors.firstName}</p>
@@ -537,12 +538,14 @@ function AddressFormContent() {
         <div className={styles.fieldGroup}>
           <Input
             type="text"
-            placeholder="الاسم الأخير"
+            placeholder={t('addressForm.fields.lastName.placeholder')}
             value={formData.lastName}
             onChange={(e) => handleInputChange("lastName", e.target.value)}
             error={!!errors.lastName}
             className={styles.input}
             disabled={isSubmitting}
+                        style={{textAlign: isRTL ? 'right' : 'left'}}
+
           />
           {errors.lastName && (
             <p className={styles.errorText}>{errors.lastName}</p>
@@ -552,13 +555,15 @@ function AddressFormContent() {
         <div className={styles.fieldGroup}>
           <Input
             type="tel"
-            placeholder="رقم الهاتف (11 رقم)"
+            placeholder={t('addressForm.fields.phoneNumber.placeholder')}
             value={formData.phoneNumber}
             onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
             error={!!errors.phoneNumber}
             className={styles.input}
             disabled={isSubmitting}
             maxLength={11}
+            style={{textAlign: isRTL ? 'right' : 'left'}}
+
           />
           {errors.phoneNumber && (
             <p className={styles.errorText}>{errors.phoneNumber}</p>
@@ -578,6 +583,8 @@ function AddressFormContent() {
               alignItems: "center",
               justifyContent: "space-between",
               marginBottom: "12px",
+              textAlign: isRTL ? 'right' : 'left',
+              direction: isRTL ? 'rtl' : 'ltr',
             }}
           >
             <Button
@@ -596,7 +603,7 @@ function AddressFormContent() {
                 )
               }
             >
-              {inputMethod === "manual" ? "استخدام الخريطة" : "إدخال يدوي"}
+              {inputMethod === "manual" ? t('addressForm.inputMethod.useMap') : t('addressForm.inputMethod.useManual')}
             </Button>
           </div>
         </div>
@@ -614,12 +621,14 @@ function AddressFormContent() {
         <div className={styles.fieldGroup}>
           <Input
             type="text"
-            placeholder="العنوان التفصيلي"
+            placeholder={t('addressForm.fields.address.placeholder')}
             value={formData.address}
             onChange={(e) => handleInputChange("address", e.target.value)}
             error={!!errors.address}
             className={styles.input}
             disabled={isSubmitting}
+                          style={{textAlign: isRTL ? 'right' : 'left'}}
+
           />
           {errors.address && (
             <p className={styles.errorText}>{errors.address}</p>
@@ -630,20 +639,23 @@ function AddressFormContent() {
                 fontSize: "12px",
                 color: "#4CAF50",
                 marginTop: "4px",
+                textAlign: isRTL ? 'right' : 'left',
+                direction: isRTL ? 'rtl' : 'ltr',
               }}
+             
             >
-              تم التعبئة من الخريطة (يمكنك التعديل)
+              {t('addressForm.inputMethod.mapFilledNote')}
             </p>
           )}
         </div>
 
         <div className={styles.fieldGroup}>
           <CustomDropdown
-            label="المحافظة *"
+            label={t('addressForm.fields.governorate.label')}
             value={formData.governorate}
             options={governorateOptions}
             onChange={(value) => handleInputChange("governorate", value)}
-            placeholder="اختر المحافظة"
+            placeholder={t('addressForm.fields.governorate.placeholder')}
             error={!!errors.governorate}
             disabled={isSubmitting}
           />
@@ -654,11 +666,11 @@ function AddressFormContent() {
 
         <div className={styles.fieldGroup}>
           <CustomDropdown
-            label="المدينة *"
+            label={t('addressForm.fields.city.label')}
             value={formData.city}
             options={cityOptions}
             onChange={(value) => handleInputChange("city", value)}
-            placeholder="اختر المدينة"
+            placeholder={t('addressForm.fields.city.placeholder')}
             disabled={!formData.governorate || isSubmitting}
             error={!!errors.city}
           />
@@ -666,7 +678,7 @@ function AddressFormContent() {
         </div>
 
         <div className={styles.checkboxContainer}>
-          <label className={styles.checkboxLabel}>
+          <label className={styles.checkboxLabel} style={{direction: isRTL ? 'rtl' : 'ltr'}}>
             <input
               type="checkbox"
               checked={formData.isDefault}
@@ -675,7 +687,7 @@ function AddressFormContent() {
               disabled={isSubmitting}
             />
             <span className={styles.checkboxText}>
-              {isEditMode ? "تعيين كعنوان افتراضي" : "أضف كعنوان افتراضي"}
+              {isEditMode ? t('addressForm.checkbox.setDefault') : t('addressForm.checkbox.addDefault')}
             </span>
           </label>
           {formData.isDefault && (
@@ -687,7 +699,7 @@ function AddressFormContent() {
                 marginRight: "24px",
               }}
             >
-              سيتم إلغاء العنوان الافتراضي الحالي تلقائياً
+             {t('addressForm.checkbox.defaultNote')}
             </p>
           )}
         </div>
@@ -702,14 +714,14 @@ function AddressFormContent() {
             className={styles.cancelButton}
             rounded={true}
           >
-            إلغاء
+           {t('addressForm.buttons.cancel')}
           </Button>
           <Button
             type="submit"
             variant="primary"
             size="md"
             state={isSubmitting ? "loading" : isSuccess ? "success" : "default"}
-            loadingText={isEditMode ? "جاري التعديل..." : "جاري الحفظ..."}
+            loadingText={isEditMode ? t('addressForm.buttons.saveEdit') : t('addressForm.buttons.save')}
             disabled={isSubmitting}
             className={styles.saveButton}
             rounded={true}
@@ -724,6 +736,7 @@ function AddressFormContent() {
 
 // Main component with Suspense wrapper
 export default function NewAddressForm() {
+    const t = useTranslations('Address')
   return (
     <Suspense
       fallback={
@@ -735,7 +748,7 @@ export default function NewAddressForm() {
             minHeight: "400px",
           }}
         >
-          <p>جاري التحميل...</p>
+          <p>{t('addressForm.loading.page')}</p>
         </div>
       }
     >

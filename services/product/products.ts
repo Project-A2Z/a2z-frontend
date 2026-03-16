@@ -2,7 +2,7 @@
 
 import { Api, API_ENDPOINTS } from './../api/endpoints';
 
-const DEFAULT_LANGUAGE = 'ar';
+import { getLangQueryParam } from '../api/language';
 
 // ============================================
 // NEW INTERFACES - Matching updated backend
@@ -131,6 +131,18 @@ export interface ProductFilters {
 }
 
 // ============================================
+// LOCALE HELPER
+// ============================================
+
+export type Locale = 'ar' | 'en';
+
+const getLocale = (): Locale => {
+  if (typeof document === 'undefined') return 'ar'; // SSR fallback
+  const match = document.cookie.match(/(?:^|; )locale=([^;]*)/);
+  return (match?.[1] as Locale) ?? 'ar';
+};
+
+// ============================================
 // UNIT HELPERS (now derived from variant unitId)
 // ============================================
 
@@ -139,7 +151,6 @@ export const getProductUnitLabel = (product: Product): string => {
   if (product.IsTON) return 'طن';
   if (product.IsLITER) return 'لتر';
   if (product.IsCUBIC_METER) return 'متر مكعب';
-  // Fallback: read from first variant's unitId name
   const unitName = product.productVariants?.[0]?.unitId?.name?.toLowerCase();
   if (unitName === 'kg' || unitName === 'kilogram') return 'كجم';
   if (unitName === 'ton') return 'طن';
@@ -226,12 +237,10 @@ const isValidImageUrl = (url: string): boolean => {
 };
 
 // ============================================
-// 🔄 UPDATED: processProductImagesStatic
-// Now reads price/stock from productVariants
+// processProductImagesStatic
 // ============================================
 
 const processProductImagesStatic = (product: any): Product => {
-  // --- Images (unchanged logic) ---
   const imageList = product.imageList || [];
   const fallbackImages = product.images || [];
   const fallbackImage = product.image || '';
@@ -248,10 +257,7 @@ const processProductImagesStatic = (product: any): Product => {
   }
   const uniqueImages = [...new Set(allImages)].filter(img => isValidImageUrl(img));
 
-  // --- NEW: Derive price & stock from productVariants ---
   const variants: ProductVariant[] = product.productVariants || [];
-
-  // Use the cheapest available variant as the "display price"
   const availableVariants = variants.filter(v => v.totalQuantity > 0);
   const primaryVariant = availableVariants.length > 0
     ? availableVariants.reduce((min, v) => v.price < min.price ? v : min, availableVariants[0])
@@ -261,14 +267,12 @@ const processProductImagesStatic = (product: any): Product => {
   const totalQuantity = variants.reduce((sum, v) => sum + (v.totalQuantity || 0), 0);
   const inStock = totalQuantity > 0;
 
-  // --- NEW: Derive unit flags from variant unitId ---
   const unitName = primaryVariant?.unitId?.name?.toLowerCase() || '';
   const IsKG = unitName === 'kg' || unitName === 'kilogram' || product.IsKG;
   const IsTON = unitName === 'ton' || product.IsTON;
   const IsLITER = unitName === 'liter' || unitName === 'litre' || product.IsLITER;
   const IsCUBIC_METER = unitName === 'cubic_meter' || unitName === 'cubicmeter' || product.IsCUBIC_METER;
 
-  // --- NEW: Derive reviews count from productReview ---
   const productReview: any[] = product.productReview || [];
   const reviewsCount = productReview.length;
   const rating = reviewsCount > 0
@@ -300,7 +304,7 @@ const processProductImagesStatic = (product: any): Product => {
 };
 
 // ============================================
-// CACHE STRUCTURE (unchanged)
+// CACHE STRUCTURE
 // ============================================
 
 interface CategoryCacheEntry {
@@ -334,17 +338,48 @@ const getRequestConfig = (revalidate: number = 60, signal?: AbortSignal) => ({
 });
 
 // ============================================
-// 🔄 UPDATED: Parse API response
-// Handles new { status, length, data } shape
+// PARSE API RESPONSE
 // ============================================
 
 const parseApiResponse = (raw: any): { data: Product[]; total: number } => {
-  // New shape: { status: "success", length: 6, data: [...] }
-  // Old shape: { data: [...], pagination: {...} }
   const rawData: any[] = raw.data || [];
   const total: number = raw.length ?? raw.pagination?.total ?? rawData.length;
   const products = rawData.map((p: any) => processProductImagesStatic(p));
   return { data: products, total };
+};
+
+// ============================================
+// CLIENT-SIDE PAGINATION HELPER
+// Used as fallback when the backend 4xx/5xx's on
+// paginated requests (e.g. params not supported).
+// ============================================
+
+const paginateLocally = (
+  products: Product[],
+  page: number,
+  limit: number,
+  category?: string
+): ProductsResponse => {
+  const filtered = category
+    ? products.filter(p => p.category === category || p.categoryId === category)
+    : products;
+
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / limit);
+  const data = filtered.slice((page - 1) * limit, page * limit);
+
+  return {
+    data,
+    pagination: { page, limit, total, totalPages },
+    filters: {
+      categories: [...new Set(products.map(p => p.category))],
+      brands: [],
+      priceRange: {
+        min: products.length > 0 ? Math.min(...products.map(p => p.price)) : 0,
+        max: products.length > 0 ? Math.max(...products.map(p => p.price)) : 0,
+      },
+    },
+  };
 };
 
 // ============================================
@@ -355,7 +390,7 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
   const now: number = Date.now();
 
   if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    console.log('✅ Returning cached products:', globalProductsCache.length);
+    //console.log('✅ Returning cached products:', globalProductsCache.length);
     return globalProductsCache;
   }
 
@@ -385,9 +420,13 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
   lastRequestTime = now;
 
   try {
-    console.log('🔄 Fetching all products from API...');
+    //console.log('🔄 Fetching all products from API...');
 
-    const response = await fetch(`${Api}/${API_ENDPOINTS.PRODUCTS.LIST}`, {
+    const locale = getLocale();
+    const langParam = getLangQueryParam(locale);
+    const url = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}${langParam}`;
+
+    const response = await fetch(url, {
       method: 'GET',
       ...getRequestConfig(60, signal),
     });
@@ -414,7 +453,7 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
     pendingPromises.forEach(({ resolve }) => resolve(products));
     pendingPromises = [];
 
-    console.log('✅ Fetched products successfully:', products.length);
+    //console.log('✅ Fetched products successfully:', products.length);
     return products;
 
   } catch (error) {
@@ -453,16 +492,19 @@ export const fetchProductsByCategory = async (
 
   const cachedCategory = categoryCaches.get(categoryName);
   if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
-    console.log('✅ Returning cached category products:', categoryName, cachedCategory.products.length);
+    //console.log('✅ Returning cached category products:', categoryName, cachedCategory.products.length);
     return cachedCategory.products;
   }
 
   if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
 
   try {
-    console.log('🔄 Fetching products for category:', categoryName);
+    //console.log('🔄 Fetching products for category:', categoryName);
 
-    const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?category=${encodeURIComponent(categoryName)}`;
+    const locale = getLocale();
+    const langParam = getLangQueryParam(locale);
+    const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}${langParam}&category=${encodeURIComponent(categoryName)}`;
+
     const response = await fetch(filterUrl, { method: 'GET', ...getRequestConfig(60, signal) });
 
     if (response.status === 429) {
@@ -476,7 +518,7 @@ export const fetchProductsByCategory = async (
     const { data: products } = parseApiResponse(raw);
 
     categoryCaches.set(categoryName, { categoryName, products, timestamp: now });
-    console.log('✅ Fetched category products:', categoryName, products.length);
+    //console.log('✅ Fetched category products:', categoryName, products.length);
     return products;
 
   } catch (error) {
@@ -488,6 +530,10 @@ export const fetchProductsByCategory = async (
 
 // ============================================
 // FETCH PRODUCTS WITH PAGINATION FROM API
+// Attempts server-side pagination first.
+// If the backend responds with 4xx/5xx (e.g. it
+// doesn't support page/limit params), falls back
+// to fetching all products and paginating locally.
 // ============================================
 
 export const fetchProductsFromAPI = async (
@@ -508,29 +554,36 @@ export const fetchProductsFromAPI = async (
   lastRequestTime = now;
 
   try {
-    let url = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}?page=${page}&limit=${limit}`;
+    const locale = getLocale();
+    const langParam = getLangQueryParam(locale);
+    let url = `${Api}${API_ENDPOINTS.PRODUCTS.LIST}${langParam}&page=${page}&limit=${limit}`;
+    console.log('🔄 Fetching products with pagination from API:', { page, limit, category , locale });
     if (category) url += `&category=${encodeURIComponent(category)}`;
 
-    console.log('🔄 Fetching paginated products:', { page, limit, category });
+    //console.log('🔄 Fetching paginated products:', { page, limit, category });
 
     const response = await fetch(url, { method: 'GET', ...getRequestConfig(60, signal) });
 
     if (response.status === 429) throw new Error('Rate limited. Please try again later.');
-    if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
+
+    // ✅ Backend doesn't support pagination params — fall back gracefully
+    if (!response.ok) {
+      console.warn(`⚠️ Server responded ${response.status} for paginated request — falling back to client-side pagination`);
+      const allProducts = await getProductsWithState(signal);
+      return paginateLocally(allProducts, page, limit, category);
+    }
 
     const raw = await response.json();
     const { data: products, total } = parseApiResponse(raw);
 
-    // Backend may not support pagination yet — handle both cases
     const paginatedProducts = products.slice((page - 1) * limit, page * limit);
-    const effectiveTotal = total;
-    const totalPages = Math.ceil(effectiveTotal / limit);
+    const totalPages = Math.ceil(total / limit);
 
-    console.log('✅ Fetched paginated products:', paginatedProducts.length, 'of', effectiveTotal);
+    //console.log('✅ Fetched paginated products:', paginatedProducts.length, 'of', total);
 
     return {
       data: paginatedProducts,
-      pagination: { page, limit, total: effectiveTotal, totalPages },
+      pagination: { page, limit, total, totalPages },
       filters: {
         categories: [...new Set(products.map((p: Product) => p.category))],
         brands: [],
@@ -543,7 +596,11 @@ export const fetchProductsFromAPI = async (
 
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw error;
+
+    // ✅ Network/parse failure — fall back to cache + local pagination
+    console.warn('⚠️ fetchProductsFromAPI failed — falling back to client-side pagination:', error);
+    const allProducts = await getProductsWithState(signal);
+    return paginateLocally(allProducts, page, limit, category);
   }
 };
 
@@ -556,7 +613,7 @@ export const fetchAllProducts = async (
   signal?: AbortSignal
 ): Promise<ProductsResponse> => {
   try {
-    console.log('📊 fetchAllProducts called with filters:', filters);
+    //console.log('📊 fetchAllProducts called with filters:', filters);
 
     const page = filters.page || 1;
     const limit = filters.limit || 20;
@@ -618,7 +675,7 @@ export const fetchAllProducts = async (
     const totalPages = Math.ceil(total / limit);
     const paginatedProducts = filteredProducts.slice((page - 1) * limit, page * limit);
 
-    console.log('✅ Returning filtered products:', paginatedProducts.length, 'of', total);
+    //console.log('✅ Returning filtered products:', paginatedProducts.length, 'of', total);
 
     return {
       data: paginatedProducts,
@@ -637,7 +694,7 @@ export const fetchAllProducts = async (
     console.error('❌ Error in fetchAllProducts:', error);
 
     if (error instanceof DOMException && error.name === 'AbortError') {
-      console.log('ℹ️ Request was cancelled');
+      //console.log('ℹ️ Request was cancelled');
       throw error;
     }
 
@@ -645,7 +702,7 @@ export const fetchAllProducts = async (
       const page = filters.page || 1;
       const limit = filters.limit || 20;
       const paginatedCache = globalProductsCache.slice((page - 1) * limit, page * limit);
-      console.log('⚠️ Returning cached data due to error');
+      //console.log('⚠️ Returning cached data due to error');
       return {
         data: paginatedCache,
         pagination: {
@@ -798,7 +855,7 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 export const clearProductsCache = (): void => {
   globalProductsCache = null;
   cacheTimestamp = 0;
-  console.log('🗑️ Cleared products cache');
+  //console.log('🗑️ Cleared products cache');
 };
 
 export const clearCategoryCache = (categoryName?: string): void => {

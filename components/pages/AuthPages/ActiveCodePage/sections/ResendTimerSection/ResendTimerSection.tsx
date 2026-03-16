@@ -7,6 +7,10 @@ interface ResendTimerSectionProps {
   canResend: boolean;
   isLoading?: boolean;
   formatTime: (seconds: number) => string;
+  loadingText?: string;
+  confirmationText?: string;
+  resendText?: string;
+  timerText?: string;
 }
 
 const ResendTimerSection: React.FC<ResendTimerSectionProps> = React.memo(({ 
@@ -14,7 +18,11 @@ const ResendTimerSection: React.FC<ResendTimerSectionProps> = React.memo(({
   onResend, 
   canResend, 
   isLoading = false,
-  formatTime 
+  formatTime ,
+  loadingText = '',
+  confirmationText = '',
+  resendText = '',
+  timerText= ''
 }) => {
   // Ensure formatTime is always a function
   const safeFormatTime = React.useCallback((seconds: number): string => {
@@ -32,7 +40,7 @@ const ResendTimerSection: React.FC<ResendTimerSectionProps> = React.memo(({
       {canResend ? (
         <div className="space-y-2">
           <p className="text-gray-600 text-sm">
-            لم تتلق الرمز؟
+          {resendText }
           </p>
           <Button
             variant="outline"
@@ -41,12 +49,12 @@ const ResendTimerSection: React.FC<ResendTimerSectionProps> = React.memo(({
             disabled={isLoading}
             className="text-primary-600 border-primary-600 hover:bg-primary-50"
           >
-            {isLoading ? 'جاري الإرسال...' : 'إعادة الإرسال'}
+            {isLoading ? loadingText : confirmationText}
           </Button>
         </div>
       ) : (
         <p className="text-gray-600 text-sm">
-          إعادة الإرسال متاحة خلال:{' '}
+         {timerText}
           <span className="font-mono font-bold text-primary-600">
             {safeFormatTime(timeLeft)}
           </span>
