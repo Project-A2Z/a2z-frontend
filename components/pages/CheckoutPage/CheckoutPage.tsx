@@ -2,8 +2,9 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from 'next/navigation';
 import styles from './Checkout.module.css';
+import { useTranslations } from 'next-intl';
 
-// Components 
+// Components
 import Delivery from "@/components/UI/Chekout/Delivery";
 import AddComponent from "@/components/UI/Chekout/Address";
 import Cash, { PaymentData } from "@/components/UI/Chekout/Cash";
@@ -49,6 +50,7 @@ interface CheckoutData {
 // -------------------------
 const CheckoutContent: React.FC = () => {
   const searchParams = useSearchParams();
+  const t = useTranslations('checkout');
 
   // UI state
   const [disabled, setDisabled] = useState(true);
@@ -68,15 +70,12 @@ const CheckoutContent: React.FC = () => {
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
 
   // -------------------------
-  // Helper: Arabic date formatter
+  // Helper: i18n-aware date formatter
   // -------------------------
-  const formatDateInArabic = (date: Date) => {
-    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-
-    const dayName = days[date.getDay()];
+  const formatDate = (date: Date) => {
+    const dayName = t(`dates.days.${date.getDay()}`);
     const day = date.getDate();
-    const month = months[date.getMonth()];
+    const month = t(`dates.months.${date.getMonth()}`);
     return `${dayName} ${day} ${month}`;
   };
 
@@ -93,10 +92,22 @@ const CheckoutContent: React.FC = () => {
 
     return {
       price: 0,
-      start: formatDateInArabic(startDate),
-      ends: formatDateInArabic(endDate),
+      start: '',
+      ends: '',
+      startDate,
+      endDate,
     };
   });
+
+  // Re-format dates once t() is available
+  useEffect(() => {
+    setDelivery(prev => ({
+      ...prev,
+      start: formatDate(prev.startDate),
+      ends: formatDate(prev.endDate),
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // -------------------------
   // Convert Address from API
@@ -144,9 +155,8 @@ const CheckoutContent: React.FC = () => {
         setAddresses([]);
         setDef(null);
       }
-
     } catch (err: any) {
-      setAddressError(err.message || 'فشل تحميل العناوين');
+      setAddressError(err.message || t('address.noAddresses'));
     } finally {
       setIsLoadingAddresses(false);
     }
@@ -168,12 +178,11 @@ const CheckoutContent: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Load addresses on mount
   useEffect(() => {
     loadAddresses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update button disable state
   useEffect(() => {
     setDisabled(editDelivery || editPayment);
   }, [editDelivery, editPayment]);
@@ -189,22 +198,16 @@ const CheckoutContent: React.FC = () => {
     await loadAddresses(true);
   };
 
-  // -------------------------
-  // UI: Loading or Error
-  // -------------------------
   if (!checkoutData) {
     return (
       <div className={styles.Container}>
-        <div>Loading checkout data...</div>
+        <div>{t('loading')}</div>
       </div>
     );
   }
 
   const { totalItemQuantity: itemCount, total, order } = checkoutData;
 
-  // -------------------------
-  // UI: Main Checkout Layout
-  // -------------------------
   return (
     <div className={styles.Container}>
       <div className={styles.right}>
@@ -222,7 +225,7 @@ const CheckoutContent: React.FC = () => {
             }}
           >
             <span style={{ color: '#856404', fontSize: '14px' }}>
-              ⚠️ {addressError} (عرض البيانات المخزنة)
+              {t('address.errorWithCached', { error: addressError })}
             </span>
             <button
               onClick={handleRefreshAddresses}
@@ -236,7 +239,7 @@ const CheckoutContent: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              تحديث
+              {t('address.refresh')}
             </button>
           </div>
         )}
@@ -281,33 +284,41 @@ const CheckoutContent: React.FC = () => {
 // Main Component with Suspense
 // -------------------------
 const Checkout: React.FC = () => {
+  const t = useTranslations('checkout');
+
   return (
-    <Suspense fallback={
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '400px',
-        gap: '16px'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #3498db',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <p style={{ color: '#666', fontSize: '16px' }}>جاري تحميل صفحة الدفع...</p>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            gap: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #3498db',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <p style={{ color: '#666', fontSize: '16px' }}>{t('loadingPage')}</p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      }
+    >
       <CheckoutContent />
     </Suspense>
   );

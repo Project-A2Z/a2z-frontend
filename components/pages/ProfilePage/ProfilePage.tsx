@@ -1,25 +1,26 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import styles from "./profile.module.css";
 import { useRouter } from "next/navigation";
 
-// Components - Keep critical components for initial render
+
+// Components
 import TopMetrics from "./sections/TopScetion/Top";
 import InformationSection from "./sections/InformationSection/InformationSection";
 import AccountList from "@/components/UI/Profile/RightSection/List";
 
-// PERFORMANCE: Lazy load EditProfileSection (only loads when box is selected)
 const EditProfileSection = dynamic(
   () => import("./sections/EditProfile/EditProfileSection"),
   {
     loading: () => (
       <div className={styles.loading_container}>
         <div className={styles.loading_spinner}></div>
-        <p>جاري التحميل...</p>
+        <p>{/* loaded dynamically, no t() available here */}</p>
       </div>
     ),
-    ssr: false, // Client-side only
+    ssr: false,
   }
 );
 
@@ -32,7 +33,6 @@ import Heart from "@/public/icons/HeartProf.svg";
 import Cart from "@/public/icons/CartProf.svg";
 import Star from "@/public/icons/StarProf.svg";
 
-// Interfaces
 export interface User {
   _id: string;
   id?: string;
@@ -59,7 +59,9 @@ export interface User {
 }
 
 const ProfilePage = () => {
+  const t = useTranslations("profile.page");
   const router = useRouter();
+
   const [box, setBox] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMain, setShowMobileMain] = useState(false);
@@ -68,7 +70,6 @@ const ProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Auth monitor state
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     warningMessage: null as string | null,
@@ -76,11 +77,8 @@ const ProfilePage = () => {
     remainingMinutes: 0,
   });
 
-  // Initialize auth monitor only on client side
   useEffect(() => {
     setIsMounted(true);
-
-    // Dynamically import and initialize useAuthMonitor
     const initializeAuth = async () => {
       try {
         const { useAuthMonitor } = await import(
@@ -90,13 +88,9 @@ const ProfilePage = () => {
         console.error("Error loading auth monitor:", error);
       }
     };
-
     initializeAuth();
   }, []);
 
-  /**
-   * Fetch user profile data from API
-   */
   const fetchUserProfile = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -106,7 +100,6 @@ const ProfilePage = () => {
 
       if (response.status === "success" && response.data.user) {
         const profileData = response.data.user;
-
         const userData: User = {
           _id: profileData._id,
           firstName: profileData.firstName,
@@ -123,54 +116,40 @@ const ProfilePage = () => {
           reviewsCount: profileData.reviewsCount || 0,
           OrderCount: profileData.OrderCount || 0,
         };
-
         setUser(userData);
       } else {
         throw new Error("Invalid response structure");
       }
     } catch (error: any) {
       if (error.statusCode === 401) {
-        setError("انتهت صلاحية الجلسة. جاري تسجيل الخروج...");
+        setError(t("error.sessionExpired"));
         return;
       }
-
       if (error.isNetworkError) {
-        setError("خطأ في الاتصال بالإنترنت. يرجى التحقق من اتصالك.");
+        setError(t("error.networkError"));
       } else {
-        setError(error.message || "حدث خطأ أثناء جلب بيانات الملف الشخصي");
+        setError(error.message || t("error.fetchFailed"));
       }
 
       const localUser = getCurrentUser();
-      if (localUser) {
-        setUser(localUser);
-      }
+      if (localUser) setUser(localUser);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  /**
-   * Load user data on component mount
-   */
   useEffect(() => {
     if (!isMounted) return;
-
     const localUser = getCurrentUser();
     if (localUser) {
       setUser(localUser);
       setIsLoading(false);
     }
-
     fetchUserProfile();
   }, [isMounted, fetchUserProfile]);
 
-  /**
-   * Check if screen is mobile size
-   * PERFORMANCE: Debounce resize event
-   */
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     let timeoutId: NodeJS.Timeout;
     const checkMobile = () => {
       clearTimeout(timeoutId);
@@ -178,7 +157,6 @@ const ProfilePage = () => {
         setIsMobile(window.innerWidth <= 768);
       }, 150);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => {
@@ -187,16 +165,10 @@ const ProfilePage = () => {
     };
   }, []);
 
-  /**
-   * Handle mobile navigation
-   * PERFORMANCE: Use useCallback to prevent re-creation
-   */
   const handleMobileNavigation = useCallback(
     (selectedBox: string) => {
       setBox(selectedBox);
-      if (isMobile && selectedBox) {
-        setShowMobileMain(true);
-      }
+      if (isMobile && selectedBox) setShowMobileMain(true);
     },
     [isMobile]
   );
@@ -206,94 +178,74 @@ const ProfilePage = () => {
     setBox("");
   }, []);
 
-  /**
-   * Back button SVG icon
-   * PERFORMANCE: Memoize to prevent re-renders
-   */
   const BackIcon = useMemo(
-    () => () =>
-      (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-      ),
+    () => () => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    ),
     []
   );
 
-  /**
-   * Retry button handler
-   */
   const handleRetry = useCallback(() => {
     setError(null);
     fetchUserProfile();
   }, [fetchUserProfile]);
 
-  /**
-   * PERFORMANCE: Memoize metrics data to prevent re-creation
-   */
   const metricsData = useMemo(
     () => [
       {
         icon: <Heart />,
         number: user?.favoriteItems || 0,
-        title: "المنتجات المفضلة",
+        title: t("metrics.favorites"),
         className: styles.metric1,
-        onClick: () => {
-          router.push("/favorites");
-        },
+        onClick: () => router.push("/favorites"),
       },
       {
         icon: <Cart />,
         number: user?.OrderCount || 0,
-        title: "عدد الطلبات",
+        title: t("metrics.orders"),
         className: styles.metric2,
-        onClick: () => {
-          setBox("طلباتك");
-        },
+        onClick: () => setBox("طلباتك"),
       },
       {
         icon: <Star />,
         number: user?.reviewsCount || 0,
-        title: "التقييمات",
+        title: t("metrics.reviews"),
         className: styles.metric3,
-        onClick: () => {
-          setBox("رسائلك");
-        },
+        onClick: () => setBox("رسائلك"),
       },
     ],
-    [user?.favoriteItems, user?.OrderCount, user?.reviewsCount, router]
+    [user?.favoriteItems, user?.OrderCount, user?.reviewsCount, router, t]
   );
 
-  // FIX: Show same loading UI on both server and client
-  // This prevents hydration mismatch
   if (isLoading && !user) {
     return (
       <div className={styles.profile_page}>
         <div className={styles.loading_container}>
           <div className={styles.loading_spinner}></div>
-          <p>جاري تحميل البيانات...</p>
+          <p>{t("loading")}</p>
         </div>
       </div>
     );
   }
 
-  // Show error state (only if no user data available)
   if (error && !user) {
     return (
       <div className={styles.profile_page}>
         <div className={styles.error_container}>
           <div className={styles.error_icon}>⚠️</div>
-          <h3>حدث خطأ</h3>
+          <h3>{t("error.title")}</h3>
           <p>{error}</p>
           <button onClick={handleRetry} className={styles.retry_button}>
-            إعادة المحاولة
+            {t("error.retry")}
           </button>
         </div>
       </div>
@@ -302,7 +254,6 @@ const ProfilePage = () => {
 
   return (
     <div className={styles.profile_page}>
-      {/* Session warning banner */}
       {authState.warningMessage && (
         <div className={`${styles.error_banner} ${styles.warning_banner}`}>
           <span>⚠️ {authState.warningMessage}</span>
@@ -311,16 +262,15 @@ const ProfilePage = () => {
               setAuthState((prev) => ({ ...prev, warningMessage: null }))
             }
           >
-            ✕
+            {t("banner.close")}
           </button>
         </div>
       )}
 
-      {/* Error notification banner */}
       {error && user && (
         <div className={styles.error_banner}>
           <span>{error}</span>
-          <button onClick={() => setError(null)}>✕</button>
+          <button onClick={() => setError(null)}>{t("banner.close")}</button>
         </div>
       )}
 
@@ -346,18 +296,16 @@ const ProfilePage = () => {
             isMobile && showMobileMain ? styles.mobile_active : ""
           }`}
         >
-          {/* Mobile Back Button */}
           {isMobile && showMobileMain && (
             <div
               className={styles.mobile_back_button}
               onClick={handleMobileBack}
             >
               <BackIcon />
-              <span>العودة</span>
+              <span>{t("back")}</span>
             </div>
           )}
 
-          {/* PERFORMANCE: Always render EditProfileSection, it shows Welcome by default */}
           <EditProfileSection
             box={box}
             setBox={setBox}
@@ -370,5 +318,4 @@ const ProfilePage = () => {
   );
 };
 
-// PERFORMANCE: Export with React.memo to prevent unnecessary re-renders
 export default React.memo(ProfilePage);

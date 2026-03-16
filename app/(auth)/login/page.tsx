@@ -11,11 +11,13 @@ import Background from './../../../components/UI/Background/Background';
 import Alert from '@/components/UI/Alert/alert';
 import styles from './../auth.module.css';
 import { AuthService, AuthError, LoginCredentials, UserStorage } from './../../../services/auth/login';
+import { useTranslations } from 'next-intl';
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+  const  t  = useTranslations('login');
   
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
@@ -39,7 +41,7 @@ function LoginFormContent() {
     const justLoggedOut = sessionStorage.getItem('user_logged_out');
     
     if (hasOAuthParams || justLoggedOut) {
-      console.log('🧹 [LoginForm] Cleaning up OAuth parameters');
+      // //console.log('🧹 [LoginForm] Cleaning up OAuth parameters');
       sessionStorage.removeItem('user_logged_out');
       
       // Clean URL without triggering navigation
@@ -56,10 +58,10 @@ function LoginFormContent() {
     if (storedToken && storedUser && storedExpiry && !justLoggedOut) {
       const isValid = Date.now() < parseInt(storedExpiry, 10);
       if (isValid) {
-        console.log('✅ [LoginForm] Valid token found, redirecting...');
+        //console.log('✅ [LoginForm] Valid token found, redirecting...');
         router.push('/');
       } else {
-        console.log('⚠️ [LoginForm] Token expired, clearing...');
+        //console.log('⚠️ [LoginForm] Token expired, clearing...');
         UserStorage.removeUser();
       }
     }
@@ -90,13 +92,13 @@ function LoginFormContent() {
     } = {};
     
     if (!formData.email.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email =t('email.required');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صحيح';
+      newErrors.email = t('email.invalid');
     }
     
     if (!formData.password) {
-      newErrors.password = 'كلمة المرور مطلوبة';
+      newErrors.password = t('password.required');
     }
     
     return newErrors;
@@ -132,14 +134,14 @@ function LoginFormContent() {
         }
         router.push('/');
       } else {
-        setAlertMessage('يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب قبل تسجيل الدخول.');
+        setAlertMessage(t('alert.verificationRequired'));
         setShowVerificationAlert(true);
       }
     } catch (error) {
       if (error instanceof AuthError) {
         setAlertMessage(error.message);
       } else {
-        setAlertMessage('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+        setAlertMessage(t('alert.unexpectedError'));
       }
       setShowErrorAlert(true);
     } finally {
@@ -162,7 +164,7 @@ function LoginFormContent() {
           <div className={styles.formWrapper}>
             <div className={styles.header}>
               <img src={Logo.src} alt="Logo" className={styles.logo} />
-              <h2 className={styles.title}>جاري التحميل...</h2>
+              <h2 className={styles.title}>{t('loading')}</h2>
             </div>
           </div>
         </div>
@@ -178,7 +180,7 @@ function LoginFormContent() {
         <div className={styles.formWrapper}>
           <div className={styles.header}>
             <img src={Logo.src} alt="Logo" className={styles.logo} />
-            <h2 className={styles.title}>تسجيل الدخول</h2>
+            <h2 className={styles.title}>{t('title')}</h2>
           </div>
 
           <div className={styles.form} onKeyPress={handleKeyPress}>
@@ -194,10 +196,11 @@ function LoginFormContent() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="البريد الإلكتروني"
+                placeholder={t('email.placeholder')}
                 error={!!errors.email}
                 disabled={isLoading}
                 className={styles.Input}
+                dir={t("dir") as string}
               />
               {errors.email && (
                 <p className={styles.errorText}>{errors.email}</p>
@@ -210,13 +213,14 @@ function LoginFormContent() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="كلمة المرور"
+                placeholder={t('password.placeholder')}
                 error={!!errors.password}
                 disabled={isLoading}
                 icon={showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 onIconClick={() => setShowPassword(!showPassword)}
-                iconPosition="left"
+                iconPosition={t('iconDir') as 'left' | 'right'}
                 className={styles.Input}
+                dir={t("dir") as string}
               />
               {errors.password && (
                 <p className={styles.errorText}>{errors.password}</p>
@@ -229,8 +233,9 @@ function LoginFormContent() {
                 className={styles.forgotPasswordLink}
                 onClick={() => router.push('/reset-password')}
                 disabled={isLoading}
+                dir={t("dir") as string}
               >
-                هل نسيت كلمة المرور؟
+                {t('forgotPassword')}
               </button>
             </div>
 
@@ -246,21 +251,21 @@ function LoginFormContent() {
                 onClick={handleSubmit}
                 disabled={!isFormValid() || isLoading}
               >
-                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                {isLoading ? t('submit.loading') : t('submit.default')}
               </Button>
             </div>
 
             <div className={styles.socialLoginSection}>
               <div className={styles.registerSection}>
                 <p className={styles.registerText}>
-                  ليس لديك حساب؟{' '}
+                 {t('register.prompt')}{' '}
                   <button 
                     type="button"
                     className={styles.registerLink}
                     onClick={() => router.push('/register')}
                     disabled={isLoading}
                   >
-                    إنشاء حساب جديد
+                    {t('register.link')}
                   </button>
                 </p>
               </div>
@@ -310,7 +315,7 @@ function LoginFormContent() {
           setClose={() => setShowVerificationAlert(false)}
           buttons={[
             { 
-              label: 'حسناً', 
+              label: t('alerts.buttons.ok'), 
               onClick: () => setShowVerificationAlert(false), 
               variant: 'primary' 
             }
@@ -325,7 +330,7 @@ function LoginFormContent() {
           setClose={() => setShowErrorAlert(false)}
           buttons={[
             { 
-              label: 'إغلاق', 
+              label: t('alerts.buttons.close'), 
               onClick: () => setShowErrorAlert(false), 
               variant: 'danger' 
             }
@@ -338,6 +343,7 @@ function LoginFormContent() {
 }
 
 export default function LoginForm() {
+  const  t  = useTranslations('login');
   return (
     <Suspense fallback={
       <>
@@ -358,7 +364,7 @@ export default function LoginForm() {
             borderRadius: '50%',
             animation: 'spin 1s linear infinite'
           }}></div>
-          <p style={{ color: '#666', fontSize: '16px' }}>جاري التحميل...</p>
+          <p style={{ color: '#666', fontSize: '16px' }}>{t('loading')}</p>
           <style>{`
             @keyframes spin {
               0% { transform: rotate(0deg); }

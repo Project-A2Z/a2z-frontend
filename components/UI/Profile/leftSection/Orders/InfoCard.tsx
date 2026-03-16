@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslations } from "next-intl";
+import { getLocale } from "@/services/api/language";
 
 //styles
 import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
@@ -13,20 +15,19 @@ interface InfoCardProps {
     phone: string;
     name: string;
 }
+const InfoCard: React.FC<InfoCardProps> = ({ orderNumber, orderPrice, address, phone, name, orderDate }) => {
+    const t = useTranslations('order.infoCard');
+    const isRTL = getLocale() === 'ar';
 
-const InfoCard: React.FC<InfoCardProps> = ({ orderNumber, orderPrice, address, phone, name  , orderDate}) => {
     return (
-        <div className={styles.info_card}>
-            <span>رقم الطلب: {orderNumber}</span>
-            <span>السعر: {orderPrice}</span>
-            <span>تم تقديم الطلب في: {orderDate}</span>
-            
-            <span>العنوان: {address}</span>
-            <span>رقم الهاتف: {phone}</span>
-            <span>الاسم: {name}</span>
-
+        <div className={styles.info_card} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
+            <span>{t('orderNumber')} {orderNumber}</span>
+            <span>{t('price')} {orderPrice}</span>
+            <span>{t('date')} {orderDate}</span>
+            <span>{t('address')} {address}</span>
+            <span>{t('phone')} {phone}</span>
+            <span>{t('name')} {name}</span>
         </div>
-    )
-
-}
+    );
+};
 export default InfoCard;

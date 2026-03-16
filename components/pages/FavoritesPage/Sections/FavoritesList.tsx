@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export type FavoriteItem = {
   id: number | string;
@@ -17,6 +18,7 @@ type Props = {
 const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
   if (!items?.length) return null;
 
+  const t = useTranslations("favoritesPage.favoritesList");
   return (
     <section className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm p-2 sm:p-3 md:p-4 lg:p-5">
       {/* Responsive grid that adapts to all screen sizes */}
@@ -52,7 +54,7 @@ const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
               
               {/* Availability Status */}
               <div className="text-emerald-600 text-xs sm:text-sm font-medium">
-                متوفر
+              {t("availability")} {/* "متوفر" */}
               </div>
 
               {/* Price Container */}
@@ -61,7 +63,7 @@ const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
                   {item.price.toLocaleString()}
                 </div>
                 <div className="text-gray-600 text-sm sm:text-base leading-none">
-                  ج
+                 {t("currency")} {/* "ر.س" */}
                 </div>
               </div>
 
@@ -72,10 +74,10 @@ const FavoritesList: React.FC<Props> = ({ items, onRemove }) => {
                     onClick={() => onRemove(item.id)}
                     className="w-full flex items-center justify-center gap-1.5 sm:gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 bg-transparent text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 transition-all duration-200 min-h-[28px] sm:min-h-[32px] rounded-md sm:rounded-lg cursor-pointer font-medium"
                     type="button"
-                    aria-label={`حذف ${item.name} من المفضلة`}
+                    aria-label={t("removeFromFavorites", { name: item.name })} // "إزالة {productName} من المفضلة"
                   >
                     <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                    <span className="shrink-0 text-nowrap">حذف</span>
+                    <span className="shrink-0 text-nowrap">{t('remove')}</span>
                   </button>
                 </div>
               )}

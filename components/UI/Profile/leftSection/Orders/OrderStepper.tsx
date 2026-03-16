@@ -1,42 +1,16 @@
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { getLocale } from '@/services/api/language';
 
 //styles
 import styles from '@/components/UI/Profile/leftSection/Orders/order.module.css';
 
 
 export type OrderStatus = "Under review" | "reviewed" | "prepared" | "shipped" | "delivered" | "cancelled";
-
 interface OrderStatusStepperProps {
   currentStatus: OrderStatus;
   onStatusUpdate?: (status: OrderStatus) => void;
 }
-
-const statusSteps: { key: OrderStatus; label: string }[] = [
-  {
-    key: 'Under review',
-    label: 'قيد المراجعة'
-  },
-  {
-    key: 'reviewed', 
-    label: 'تمت المراجعة'
-  },
-  {
-    key: 'prepared',
-    label: 'تم التجهيز'
-  },
-  {
-    key: 'shipped',
-    label: 'تم الشحن'
-  },
-  {
-    key: 'delivered',
-    label: 'تم التسليم'
-  },
-  {
-    key: 'cancelled',
-    label: 'ملغي'
-  }
-];
 
 const CheckIcon = ({ className = '' }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: '20px', height: '20px' }}>
@@ -48,14 +22,46 @@ export default function OrderStatusStepper({
   currentStatus = 'delivered',
   onStatusUpdate 
 }: OrderStatusStepperProps) {
-  //console.log('Component props - currentStatus:', currentStatus, 'typeof:', typeof currentStatus);
+
+  
+const t = useTranslations('order.orderStepper');
+const isRTL = getLocale() === 'ar';
+
+const statusSteps: { key: OrderStatus; label: string }[] = [
+  {
+    key: 'Under review',
+    label: t('steps.underReview')
+  },
+  {
+    key: 'reviewed', 
+    label: t('steps.reviewed')
+  },
+  {
+    key: 'prepared',
+    label: t('steps.prepared')
+  },
+  {
+    key: 'shipped',
+    label: t('steps.shipped')
+  },
+  {
+    key: 'delivered',
+    label: t('steps.delivered')
+  },
+  {
+    key: 'cancelled',
+    label: t('steps.cancelled')
+  }
+];
+
+  ////console.log('Component props - currentStatus:', currentStatus, 'typeof:', typeof currentStatus);
   
   const [activeStatus, setActiveStatus] = useState<OrderStatus>(currentStatus);
 
   const getCurrentStepIndex = (status: OrderStatus): number => {
     const index = statusSteps.findIndex(step => step.key === status);
-    //console.log(`getCurrentStepIndex for "${status}":`, index);
-    //console.log('Available steps:', statusSteps.map(s => s.key));
+    ////console.log(`getCurrentStepIndex for "${status}":`, index);
+    ////console.log('Available steps:', statusSteps.map(s => s.key));
     
     // Fallback: if status not found, return 0 (first step)
     return index === -1 ? 0 : index;
@@ -94,11 +100,11 @@ export default function OrderStatusStepper({
   };
 
   // Debug logging to help understand the issue
-  //console.log('Current Status:', currentStatus, 'Index:', currentStepIndex);
-  //console.log('Active Status:', activeStatus, 'Index:', activeStepIndex);
+  ////console.log('Current Status:', currentStatus, 'Index:', currentStepIndex);
+  ////console.log('Active Status:', activeStatus, 'Index:', activeStepIndex);
 
   return (
-    <div className={styles.stepperContainer}>
+    <div className={styles.stepperContainer} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
       <div className={styles.stepsWrapper}>
         {statusSteps.map((step, index) => {
           const stepState = getStepState(index);
@@ -118,7 +124,7 @@ export default function OrderStatusStepper({
           const shouldShowCheckIcon = stepState === 'complete' || stepState === 'active';
 
           // Debug logging for each step
-          //console.log(`Step ${index} (${step.key}):`, {
+          ////console.log(`Step ${index} (${step.key}):`, {
           //   stepState,
           //   shouldShowCheckIcon,
           //   isClickable,

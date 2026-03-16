@@ -1,7 +1,10 @@
 "use client";
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/UI/Buttons/Button';
 import styles from '@/components/UI/Alert/alert.module.css';
+
+import { getLocale } from '@/services/api/language';
 
 export interface AlertButton {
   label: string;
@@ -30,22 +33,22 @@ const Alert: React.FC<AlertProps> = ({
   onConfirm,
   onCancel,
   setClose,
-  confirmText = 'OK',
-  cancelText = 'Cancel',
-  buttons
+  confirmText,
+  cancelText,
+  buttons,
 }) => {
+  const t = useTranslations('alert');
+  const isRTL = getLocale() === 'ar';
+
+  const resolvedConfirmText = confirmText ?? t('ok');
+  const resolvedCancelText = cancelText ?? t('cancel');
+
   const getTypeIcon = () => {
     switch (type) {
-      case 'warning':
-        return '⚠️';
-      case 'error':
-        return '❌';
-      case 'info':
-        return 'ℹ️';
-      case 'success':
-        return '✅';
-      default:
-        return 'ℹ️';
+      case 'warning': return '⚠️';
+      case 'error':   return '❌';
+      case 'success': return '✅';
+      default:        return 'ℹ️';
     }
   };
 
@@ -54,8 +57,8 @@ const Alert: React.FC<AlertProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={handleClose}>
-      <div 
+    <div className={styles.overlay} onClick={handleClose} style={{direction: isRTL ? 'rtl' : 'ltr'}}>
+      <div
         className={`${styles.alert} ${styles[type]}`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -88,7 +91,7 @@ const Alert: React.FC<AlertProps> = ({
                 size="sm"
                 className={styles.cancelButton}
               >
-                {cancelText}
+                {resolvedCancelText}
               </Button>
               <Button
                 onClick={onConfirm}
@@ -96,7 +99,7 @@ const Alert: React.FC<AlertProps> = ({
                 size="sm"
                 className={styles.confirmButton}
               >
-                {confirmText}
+                {resolvedConfirmText}
               </Button>
             </>
           )}

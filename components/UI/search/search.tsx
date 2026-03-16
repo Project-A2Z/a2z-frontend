@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-
+import { useTranslations } from "next-intl";
 // Styles
 import styles from "@/components/UI/search/search.module.css";
 
@@ -35,6 +35,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const  t  = useTranslations('Header.header.search');
+
 
   // Sample data for demonstration - memoized to prevent recreation on every render
   // const sampleData: Product[] = useMemo(() => [
@@ -54,12 +56,9 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   // }, [data, sampleData]);
 
   // Popular searches based on your product categories - memoized
-  const popularSearches = useMemo(
-    () => ["مبيدات", "أسمدة", "بذور", "أدوات زراعية", "معدات الري"],
-    []
-  );
+  const popularSearches = t.raw('popular.terms') as string[];
 
-  // console.log("Search Component Data:", data);
+  // //console.log("Search Component Data:", data);
 
   // Filter results based on search term
   useEffect(() => {
@@ -71,7 +70,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
       );
       setFilteredResults(filtered);
       setShowResults(true);
-      //console.log("Filtered results:", filtered);
+      ////console.log("Filtered results:", filtered);
     } else {
       setFilteredResults([]);
       setShowResults(false);
@@ -87,12 +86,12 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    //console.log("Searching for:", searchTerm);
+    ////console.log("Searching for:", searchTerm);
     // Add your search logic here
   };
 
   const handleResultClick = (product: Product) => {
-    //console.log("Selected product:", product);
+    ////console.log("Selected product:", product);
     setSearchTerm(product.name);
     setShowResults(false);
 
@@ -123,7 +122,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   // Format price helper function - memoized with useCallback would be even better
   const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} جنيه`;
+    return t('price', { price: price.toFixed(2) });
   };
 
   // Regular search component (for header)
@@ -134,11 +133,11 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
           <input
             ref={inputRef}
             type="text"
-            placeholder="بحث"
+            placeholder={t('placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
-            dir="rtl"
+            dir={t('dir') as string}
           />
           <SearchIcon className={styles.searchIcon} />
 
@@ -155,7 +154,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                     onClick={() =>
                       {
                         handleResultClick(product)
-                        //console.log("Clicked product:", product);
+                        ////console.log("Clicked product:", product);
                       }
                     }
                   >
@@ -180,7 +179,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                 ))
               ) : (
                 <div className={styles.noResults}>
-                  لا توجد نتائج للبحث "{searchTerm}"
+                 {t('noResults', { searchTerm })}
                 </div>
               )}
             </div>
@@ -194,13 +193,13 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   return (
     <div className={`${styles.searchModal} ${isModal ? styles.active : ""}`}>
       <div className={styles.searchModalHeader}>
-        <h2 className={styles.searchModalTitle}>البحث</h2>
+        <h2 className={styles.searchModalTitle}>{t('label')}</h2>
         <button
           className={styles.closeButton}
           onClick={handleClose}
           type="button"
         >
-          ✕
+          {t('close')}
         </button>
       </div>
 
@@ -210,11 +209,11 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             <input
               ref={inputRef}
               type="text"
-              placeholder="ابحث عن المنتجات الزراعية..."
+              placeholder={t('modalPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
-              dir="rtl"
+              dir={t('dir') as string}
             />
             <SearchIcon className={styles.searchIcon} />
           </div>
@@ -237,8 +236,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                       {product.name}
                       {!product.inStock && (
                         <span className={styles.outOfStockBadge}>
-                          {" "}
-                          - غير متوفر
+                          {t('outOfStock')}
                         </span>
                       )}
                     </div>
@@ -253,7 +251,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
               ))
             ) : (
               <div className={styles.noResults}>
-                لا توجد نتائج للبحث "{searchTerm}"
+              {t('noResults', { searchTerm })}
               </div>
             )}
           </div>
@@ -262,7 +260,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         {/* Popular Searches - shown when no search term */}
         {!searchTerm && (
           <div className={styles.popularSearches}>
-            <h3 className={styles.popularSearchesTitle}>البحث الشائع</h3>
+            <h3 className={styles.popularSearchesTitle}>{t('popular.title')}</h3>
             <div>
               {popularSearches.map((term, index) => (
                 <span

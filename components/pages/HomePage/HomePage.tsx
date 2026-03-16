@@ -7,6 +7,11 @@ import ProductSection from "./sections/OurProductSection/ProductSection";
 import styles from './Home.module.css'
 import { generateSEO } from "@/config/seo.config";
 
+
+// ============================================
+// ROOT METADATA (SEO) - Using Config
+// ============================================
+
 export const metadata = generateSEO({
   title: 'الرئيسية|A2Z',
   description: 'الصفحة الرئيسية لموقع -A2Z',
@@ -14,6 +19,7 @@ export const metadata = generateSEO({
 });
 
 export default function HomePage() {
+  
   return (
     <div className={styles.conatiner}>
       <MainSection/>

@@ -1,4 +1,5 @@
 import { Api, buildUrl } from './../api/endpoints';
+import { getLocale , getLangQueryParam } from '../api/language';
 
 
 // Types
@@ -216,8 +217,11 @@ class CartHelper {
    * Get cart ID from API
    */
   static async fetchCartId(token: string): Promise<string | null> {
+    const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+    const url = buildUrl(`${Api}/cart${langQuery}`);
     try {
-      const response = await fetch(`${Api}/cart`, {
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -287,19 +291,19 @@ export class OrderService {
     // IMPORTANT: Add cart ID if available
     if (data.cartId) {
       formData.append('cartId', data.cartId);
-      console.log('✅ Cart ID added to FormData:', data.cartId);
+      //console.log('✅ Cart ID added to FormData:', data.cartId);
     } else {
       // Try to get cart ID if not provided
       const cartId = CartHelper.getCartId();
       if (cartId) {
         formData.append('cartId', cartId);
-        console.log('✅ Cart ID retrieved and added to FormData:', cartId);
+        //console.log('✅ Cart ID retrieved and added to FormData:', cartId);
       } else if (this.token) {
         // Last resort: try to fetch from API
         const fetchedCartId = await CartHelper.fetchCartId(this.token);
         if (fetchedCartId) {
           formData.append('cartId', fetchedCartId);
-          console.log('✅ Cart ID fetched from API and added to FormData:', fetchedCartId);
+          //console.log('✅ Cart ID fetched from API and added to FormData:', fetchedCartId);
         } else {
           console.warn('⚠️ No cart ID available - this may cause errors');
         }
@@ -309,17 +313,17 @@ export class OrderService {
     // If products array is provided (alternative to cartId)
     if (data.products && data.products.length > 0) {
       formData.append('products', JSON.stringify(data.products));
-      console.log('✅ Products added to FormData:', data.products);
+      //console.log('✅ Products added to FormData:', data.products);
     }
 
     // Process and append image file if present
     if (data.image) {
       try {
-        console.log('📸 Processing image file:', {
-          name: data.image.name,
-          type: data.image.type,
-          size: data.image.size
-        });
+        //console.log('📸 Processing image file:', {
+        //   name: data.image.name,
+        //   type: data.image.type,
+        //   size: data.image.size
+        // });
 
         // Process the file to ensure it's a proper Blob
         const processedBlob = await FileProcessor.processImageFile(data.image);
@@ -327,7 +331,7 @@ export class OrderService {
         // Append with explicit filename and MIME type
         formData.append('image', processedBlob, data.image.name);
         
-        console.log('✅ Image processed and added to FormData');
+        //console.log('✅ Image processed and added to FormData');
       } catch (error) {
         console.error('❌ Error processing image:', error);
         throw new Error('Failed to process image file');
@@ -338,14 +342,14 @@ export class OrderService {
   }
 
   async createOrder(data: CreateOrderData): Promise<CreateOrderResponse> {
-    console.log('📦 CreateOrder called with data:', {
-      ...data,
-      image: data.image ? {
-        name: data.image.name,
-        type: data.image.type,
-        size: data.image.size
-      } : undefined
-    });
+    //console.log('📦 CreateOrder called with data:', {
+    //   ...data,
+    //   image: data.image ? {
+    //     name: data.image.name,
+    //     type: data.image.type,
+    //     size: data.image.size
+    //   } : undefined
+    // });
 
     // Client-side validation
     const validationErrors = OrderValidator.validate(data);
@@ -357,22 +361,26 @@ export class OrderService {
       throw new Error('Authentication required. Please login first.');
     }
 
+     const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+   
+
     // Create FormData with processed image and cart data
     const formData = await this.createFormData(data);
-    const url = `${this.baseUrl}/orders`;
+    const url = `${this.baseUrl}/orders${langQuery}`;
 
     // Log FormData contents (for debugging)
-    console.log('📋 FormData contents:');
+    //console.log('📋 FormData contents:');
     for (let [key, value] of formData.entries()) {
-      if (value instanceof Blob) {
-        console.log(`${key}:`, {
-          type: value.type,
-          size: value.size,
-          name: (value as File).name || 'blob'
-        });
-      } else {
-        console.log(`${key}:`, value);
-      }
+      // if (value instanceof Blob) {
+      //   //console.log(`${key}:`, {
+      //     type: value.type,
+      //   //   size: value.size,
+      //   //   name: (value as File).name || 'blob'
+      //   // });
+      // } else {
+      //   //console.log(`${key}:`, value);
+      // }
     }
 
     try {
@@ -383,7 +391,7 @@ export class OrderService {
       });
 
       const result = await response.json();
-      console.log('📬 Server response:', result);
+      //console.log('📬 Server response:', result);
 
       if (!response.ok) {
         throw new Error(result.message || `HTTP error! status: ${response.status}`);
@@ -400,11 +408,14 @@ export class OrderService {
   }
 
   async getUserOrders(): Promise<any> {
+     const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+    
     if (!this.token) {
       throw new Error('Authentication required. Please login first.');
     }
 
-    const url = `${this.baseUrl}/orders/user`;
+    const url = `${this.baseUrl}/orders/user${langQuery}`;
 
     try {
       const response = await fetch(url, {
@@ -428,11 +439,13 @@ export class OrderService {
   }
 
   async getOrderDetails(orderId: string): Promise<any> {
+      const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
     if (!this.token) {
       throw new Error('Authentication required. Please login first.');
     }
 
-    const url = `${this.baseUrl}/orders/${orderId}`;
+    const url = `${this.baseUrl}/orders/${orderId}${langQuery}`;
 
     try {
       const response = await fetch(url, {

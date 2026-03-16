@@ -1,24 +1,30 @@
+'use client';
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import styles from './Welcom.module.css';
 import SplitText from '@/components/UI/SpiltText/SpiltText';
+
+import { getLocale } from '@/services/api/language'
 
 interface WelcomeProps {
   name: string;
 }
 
-const handleAnimationComplete = () => {
-  console.log('All letters have animated!');
-};
+const handleAnimationComplete = () => {};
 
 const Welcome: React.FC<WelcomeProps> = ({ name }) => {
+  const t = useTranslations('profile.left');
+  const isRtl = getLocale() === 'ar';
+
   return (
-    <div className={styles.welcomeContainer}>
+    <div className={styles.welcomeContainer} style={{direction: isRtl ? 'rtl' : 'ltr'}}>
       <div className={styles.welcomeContent}>
         <div className={styles.waveEmoji}>
           <span>👋</span>
         </div>
         <SplitText
-          text={`مرحبا ${name}`}
+          text={t('welcome.greeting', { name })}
           className={styles.welcomeText}
           tag='h1'
           delay={100}

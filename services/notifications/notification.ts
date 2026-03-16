@@ -1,6 +1,7 @@
 // services/notifications/notification.ts
 
 import { Api, API_ENDPOINTS } from '../api/endpoints';
+import {  getLangQueryParam, getLocale } from '../api/language';
 
 export interface Notification {
   _id: string;
@@ -59,6 +60,9 @@ const buildQueryString = (params: NotificationQueryParams): string => {
 export const getNotifications = async (
   params: NotificationQueryParams = {}
 ): Promise<NotificationsResponse> => {
+  const local = getLocale();
+  const langQuery = getLangQueryParam(local);
+  params = { ...params, ...{ lang: local } };
   try {
     const token = getAuthToken();
     
@@ -67,7 +71,7 @@ export const getNotifications = async (
     }
 
     const queryString = buildQueryString(params);
-    const url = `${Api}${API_ENDPOINTS.NOTIFICATIONS.LIST}${queryString}`;
+    const url = `${Api}${API_ENDPOINTS.NOTIFICATIONS.LIST}${queryString}${langQuery}`;
 
     const response = await fetch(url, {
       method: 'GET',
@@ -77,6 +81,8 @@ export const getNotifications = async (
       },
     });
 
+    // //console.log('notifications response:', url , response.body);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
@@ -85,7 +91,7 @@ export const getNotifications = async (
     }
 
     const data: NotificationsResponse = await response.json();
-    //console.log('✅ Fetched notifications:', data);
+    ////console.log('✅ Fetched notifications:', data);
     return data;
   } catch (error) {
     //console.error('❌ Error fetching notifications:', error);
@@ -119,7 +125,7 @@ export const markNotificationAsRead = async (notificationId: string): Promise<vo
       throw new Error(`Failed to mark notification as read: ${response.status}`);
     }
 
-    //console.log('✅ Notification marked as read');
+    ////console.log('✅ Notification marked as read');
   } catch (error) {
     //console.error('❌ Error marking notification as read:', error);
     throw error;
@@ -153,7 +159,7 @@ export const markAllNotificationsAsRead = async (): Promise<{ updatedCount: numb
     }
 
     const result = await response.json();
-    //console.log('✅ All notifications marked as read:', result);
+    ////console.log('✅ All notifications marked as read:', result);
     return result.data;
   } catch (error) {
     //console.error('❌ Error marking all notifications as read:', error);
@@ -187,7 +193,7 @@ export const deleteNotification = async (notificationId: string): Promise<void> 
       throw new Error(`Failed to delete notification: ${response.status}`);
     }
 
-    //console.log('✅ Notification deleted');
+    ////console.log('✅ Notification deleted');
   } catch (error) {
     //console.error('❌ Error deleting notification:', error);
     throw error;
@@ -221,7 +227,7 @@ export const deleteAllNotifications = async (): Promise<{ deletedCount: number }
     }
 
     const result = await response.json();
-    //console.log('✅ All notifications deleted:', result);
+    ////console.log('✅ All notifications deleted:', result);
     return result.data;
   } catch (error) {
     //console.error('❌ Error deleting all notifications:', error);

@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import styles from "./order.module.css";
+import { useTranslations } from "next-intl";
+import { getLocale } from "@/services/api/language";
 
 //components
 import OrderStepper from "@/components/UI/Profile/leftSection/Orders/OrderStepper";
@@ -30,6 +32,9 @@ export default function ordWrapper() {
   const router = useRouter();
   const params = useParams();
   const orderId = params?.orderNumber as string;
+  const isRTL = getLocale() === "ar";
+
+  const t = useTranslations('order.orderDetails');
 
   // State management
   const [order, setOrder] = useState<OrderItem | null>(null);
@@ -39,7 +44,7 @@ export default function ordWrapper() {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!orderId) {
-        setError("معرف الطلب غير موجود");
+        setError(t("errors.missingId"));
         setLoading(false);
         return;
       }
@@ -55,19 +60,21 @@ export default function ordWrapper() {
         );
 
         if (foundOrder) {
-          console.log("✅ Order found in cache:", foundOrder);
+          //console.log("✅ Order found in cache:", foundOrder);
+          // console.log("order items (from cache)", foundOrder.cartId?.items);
           setOrder(foundOrder);
         } else {
           // If not found in list, try to fetch specific order details
           const orderDetails = await orderService.getOrderDetails(orderId);
-          console.log("✅ Order details fetched:", orderDetails);
+          //console.log("✅ Order details fetched:", orderDetails);
           setOrder(orderDetails);
+          // console.log("order items", orderDetails.cartId?.items);
         }
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "حدث خطأ أثناء تحميل تفاصيل الطلب",
+            : t("errors.fetchFailed"),
         );
       } finally {
         setLoading(false);
@@ -75,6 +82,7 @@ export default function ordWrapper() {
     };
 
     fetchOrderDetails();
+
   }, [orderId]);
 
   // Loading state
@@ -84,7 +92,7 @@ export default function ordWrapper() {
         <div className={styles.content_wrapper}>
           <div className={styles.loading}>
             <div className={styles.spinner}></div>
-            <p>جاري تحميل تفاصيل الطلب...</p>
+            <p>{t("loading")}</p>
           </div>
         </div>
       </div>
@@ -102,7 +110,7 @@ export default function ordWrapper() {
               onClick={() => router.back()}
               className={styles.back_button}
             >
-              العودة للطلبات
+             {t("backToOrders")}
             </button>
           </div>
         </div>
@@ -113,7 +121,7 @@ export default function ordWrapper() {
   // No order found
   if (!order) {
     return (
-      <div className={styles.container}>
+      <div className={styles.container } style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
         <div className={styles.content_wrapper}>
           <div className={styles.error}>
             <p className={styles.error_message}>الطلب غير موجود</p>
@@ -121,7 +129,7 @@ export default function ordWrapper() {
               onClick={() => router.back()}
               className={styles.back_button}
             >
-              العودة للطلبات
+             {t('errors.notFound')}
             </button>
           </div>
         </div>
@@ -144,9 +152,9 @@ export default function ordWrapper() {
   const fullName = `${order.address.firstName} ${order.address.lastName}`;
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
       <div className={styles.content_wrapper}>
-        <span className={styles.title}> تفاصيل الطلب {order.orderId} </span>
+        <span className={styles.title} style={{textAlign: isRTL ? 'right' : 'left'}}> {t('title' )} {order.orderId}</span>
 
         <div className={styles.stepper}>
           <OrderStepper currentStatus={mapOrderStatus(order.status)} />
@@ -158,7 +166,7 @@ export default function ordWrapper() {
               orderNumber={order.orderId}
               orderPrice={`${
                 order.deliveryPrice + (order.paymentDetails?.totalPrice ?? 0)
-              } ج`}
+              } ${t('pound')}`}
               orderDate={formatDate(order.createdAt)}
               address={fullAddress}
               phone={order.address.phoneNumber}
@@ -167,7 +175,7 @@ export default function ordWrapper() {
           </div>
 
           <div className={styles.Items_container}>
-            <span className={styles.items_title}>المنتجات الخاصة بطلبك</span>
+            <span className={styles.items_title}> {t('itemsSectionTitle')}</span>
             <div className={styles.items_list}>
               {order.cartId?.items?.length > 0 ? (
                 order.cartId.items
@@ -178,18 +186,19 @@ export default function ordWrapper() {
                   .map((item) => (
                     <ItemCard
                       key={item._id}
-                      // id={item.variantId?.productId?._id || ""}
+
+                      id={item.variantId?.productId?._id || ""}
                       image={
                         !item.variantId?.productId?.imageList?.length
                           ? ["/acessts/NoImage.jpg"]
                           : item.variantId.productId.imageList
                       }
-                      name={item.variantId?.productId?.name || "منتج غير متوفر"}
-                      price={`${item.variantId?.price || 0} ج.م`}
+                      name={item.variantId?.productId?.name || t('itemCard.unavailable')}
+                      price={`${item.variantId?.price || 0} ${t('pound')}`}
                     />
                   ))
               ) : (
-                <p className={styles.no_items}>لا توجد منتجات في هذا الطلب</p>
+                <p className={styles.no_items}> {t('orderDetails.noItems')}</p>
               )}
             </div>
           </div>

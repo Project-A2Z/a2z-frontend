@@ -1,0 +1,1635 @@
+{
+  "home": {
+    "meta": {
+      "title": "Home | A2Z",
+      "description": "A2Z company home page",
+      "pageTitle": "Home Page",
+      "pageDescription": "A2Z company specializing in all types of chemicals",
+      "keywords": ["chemicals", "trade"]
+    },
+    "mainSection": {
+      "title": "Our Products & Services",
+      "subtitle": "All chemicals in one place"
+    }
+  },
+  "products": {
+    "meta": {
+      "title": "Products",
+      "description": "Browse all available products"
+    },
+    "all": "All",
+    "loading": "Loading products...",
+    "error": "Failed to load products",
+    "retry": "Try Again",
+    "warning": "Warning",
+    "filter": "Filter",
+    "clearFilter": "Clear Filters",
+    "emptyFilter": "No filters found",
+    "showing": "Showing {count} of {total} products",
+    "previous": "Previous",
+    "next": "Next",
+    "unpredictable": "Unpredictable Product",
+    "empty": "No products found",
+    "emptyQuery": "No products match the search criteria",
+    "saveChanges": "Apply Changes",
+    "close": "Close",
+    "availability": {
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock"
+    
+    }
+  },
+  "Header": {
+    "header": {
+      "logo": {
+        "alt": "Logo"
+      },
+      "search": {
+        "label": "Search",
+        "placeholder": "Search",
+        "modalPlaceholder": "Search for agricultural products...",
+        "noResults": "No results found for \"{searchTerm}\"",
+        "outOfStock": "- Out of Stock",
+        "popular": {
+          "title": "Popular Searches",
+          "terms": [
+            "Pesticides",
+            "Fertilizers",
+            "Seeds",
+            "Agricultural Tools",
+            "Irrigation Equipment"
+          ]
+        },
+        "price": "{price} EGP",
+        "close": "Close",
+        "dir": "ltr",
+        "iconDir": "right"
+      },
+      "nav": {
+        "home": "Home",
+        "products": "Products",
+        "about": "About Us",
+        "contact": "Contact Us"
+      },
+      "actions": {
+        "notifications": "Notifications",
+        "favorites": "Favorites",
+        "cart": "Shopping Cart",
+        "login": "Login"
+      },
+      "bottomNav": {
+        "search": "Search",
+        "notifications": "Notifications",
+        "favorites": "Favorites",
+        "cart": "Cart"
+      },
+      "chat": {
+        "open": "Open Chat",
+        "close": "Close"
+      }
+    },
+    "contactModal": {
+      "title": "Complaints & Inquiries",
+      "fields": {
+        "name": "Name",
+        "phone": "Phone Number",
+        "email": "Email Address",
+        "message": "Write your complaint or inquiry so we can assist you"
+      },
+      "submit": "Submit",
+      "close": "Close"
+    },
+    "accessibility": {
+      "searchButton": "Search",
+      "openChat": "Open Chat",
+      "closeModal": "Close",
+      "notifications": "Notifications",
+      "favorites": "Favorites",
+      "cart": "Cart",
+      "userAvatar": "User Avatar"
+    },
+    "loading": {
+      "indicator": "..."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications",
+      "loading": "Loading...",
+      "endMessage": "No more notifications",
+      "error": {
+        "fetch": "Failed to load notifications",
+        "delete": "Failed to delete notifications"
+      },
+      "actions": {
+        "markAllRead": "Mark all as read",
+        "deleteAll": "Delete All",
+        "deleting": "Deleting...",
+        "deleteOne": "Delete notification",
+        "filterAll": "All",
+        "filterUnread": "Unread"
+      },
+      "confirmDeleteAll": "Are you sure you want to delete all notifications? This action cannot be undone.",
+      "timeAgo": {
+        "now": "Just now",
+        "minutes": "{count} minutes ago",
+        "hours": "{count} hours ago",
+        "days": "{count} days ago"
+      },
+      "dir": "ltr"
+    }
+  },
+  "footer": {
+    "about": {
+      "companyName": "A2Z Company",
+      "description": "A company specialized in all types of chemicals, especially modern construction chemicals, specialized paints, dyeing and finishing chemicals, auxiliary materials, detergent manufacturing chemicals, and cosmetics."
+    },
+    "categories": {
+      "title": "Categories",
+      "loading": "Loading..."
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "links": {
+        "home": "Home",
+        "products": "Products",
+        "about": "About Us",
+        "contact": "Contact Us"
+      }
+    },
+    "contact": {
+      "title": "Contact Us"
+    },
+    "copyright": {
+      "rights": "All rights reserved",
+      "developer": "Website developed by Axora"
+    }
+  },
+  "login": {
+    "title": "Sign In",
+    "loading": "Loading...",
+    "email": {
+      "placeholder": "Email Address",
+      "required": "Email is required",
+      "invalid": "Email address is invalid"
+    },
+    "password": {
+      "placeholder": "Password",
+      "required": "Password is required"
+    },
+    "forgotPassword": "Forgot your password?",
+    "submit": {
+      "default": "Sign In",
+      "loading": "Signing in..."
+    },
+    "register": {
+      "prompt": "Don't have an account?",
+      "link": "Create a new account"
+    },
+    "alerts": {
+      "verificationRequired": "Please verify your email address to activate your account before signing in.",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "buttons": {
+        "ok": "OK",
+        "close": "Close"
+      }
+    },
+    "dir": "ltr",
+    "iconDir": "right"
+  },
+  "register": {
+    "title": "Create New Account",
+    "firstName": {
+      "placeholder": "First Name",
+      "required": "First name is required"
+    },
+    "lastName": {
+      "placeholder": "Last Name",
+      "required": "Last name is required"
+    },
+    "email": {
+      "placeholder": "Email Address",
+      "required": "Email is required",
+      "invalid": "Email address is invalid"
+    },
+    "password": {
+      "placeholder": "Password",
+      "required": "Password is required",
+      "requirements": {
+        "minLength": "At least 8 characters",
+        "uppercase": "At least one uppercase letter (A-Z)",
+        "lowercase": "At least one lowercase letter (a-z)",
+        "number": "At least one number (0-9)",
+        "special": "At least one special character (@$!%*?&#)"
+      },
+      "errors": {
+        "minLength": "Password must be at least 8 characters",
+        "lowercase": "Password must contain a lowercase letter",
+        "uppercase": "Password must contain an uppercase letter",
+        "number": "Password must contain a number",
+        "special": "Password must contain a special character (@$!%*?&#)"
+      }
+    },
+    "phone": {
+      "placeholder": "Phone Number (e.g. +201234567890)",
+      "required": "Phone number is required",
+      "invalid": "Phone number is invalid"
+    },
+    "submit": {
+      "default": "Create Account",
+      "loading": "Creating account..."
+    },
+    "login": {
+      "prompt": "Already have an account?",
+      "link": "Sign In"
+    },
+    "alerts": {
+      "success": "Account created successfully! Please check your email to activate your account.",
+      "error": {
+        "default": "An error occurred while creating the account. Please try again.",
+        "network": "Cannot reach the server. Please check your internet connection.",
+        "badRequest": "The entered data is invalid. Please review your information.",
+        "conflict": "This email is already in use. Please use a different email.",
+        "unprocessable": "The entered data does not meet the requirements. Please review your information.",
+        "server": "Server error. Please try again later.",
+        "unknown": "Unexpected error ({status}). Please try again."
+      },
+      "buttons": {
+        "ok": "OK",
+        "close": "Close"
+      }
+    },
+    "dir": "ltr"
+  },
+  "forgetPassword": {
+    "title": "Enter your email address to reset your password",
+    "email": {
+      "label": "Email Address",
+      "placeholder": "example@mail.com",
+      "required": "Please enter your email address",
+      "invalid": "Invalid email address",
+      "sendFailed": "Failed to send verification code."
+    },
+    "submit": {
+      "default": "Verify",
+      "loading": "Verifying...",
+      "success": "Verification code sent to your email. Please check your email to reset your password.",
+      "error": "Failed to send verification code. Please try again.",
+      "resend": {
+        "labe": "Didn't receive the code?",
+        "button": "Resend",
+        "loading": "Resending...",
+        "timer": "Resend available in"
+      }
+    },
+    "verify": {
+      "incomplete": "Please enter the full code (6 digits)",
+      "failed": "Code verification failed. Make sure the digits are entered left to right.",
+      "unexpectedError": "An unexpected error occurred"
+    },
+    "resend": {
+      "failed": "Failed to resend the code. Please try again."
+    },
+    "resetPassword": {
+      "failed": "Failed to reset the password"
+    },
+    "dir": "ltr"
+  },
+  "about-us": {
+    "hero": {
+      "logoAlt": "A2Z Company Logo - Improve People Life",
+      "companyName": "A2Z Company",
+      "description": "A company specialized in all types of chemicals, particularly modern construction chemicals, specialty coatings, formulation and processing chemicals, auxiliary materials, and chemicals for manufacturing detergents and cosmetics. The company's distinction lies in combining diverse expertise and a wide product range while maintaining the highest quality standards. A2Z also operates in water treatment, industrial wastewater management, and agricultural and industrial chemicals of all kinds. Our experts provide industrial and environmental consultations, solutions, and outstanding technical support for all chemical industries."
+    },
+    "mv": {
+      "sections": [
+        {
+          "id": 1,
+          "image": "/acessts/vision.svg",
+          "imageDirection": "right",
+          "title": "Our Vision",
+          "body": "To be a leading specialized company in all types of chemicals, particularly modern construction chemicals, specialty coatings, formulation and processing chemicals, auxiliary materials, and chemicals for manufacturing detergents and cosmetics. The company builds its distinction on combining diverse expertise and a broad product portfolio while maintaining excellence in product quality. A2Z also operates in water treatment, industrial and sanitary wastewater management, and agricultural and industrial chemicals. Our experts provide industrial and environmental consultations, solutions, and outstanding technical support across all chemical industries."
+        },
+        {
+          "id": 2,
+          "image": "/acessts/mission.svg",
+          "imageDirection": "left",
+          "title": "Our Mission",
+          "body": "To deliver high-quality chemical solutions that meet the evolving needs of our clients across construction, manufacturing, and environmental sectors. We are committed to combining technical expertise with a diverse product range, providing specialized chemicals, water treatment services, and industrial consultations. Through continuous innovation and a dedication to quality, A2Z strives to offer reliable, safe, and effective chemical products while empowering industries with tailored technical support and environmental solutions."
+        }
+      ]
+    },
+    "clients": {
+      "sectionTitle": "Our Clients",
+      "items": [
+        {
+          "id": 1,
+          "name": "Delta Company",
+          "description": "Qualitative developments in communication systems",
+          "icon": "delta.svg"
+        },
+        {
+          "id": 2,
+          "name": "Beta Company",
+          "description": "Specialized in Libyan banking services",
+          "icon": "beta.svg"
+        },
+        {
+          "id": 3,
+          "name": "Electronics Company",
+          "description": "Electronic device contracting and maintenance",
+          "icon": "electronics.svg"
+        },
+        {
+          "id": 4,
+          "name": "Alpha Company",
+          "description": "Technology product devices",
+          "icon": "alpha.svg"
+        },
+        {
+          "id": 5,
+          "name": "Perfumes Company",
+          "description": "Offers distinctive and premium fragrances",
+          "icon": "perfieoms.svg"
+        },
+        {
+          "id": 6,
+          "name": "Zeta Company",
+          "description": "Specialized in hosting services",
+          "icon": "zeta.svg"
+        },
+        {
+          "id": 7,
+          "name": "Eta Company",
+          "description": "Providing modern technology devices",
+          "icon": "eta.svg"
+        },
+        {
+          "id": 8,
+          "name": "Auto Company",
+          "description": "Offers professional and safe vehicles",
+          "icon": "trans.svg"
+        }
+      ]
+    },
+    "products": {
+      "title": "Products",
+      "relatedProducts": {
+          "title": "Related Products",
+          "loading": {
+            "error" : "Something went wrong while loading related products",
+            "retry": "Retry"
+          },
+            "unknownCategory": "Unknown Category"
+      },
+      "loading": "Loading products...",
+      "tabs": [
+        {
+          "id": "chemicals",
+          "label": "Chemicals",
+          "title": "Detergent & Cosmetics Manufacturing Chemicals",
+          "subtitle": "Specialized products for high-quality detergent and cosmetics manufacturing, including raw materials and additives to meet all industry requirements.",
+          "items": [
+            {
+              "name": "Sodium Tripolyphosphate",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sodium Lauryl Ether Sulfate (SLES)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sodium Hydroxide Flakes (Caustic Soda)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sodium Bicarbonate ... Industrial / Pharmaceutical",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Anhydrous Sodium Sulfate (Sodium Sulphate)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sulfonic Acid - Alkyl Benzene Sulfonic Acid (LABSA)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Perchloroethylene - Phenol - Lithopone 28% & 30%",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Phenol Crystal",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sodium Chloride (Washed Salt - Food Grade - Tablet Salt - Raw Salt)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Hydrazine",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Texapon N70",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Ethanolamine (Mono - Di - Tri)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Butyl Acetate",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Isopropanol (IPA)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Cyclohexanone",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Ethylene Glycol",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Copper Sulfate (Agricultural - Industrial)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Titanium Dioxide (TiO₂)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Chlorine (Liquid - Powder)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Sodium Hydroxide Flakes (Caustic Soda)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Anhydrous Sodium Sulfate (Sodium Sulphate)",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            },
+            {
+              "name": "Hydrazine",
+              "description": "A chemical compound used to improve water properties and enhance detergent effectiveness."
+            }
+          ]
+        },
+        {
+          "id": "supplies",
+          "label": "General Supplies",
+          "title": "General Supplies",
+          "subtitle": "The company operates in the field of general supplies such as:",
+          "items": [
+            {
+              "name": "Office & Hotel Furniture",
+              "description": "Supplying high-quality furniture for offices and hotels across various designs and specifications."
+            },
+            {
+              "name": "Laboratory Equipment & Supplies",
+              "description": "Providing all devices, equipment, and consumables needed to outfit scientific and industrial laboratories."
+            },
+            {
+              "name": "Specialty Coatings & Acid/Alkali-Resistant Insulation",
+              "description": "Offering specialized coatings with high resistance to acids and alkalis for protecting industrial surfaces."
+            },
+            {
+              "name": "Devices & Requirements for Chemical Laboratories",
+              "description": "Supplying specialized devices and tools to meet the needs of chemical and research laboratories."
+            },
+            {
+              "name": "Spare Parts, Tools & Equipment",
+              "description": "Providing genuine spare parts and specialized tools for industrial maintenance operations."
+            },
+            {
+              "name": "Supplies for Ready-Mix Concrete Plants & Contracting Companies",
+              "description": "Supplying all necessary materials and equipment for ready-mix concrete plants and contracting firms."
+            },
+            {
+              "name": "Equipment for Water Treatment & Industrial/Sanitary Drainage Plants",
+              "description": "Supplying complete equipment and devices for water treatment and industrial/sanitary wastewater plants."
+            },
+            {
+              "name": "Mechanical & Electrical Measurement Devices",
+              "description": "Providing precise measurement instruments for industrial mechanical and electrical applications."
+            },
+            {
+              "name": "Devices & Tools for Ready-Mix Concrete Plants",
+              "description": "Equipping ready-mix concrete plants with specialized operational devices and tools."
+            },
+            {
+              "name": "Implementation & Supply of Water Treatment Plants for Villages & Tourist Hotels",
+              "description": "Designing, implementing, and supplying integrated water treatment plants for villages and tourist facilities."
+            }
+          ]
+        },
+        {
+          "id": "consulting",
+          "label": "Industrial & Environmental Consulting",
+          "title": "Industrial & Environmental Consulting",
+          "subtitle": "A2Z has highly experienced experts in the following fields:",
+          "items": [
+            {
+              "name": "Construction Chemicals & Ready-Mix Concrete Additives",
+              "description": "Specialized consultations in construction chemicals and concrete additives to improve performance and durability."
+            },
+            {
+              "name": "Waterproofing, Maintenance Chemicals & Auxiliary Materials",
+              "description": "Extensive expertise in selecting and applying appropriate waterproofing, maintenance chemicals, and auxiliary materials."
+            },
+            {
+              "name": "Water Treatment & Industrial/Sanitary Wastewater Management",
+              "description": "Integrated and specialized solutions for water treatment and industrial and sanitary wastewater management."
+            },
+            {
+              "name": "Industrial Detergent Manufacturing",
+              "description": "Advanced technical consultations on the manufacturing and development of industrial detergents."
+            },
+            {
+              "name": "Quality Systems Implementation",
+              "description": "Comprehensive support in implementing, documenting quality systems, and obtaining international certifications."
+            }
+          ]
+        },
+        {
+          "id": "cosmetics",
+          "label": "Detergents & Cosmetics",
+          "title": "Detergents & Cosmetics",
+          "subtitle": "The company supplies all types of detergents to its clients including:",
+          "items": [
+            {
+              "name": "Companies & Corporations",
+              "description": "Supplying specialized industrial detergents and cosmetics to companies and corporations of all sizes."
+            },
+            {
+              "name": "Agencies & Organizations",
+              "description": "Providing trial samples and custom products for agencies and organizations according to required specifications."
+            },
+            {
+              "name": "Cleaning & Services Companies",
+              "description": "Equipping cleaning and service companies with professional, high-efficiency, and effective detergents."
+            },
+            {
+              "name": "Hotels & Tourist Facilities",
+              "description": "Supplying premium-quality detergents and care products to hotels and tourist establishments."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "order": {
+    "orderDetails": {
+      "title": "Order Details ",
+      "loading": "Loading order details...",
+      "backToOrders": "Back to orders",
+      "noItems": "No items in this order",
+      "itemsSectionTitle": "Your order items",
+      "errors": {
+        "missingId": "Order ID not found",
+        "notFound": "Order not found",
+        "fetchFailed": "An error occurred while loading order details"
+      },
+      "dir": "ltr",
+      "pound": "EGP"
+    },
+    "infoCard": {
+      "orderNumber": "Order number:",
+      "price": "Price:",
+      "date": "Order placed on:",
+      "address": "Address:",
+      "phone": "Phone number:",
+      "name": "Name:"
+    },
+    "orderStepper": {
+      "steps": {
+        "underReview": "Under review",
+        "reviewed": "Reviewed",
+        "prepared": "Prepared",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
+    },
+    "itemCard": {
+      "buyAgain": "Buy again",
+      "unavailable": "Product unavailable"
+    }
+  },
+  "Address": {
+    "addressForm": {
+      "pageTitles": {
+        "add": "Add New Address",
+        "edit": "Edit Address",
+        "editSubtitle": "Update the details of the selected address"
+      },
+      "fields": {
+        "firstName": {
+          "placeholder": "First Name",
+          "label": "First Name"
+        },
+        "lastName": {
+          "placeholder": "Last Name",
+          "label": "Last Name"
+        },
+        "phoneNumber": {
+          "placeholder": "Phone Number (11 digits)",
+          "label": "Phone Number"
+        },
+        "address": {
+          "placeholder": "Detailed Address",
+          "label": "Detailed Address"
+        },
+        "governorate": {
+          "label": "Governorate *",
+          "placeholder": "Select Governorate"
+        },
+        "city": {
+          "label": "City *",
+          "placeholder": "Select City"
+        }
+      },
+      "checkbox": {
+        "addDefault": "Add as default address",
+        "setDefault": "Set as default address",
+        "defaultNote": "Your current default address will be replaced automatically"
+      },
+      "inputMethod": {
+        "useMap": "Use Map",
+        "useManual": "Manual Entry",
+        "mapFilledNote": "Filled from map (you can edit)"
+      },
+      "buttons": {
+        "save": "Save",
+        "saveEdit": "Save Changes",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "savingEdit": "Updating..."
+      },
+      "success": {
+        "saved": "Saved!",
+        "edited": "Updated!",
+        "redirecting": "Redirecting..."
+      },
+      "errors": {
+        "firstName": "First name is required",
+        "lastName": "Last name is required",
+        "phoneNumber": {
+          "required": "Phone number is required",
+          "invalid": "Phone number must be 11 digits"
+        },
+        "address": "Address is required",
+        "governorate": "Governorate is required",
+        "city": "City is required",
+        "unauthorized": "You must be logged in to perform this action",
+        "sessionExpired": "Your session has expired. Please log in again.",
+        "addFailed": "An error occurred while adding the address. Please try again.",
+        "editFailed": "An error occurred while updating the address. Please try again."
+      },
+      "draft": {
+        "restored": "📝 Your saved draft has been automatically restored",
+        "clear": "Clear data and start over",
+        "confirmClear": "Are you sure you want to delete the draft and start over? All entered data will be lost."
+      },
+      "loading": {
+        "map": "Loading map...",
+        "page": "Loading..."
+      }
+    },
+    "LocationData": {
+      "Cairo": [
+        "Heliopolis",
+        "Nasr City",
+        "Fifth Settlement",
+        "Al Rehab",
+        "Madinaty",
+        "El Shorouk",
+        "Maadi",
+        "Helwan",
+        "El Mokattam",
+        "Zamalek",
+        "Mohandessin",
+        "Downtown",
+        "Abbasiya",
+        "Shubra",
+        "Rod El Farag",
+        "Ain Shams",
+        "El Matariya",
+        "Old Cairo",
+        "El Sayeda Zeinab",
+        "Abdeen",
+        "Dokki",
+        "El Manial",
+        "Qasr El Nil",
+        "El Mosky",
+        "Al Azhar",
+        "Bab El Shaeria",
+        "El Sahel",
+        "Madinat El Salam",
+        "El Zeitoun",
+        "Manshiyat Nasser",
+        "Dar El Salam",
+        "El Basatin",
+        "Tura",
+        "El Tibin",
+        "15 May",
+        "Hadayek El Kobba",
+        "El Waily",
+        "El Zaher",
+        "Azbakeya",
+        "Bulaq",
+        "El Zawya El Hamra",
+        "El Marg",
+        "El Nozha",
+        "Heliopolis - El Korba",
+        "Tahrir Square",
+        "Ramses Square",
+        "Giza Square",
+        "El Mesaha Square",
+        "Roxy Square",
+        "Cairo Festival City",
+        "City Centre Maadi"
+      ],
+      "Giza": [
+        "Dokki",
+        "Hadayek El Ahram",
+        "Mohandessin",
+        "Agouza",
+        "El Munira El Gharbiya",
+        "El Haram",
+        "Faisal",
+        "El Omraniya",
+        "El Talabiya",
+        "El Marioutiya",
+        "Ausim",
+        "Kerdasa",
+        "El Badrasheen",
+        "Abu El Nomros",
+        "El Saff",
+        "El Ayyat",
+        "Bahariya Oasis",
+        "6th of October",
+        "Sheikh Zayed",
+        "El Hosary",
+        "Dream Land",
+        "Beverly Hills",
+        "El Rabwa",
+        "Green Land",
+        "Smart Village",
+        "Lebanon Square",
+        "Sphinx Square",
+        "Mall of Arabia",
+        "Hyper One",
+        "Dandy Mall",
+        "The Pyramids",
+        "Pyramids Tourist Area",
+        "Imbaba",
+        "Bulaq El Dakrour",
+        "El Warraq",
+        "El Moneeb",
+        "Giza - City Center"
+      ],
+      "Alexandria": [
+        "Montazah",
+        "El Maamoura",
+        "Abu Qir",
+        "El Asafra",
+        "Sidi Bishr",
+        "Miami",
+        "Smouha",
+        "San Stefano",
+        "Gleem",
+        "Sidi Gaber",
+        "El Shatiby",
+        "Sporting",
+        "Cleopatra",
+        "Moharam Bek",
+        "Bakos",
+        "El Ibrahimiya",
+        "Camp Caesar",
+        "Laurent",
+        "El Raml",
+        "Raml Station",
+        "El Manshiya",
+        "El Anfushi",
+        "Ras El Tin",
+        "El Gomrok",
+        "Karmouz",
+        "Mina El Basal",
+        "Misr Station",
+        "El Amriya",
+        "El Dekheila",
+        "El Agami",
+        "Borg El Arab",
+        "New Borg El Arab",
+        "North Coast",
+        "Kafr Abdo",
+        "Victoria",
+        "Stanley",
+        "The Corniche",
+        "Qaitbay Citadel",
+        "Bibliotheca Alexandrina",
+        "Green Plaza",
+        "City Centre Alexandria",
+        "Carrefour Sidi Gaber"
+      ],
+      "Qalyubia": [
+        "Banha",
+        "Shubra El Kheima",
+        "El Qanater El Khayriya",
+        "Qalyub",
+        "Shibin El Qanater",
+        "Toukh",
+        "Kafr Shukr",
+        "El Khanka",
+        "El Obour",
+        "El Khosos",
+        "Mostorod",
+        "Manshiyat El Qanater"
+      ],
+      "Sharqia": [
+        "Zagazig",
+        "10th of Ramadan",
+        "Belbeis",
+        "Faqous",
+        "Abu Hammad",
+        "Abu Kebir",
+        "Hihya",
+        "Mashtoul El Souq",
+        "El Qorain",
+        "Minya El Qamh",
+        "Kafr Saqr",
+        "Awlad Saqr",
+        "El Husseinyia",
+        "Diarb Negm",
+        "El Ibrahimiya",
+        "San El Hajar El Qibliya"
+      ],
+      "Monufia": [
+        "Shibin El Kom",
+        "Minuf",
+        "Ashmoun",
+        "Quesna",
+        "Birket El Sab",
+        "Tala",
+        "El Bagour",
+        "Sadat City"
+      ],
+      "Gharbia": [
+        "Tanta",
+        "El Mahalla El Kubra",
+        "Kafr El Zayat",
+        "Zefta",
+        "El Santa",
+        "Qutour",
+        "Basyoun",
+        "Samannoud"
+      ],
+      "Kafr El Sheikh": [
+        "Kafr El Sheikh",
+        "Desouq",
+        "Fuwwah",
+        "Mutubis",
+        "Bila",
+        "El Hamoul",
+        "Qilin",
+        "Sidi Salem",
+        "El Riyad",
+        "Baltim"
+      ],
+      "Dakahlia": [
+        "Mansoura",
+        "Talha",
+        "Mit Ghamr",
+        "Dekernes",
+        "Aga",
+        "Minya El Nasr",
+        "El Sinbillawin",
+        "El Kurdi",
+        "Beni Obeid",
+        "El Matariya",
+        "Belqas",
+        "Mit Salsil",
+        "Gamasa",
+        "Sherbin",
+        "El Gamaliya"
+      ],
+      "Damietta": [
+        "Damietta",
+        "Ras El Bar",
+        "Faraskur",
+        "Kafr Saad",
+        "El Zarqa",
+        "Ezbet El Borg",
+        "Mit Abu Ghalib"
+      ],
+      "Port Said": [
+        "Port Said - District 1",
+        "Port Said - District 2",
+        "Port Said - District 3",
+        "Port Said - District 4",
+        "Port Said - District 5",
+        "Port Said - District 6",
+        "Port Said - District 7",
+        "Port Said - District 8",
+        "Port Fouad"
+      ],
+      "Ismailia": [
+        "Ismailia",
+        "Fayed",
+        "El Qantara East",
+        "El Qantara West",
+        "El Tall El Kebir",
+        "Abu Suwir",
+        "El Qassasin El Gedida"
+      ],
+      "Suez": [
+        "Suez - District 1",
+        "Suez - District 2",
+        "Suez - District 3",
+        "El Ganayen",
+        "Ataka",
+        "Faisal",
+        "El Arbaeen"
+      ],
+      "Beheira": [
+        "Damanhour",
+        "Kafr El Dawwar",
+        "Rashid (Rosetta)",
+        "Edko",
+        "Abu El Matamir",
+        "Abu Hummus",
+        "El Delengat",
+        "El Mahmoudia",
+        "El Rahmaniya",
+        "Shubrakhit",
+        "Kom Hamada",
+        "Badr",
+        "Wadi El Natrun",
+        "El Nubariya",
+        "Hawsh Issa"
+      ],
+      "Faiyum": [
+        "Faiyum",
+        "Sinnuris",
+        "Tamiya",
+        "Itsa",
+        "Ibshaway",
+        "Yusuf El Siddiq",
+        "Wadi El Rayan",
+        "Lake Qarun"
+      ],
+      "Beni Suef": [
+        "Beni Suef",
+        "El Wasta",
+        "Nasser",
+        "Ihnasya",
+        "Beba",
+        "El Fashn",
+        "Sumasta"
+      ],
+      "Minya": [
+        "Minya",
+        "Mallawi",
+        "Abu Qurqas",
+        "Maghagha",
+        "Beni Mazar",
+        "Matay",
+        "Samalut",
+        "El Adwa",
+        "Deir Mawas"
+      ],
+      "Asyut": [
+        "Asyut",
+        "Dayrout",
+        "Manfalut",
+        "Abnub",
+        "Abu Tig",
+        "El Ghanaim",
+        "El Qusiya",
+        "Sahel Selim",
+        "El Badari",
+        "Sadfa",
+        "El Fateh"
+      ],
+      "Sohag": [
+        "Sohag",
+        "Akhmim",
+        "Tema",
+        "Girga",
+        "El Balyana",
+        "El Maragha",
+        "El Monsha'a",
+        "Dar El Salam",
+        "Juhayna",
+        "Saqlata",
+        "Tahta"
+      ],
+      "Qena": [
+        "Qena",
+        "Nag Hammadi",
+        "Dishna",
+        "El Waqf",
+        "Qift",
+        "Naqada",
+        "Farshut",
+        "Qus",
+        "Abu Tesht"
+      ],
+      "Luxor": [
+        "Luxor",
+        "Esna",
+        "Armant",
+        "El Tod",
+        "El Zeiniya",
+        "El Qurna",
+        "El Bayadiya",
+        "Karnak Temple",
+        "Luxor Temple",
+        "Valley of the Kings"
+      ],
+      "Aswan": [
+        "Aswan",
+        "Kom Ombo",
+        "Daraw",
+        "Nasr El Nuba",
+        "Edfu",
+        "El Sibaeya",
+        "Abu Simbel"
+      ],
+      "Red Sea": [
+        "Hurghada",
+        "Safaga",
+        "El Qusier",
+        "Marsa Alam",
+        "Ras Gharib",
+        "El Shalatin",
+        "Halayeb"
+      ],
+      "New Valley": ["Kharga", "Dakhla", "Farafra", "Paris", "Balat"],
+      "Matrouh": [
+        "Matrouh",
+        "El Hamam",
+        "El Alamein",
+        "Sidi Barrani",
+        "El Salloum",
+        "El Dabaa",
+        "Siwa",
+        "Marina"
+      ],
+      "North Sinai": [
+        "Arish",
+        "Sheikh Zuweid",
+        "Rafah",
+        "Bir El Abd",
+        "Nakhl",
+        "El Hasana"
+      ],
+      "South Sinai": [
+        "El Tor",
+        "Sharm El Sheikh",
+        "Dahab",
+        "Nuweiba",
+        "Taba",
+        "Saint Catherine",
+        "Ras Sidr",
+        "Abu Rudeis",
+        "Abu Zenima"
+      ]
+    },
+    "location": {
+      "loading": "Loading map...",
+      "retry": "Retry",
+      "search": {
+        "placeholder": "Search for a location... (e.g. Cairo, Egypt)",
+        "button": "Search",
+        "loadingText": "Searching...",
+        "notFound": "Location not found",
+        "error": "Search error. Please try again.",
+        "timeout": "Search timed out"
+      },
+      "currentLocation": "📍 My Current Location",
+      "geocoding": "Loading address details...",
+      "selected": {
+            "title": "Selected Location:",
+            "loadingAddress": "Loading address...",
+            "coordinates": "Lng: {lng}, Lat: {lat}",
+            "city": "City: {city}",
+            "region": "Governorate: {region}"
+          },
+      "errors": {
+        "mapLoadFailed": "Failed to load the map",
+        "mapInitFailed": "Error initializing the map",
+        "geocodingTimeout": "Request timed out. Please try again.",
+        "geocodingFailed": "Could not retrieve address details. You can continue without a detailed address.",
+        "geolocationUnsupported": "Your browser does not support geolocation",
+        "geolocationFailed": "Failed to get current location",
+        "permissionDenied": "Location access permission denied",
+        "positionUnavailable": "Location information is unavailable",
+        "geolocationTimeout": "Location request timed out"
+      }
+    }
+  },
+  "profile": {
+    "page": {
+      "loading": "Loading data...",
+      "back": "Back",
+      "error": {
+        "title": "An Error Occurred",
+        "retry": "Retry",
+        "sessionExpired": "Session expired. Logging out...",
+        "networkError": "Network error. Please check your connection.",
+        "fetchFailed": "An error occurred while fetching your profile"
+      },
+      "banner": {
+        "close": "✕"
+      },
+      "metrics": {
+        "favorites": "Favorite Products",
+        "orders": "Order Count",
+        "reviews": "Reviews"
+      }
+    }, 
+    "info": {
+      "loading": "Loading...",
+      "avatar": {
+        "ariaLabel": "Upload new avatar",
+        "uploadTitle": "Update profile picture",
+        "uploadingTitle": "Uploading..."
+      },
+      "errors": {
+        "invalidType": "Unsupported file type. Image must be JPEG, PNG, GIF, or WebP",
+        "fileTooLarge": "File is too large. Image must not exceed 5MB",
+        "tokenNotFound": "Authentication token not found. Please log in again.",
+        "userNotFound": "User data not found. Please log in again.",
+        "uploadFailed": "Failed to update profile picture. Please try again.",
+        "sessionExpired": "Session expired. Please log in again.",
+        "invalidData": "Invalid data. Please try again."
+      }
+    },
+     "list": {
+        "loading": "Loading data...",
+        "loggingOut": "Logging out...",
+        "menu": {
+          "accountDetails": "Account Details",
+          "changePassword": "Change Password",
+          "addresses": "Your Addresses",
+          "orders": "Your Orders",
+          "messages": "Your Messages",
+          "logout": "Log Out"
+        }
+      },
+    "left": {
+      "loading": "Loading your profile...",
+      "welcome": {
+        "greeting": "Hello {name}"
+      },
+      "accountForm": {
+        "title": "Account Details",
+        "fields": {
+          "firstName": {
+            "placeholder": "First Name",
+            "required": "First name is required"
+          },
+          "lastName": {
+            "placeholder": "Last Name",
+            "required": "Last name is required"
+          },
+          "email": {
+            "placeholder": "Email Address",
+            "required": "Email address is required",
+            "invalid": "Please enter a valid email address"
+          },
+          "phone": {
+            "placeholder": "Phone Number",
+            "required": "Phone number is required",
+            "invalid": "Please enter a valid phone number (must start with 01 or +201)"
+          }
+        },
+        "buttons": {
+          "save": "Save",
+          "edit": "Edit Details",
+          "loading": "Updating..."
+        },
+        "alerts": {
+          "ok": "OK",
+          "success": "Account details updated successfully!",
+          "error": "Failed to update account details. Please try again."
+        }
+      },
+      "messages": {
+        "title": "Your Messages",
+        "loading": "Loading messages...",
+        "error": "An error occurred while loading messages. Please try again.",
+        "retry": "Retry",
+        "empty": "No messages found",
+        "message": {
+          "salutation": "Dear Support Team",
+          "replyLabel": "Reply",
+          "replySalutation": "Dear User"
+        }
+      },
+      "orders": {
+        "title": "Your Orders",
+        "currency": "EGP",
+        "orderNumber": "Order No.:",
+        "price": "Price:",
+        "placedAt": "Order placed on:",
+        "viewDetails": "View Details",
+        "empty": {
+          "title": "No orders found",
+          "subtitle": "Try adjusting your search filters"
+        },
+        "filter": {
+          "all": "All",
+          "underReview": "Under Review",
+          "reviewed": "Reviewed",
+          "prepared": "Prepared",
+          "shipped": "Shipped",
+          "delivered": "Delivered",
+          "cancelled": "Cancelled"
+        }
+      },
+      "passChange": {
+        "title": "Change Password",
+        "fields": {
+          "current": {
+            "placeholder": "Enter your current password",
+            "required": "Current password is required"
+          },
+          "new": {
+            "placeholder": "Enter your new password",
+            "required": "New password is required",
+            "minLength": "New password must be at least 8 characters",
+            "complexity": "Password must contain an uppercase letter, lowercase letter, and a number",
+            "sameAsCurrent": "New password must be different from the current one"
+          },
+          "confirm": {
+            "placeholder": "Confirm new password",
+            "required": "Password confirmation is required",
+            "mismatch": "Passwords do not match"
+          }
+        },
+        "buttons": {
+          "submit": "Continue",
+          "loading": "Updating...",
+          "ok": "OK"
+        },
+        "modal": {
+          "success": {
+            "title": "Success!",
+            "message": "Your password has been changed successfully. You can now use your new password to log in."
+          },
+          "error": {
+            "title": "Update Failed",
+            "message": "Failed to change password. Please make sure your current password is correct and try again."
+          }
+        }
+      },
+      "logout": {
+        "question": "Do you want to log out?",
+        "confirm": "Log Out",
+        "cancel": "Cancel"
+      },
+      "address": {
+        "title": "Your Addresses",
+        "empty": {
+          "message": "No saved addresses",
+          "hint": "Add a new address to get started"
+        },
+        "fallback": {
+          "name": "Not specified",
+          "phone": "Not specified"
+        },
+        "card": {
+          "defaultBadge": "Default Address",
+          "deleteDisabledTitle": "You must keep at least one address"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "addAddress": "Add Address",
+          "loadingText": "Processing..."
+        },
+        "deleteAlert": {
+          "title": "Confirm Deletion",
+          "message": "Are you sure you want to delete this address?",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        },
+        "errors": {
+          "loginRequired": "You must be logged in to perform this action",
+          "loginRequiredToAdd": "You must be logged in to add an address",
+          "deleteFailed": "Failed to delete address. Please try again.",
+          "addressNotFound": "Address not found",
+          "setDefaultFailed": "Failed to set default address. Please try again."
+        }
+      }
+    }
+  },
+  "favoritesPage": {
+    "loading": {
+      "general": "Loading...",
+      "favorites": "Loading favorites...",
+      "relatedProducts": "Loading related products..."
+    },
+    "auth": {
+      "loginRequiredTitle": "Please log in",
+      "loginButton": "Log in"
+    },
+    "empty": {
+      "title": "Favorites",
+      "noProductsAlt": "No products in favorites",
+      "noProductsMessage": "No products in favorites",
+      "browseProducts": "Browse products"
+    },
+    "error": {
+      "title": "An error occurred",
+      "retry": "Retry"
+    },
+    "header": {
+      "title": "Favorites",
+      "productsCount": "{count} products"
+    },
+    "favoritesList": {
+      "availability": "Available",
+      "currency": "EGP",
+      "remove": "Remove",
+      "removeFromFavorites": "Remove {name} from favorites"
+    }
+  },
+  "cart": {
+    "title": "Shopping cart",
+    "itemCount": "{count} product",
+    "empty": {
+      "message": "No products in cart",
+      "action": "Go shopping"
+    },
+    "loading": "Loading...",
+    "item": {
+      "remove": "Remove product from cart",
+      "decreaseQty": "Decrease quantity",
+      "increaseQty": "Increase quantity",
+      "defaultName": "Product",
+      "pricePerUnit": "EGP / {unit}"
+    },
+    "units": {
+      "unit": "Piece",
+      "kg": "Kilogram",
+      "ton": "Ton",
+      "liter": "Liter",
+      "cubic_meter": "Cubic meter"
+    },
+    "availability": {
+      "inStock": "In stock",
+      "outOfStock": "Out of stock"
+    }
+  },
+  "orderSummary": {
+    "title": "Cart total",
+    "itemCount": "Number of items",
+    "total": "Total",
+    "currency": "EGP",
+    "checkout": "Continue to checkout"
+  },
+  "checkout": {
+    "loading": "Loading checkout data...",
+    "loadingPage": "Loading payment page...",
+    "address": {
+      "title": "Address",
+      "loading": "Loading...",
+      "noAddresses": "No saved addresses",
+      "noSelectedAddress": "No address selected",
+      "noAvailableAddresses": "No available addresses",
+      "addAddress": "Add address",
+      "edit": "Edit",
+      "refresh": "Refresh",
+      "errorWithCached": "⚠️ {error} (Showing cached data)"
+    },
+    "delivery": {
+      "title": "Delivery details",
+      "cost": "Delivery cost:",
+      "determinedLater": "Will be determined by an administrator later",
+      "parcel": "Parcel",
+      "confirm": "Confirm delivery details",
+      "edit": "Edit",
+      "pound": "EGP"
+    },
+    "payment": {
+      "title": "Payment method",
+      "selectMethodWarning": "⚠️ Please select a payment method to continue",
+      "cash": "Cash on delivery + initial deposit of 10% of total",
+      "online": "Online payment - full amount",
+      "form": {
+        "amountRequired": "Amount required:",
+        "depositNote": "(10% deposit of total amount)",
+        "paymentMethod": "Payment method",
+        "selectPaymentMethod": "Select payment method",
+        "instaPay": "InstaPay",
+        "vodafoneCash": "Vodafone Cash",
+        "transactionId": "Transaction number",
+        "transactionIdPlaceholder": "Enter transaction number",
+        "date": "Date",
+        "receiptImage": "Receipt image",
+        "changeImage": "Click to change image",
+        "uploadImage": "Click to upload receipt image",
+        "imageNote": "(PNG, JPG, JPEG - max 5MB)",
+        "confirm": "Confirm transaction",
+        "confirmed": "Payment data confirmed successfully",
+        "editData": "Edit data",
+        "transferInfo":{ 
+          "title":"Transfer information",
+          "CompanyName": "A2Z for Chemicals & Supplies",
+          "BankName": "Al Ahli Bank of Egypt"
+        },
+        "vodafoneSection": "Pay using Vodafone Cash wallet",
+        "instaPaySection": "Pay using InstaPay",
+        "bankSection": "Pay using bank account",
+        "number": "Number:",
+        "paymentAccount": "Payment account:",
+        "beneficiaryName": "Beneficiary name:",
+        "accountNumber": "Account number:",
+        "bank": "Bank:",
+        "swiftCode": "SWIFT code:",
+        "alerts": {
+          "fillAllFields": "Please fill all required fields",
+          "selectPaymentMethod": "Please select a payment method",
+          "ok": "OK"
+        }
+      }
+    },
+    "summary": {
+      "title": "Order summary",
+      "itemCount": "Number of items ({count})",
+      "delivery": "Delivery",
+      "deliveryNote": "Will be determined by an administrator later",
+      "total": "Total",
+      "currency": "EGP",
+      "submit": "Complete purchase",
+      "submitting": "Sending...",
+      "alerts": {
+        "selectAddress": "Please select a delivery address",
+        "selectPayment": "Please select a payment method",
+        "loginRequired": "Please login first",
+        "error": "An error occurred",
+        "success": "Order created successfully with number {orderId}",
+        "viewOrders": "View orders",
+        "ok": "OK"
+      }
+    },
+    "dates": {
+      "days": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      },
+      "months": {
+        "0": "January",
+        "1": "February",
+        "2": "March",
+        "3": "April",
+        "4": "May",
+        "5": "June",
+        "6": "July",
+        "7": "August",
+        "8": "September",
+        "9": "October",
+        "10": "November",
+        "11": "December"
+      }
+    }
+  },
+  "alert": {
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
+   "productPage": {
+    "loading": "Loading...",
+    "error": {
+      "title": "Error loading product",
+      "notFound": "Product not found",
+      "noDescription": "No description available"
+    },
+    "connectionError": {
+      "title": "Connection problem",
+      "message": "Connection to the server was lost. Check your internet and try again.",
+      "retry": "Retry",
+      "home": "Back to home"
+    },
+    "serverBusy": {
+      "title": "Service temporarily unavailable",
+      "message": "The server is currently busy. Please wait a moment and try again.",
+      "retry": "Retry now",
+      "home": "Back to home"
+    }
+  },
+  "overview": {
+    "units": {
+      "piece": "Piece",
+      "kg": "Kilogram",
+      "ton": "Ton",
+      "liter": "Liter",
+      "cubic_meter": "Cubic meter",
+      "meter": "Meter",
+      "gram": "Gram"
+    },
+    "defaultCategory": "Unspecified",
+    "currency": "EGP",
+    "stock": {
+      "available": "In stock ({count})",
+      "unavailable": "Out of stock"
+    },
+    "selectVariant": "Choose type:",
+    "addToCart": "Add to cart",
+    "aria": {
+      "wishlistAdd": "Add to wishlist",
+      "wishlistRemove": "Remove from wishlist",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "prevImage": "Previous image",
+      "nextImage": "Next image",
+      "goToImage": "Go to image {index}",
+      "rating": "Rating {value} out of 5"
+    },
+    "loginAlert": {
+      "message": "You must be logged in first to add products to your wishlist.",
+      "cancel": "Cancel",
+      "login": "Login"
+    }
+  },
+  "specs": {
+    "title": "Product specifications"
+  },
+  "ratings": {
+    "title": "Opinions about this product",
+    "noRatings": "No ratings yet.",
+    "aria": {
+      "rating": "Rating {value} out of 5"
+    },
+    "ratingCount": "Rating {total}",
+    "filterActive": "- Filtered by {stars} stars"
+  },
+  "reviews": {
+    "sectionTitle": "Comments and ratings",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "loginLink": "Login",
+    "errorPrefix": "Error: {error}",
+    "noReviews": "No comments yet",
+    "beFirst": "Be the first to add a comment!",
+    "editingBadge": "Editing ←",
+    "adminReply": "Admin reply",
+    "addTitle": "Add your review",
+    "editTitle": "Edit review",
+    "alreadyReviewed": "You have already added a review for this product",
+    "editCurrentReview": "Edit current review",
+    "commentLabel": "Your comment:",
+    "commentPlaceholder": "Share your opinion on this product...",
+    "ratingLabel": "Rating:",
+    "saveEdit": "Save changes",
+    "cancel": "Cancel",
+    "addComment": "Add comment",
+    "loginPrompt": {
+      "title": "Please login",
+      "message": "Login to add your comment and rate the product",
+      "button": "Login"
+    },
+    "deleteAlert": {
+      "title": "Confirm deletion",
+      "message": "Are you sure you want to delete this comment? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "errorAlert": {
+      "title": "Error",
+      "confirm": "OK",
+      "cancel": "Close"
+    },
+    "errors": {
+      "loginRequiredAdd": "Please login first to add a review",
+      "alreadyReviewed": "You have already added a review for this product",
+      "cannotEditOthers": "You cannot edit a comment you did not write",
+      "pleaseWait": "Please wait for the current operation to finish",
+      "loginRequiredEdit": "Please login first to edit the review",
+      "loginRequiredDelete": "Please login first to delete the review",
+      "cannotDeleteOthers": "You cannot delete a comment you did not write",
+      "noPermissionEdit": "You do not have permission to edit this comment",
+      "noPermissionDelete": "You do not have permission to delete this comment",
+      "reviewNotFound": "Your review for this product was not found",
+      "reviewNotFoundDelete": "The comment was not found or has already been deleted",
+      "sessionExpired": "Session expired, please login again",
+      "invalidData": "Please make sure the entered data is correct",
+      "failedAdd": "Failed to add comment",
+      "failedUpdate": "Failed to update comment",
+      "failedDelete": "Failed to delete comment"
+    }
+  }
+}

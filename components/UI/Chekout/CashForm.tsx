@@ -1,14 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslations } from 'next-intl';
+import { getLocale } from "@/services/api/language";
 
-//styles
+// styles
 import styles from "@/components/UI/Chekout/Style.module.css";
 
-//components
+// components
 import { Button } from "@/components/UI/Buttons/Button";
 import Input from "@/components/UI/Inputs/Input";
 import Alert, { AlertButton } from "@/components/UI/Alert/alert";
-import DatePicker from "../DatePicker/DatePicker";
 
 interface FormData {
   opId: string;
@@ -23,6 +24,8 @@ interface Form {
 }
 
 const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
+  const t = useTranslations('checkout.payment.form');
+
   const [price, setPrice] = useState(Total);
   const [transactionId, setTransactionId] = useState("");
   const [transactionDate, setTransactionDate] = useState("");
@@ -30,10 +33,11 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
   const [receiptFile, setReceiptFile] = useState<File | undefined>(undefined);
   const [paymentWith, setPaymentWith] = useState("");
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const isRTL = getLocale() === 'ar'
+
 
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  // Alert state
   const [alertConfig, setAlertConfig] = useState<{
     show: boolean;
     message: string;
@@ -46,7 +50,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     buttons: [],
   });
 
-  // Calculate price based on payment method
   useEffect(() => {
     if (way === "Cash") {
       setPrice(Math.round((Total * 10) / 100));
@@ -55,7 +58,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
     }
   }, [way, Total]);
 
-  // Update parent component whenever form data changes
   useEffect(() => {
     if (isConfirmed && transactionId && transactionDate && receiptFile) {
       onDataChange?.({
@@ -64,26 +66,14 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         paymentWith: paymentWith || undefined,
       });
     }
-  }, [
-    isConfirmed,
-    transactionId,
-    transactionDate,
-    receiptFile,
-    paymentWith,
-    way,
-    onDataChange,
-  ]);
+  }, [isConfirmed, transactionId, transactionDate, receiptFile, paymentWith, way, onDataChange]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setReceiptFile(file);
-
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setReceiptImage(result);
-      };
+      reader.onload = (e) => setReceiptImage(e.target?.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -98,7 +88,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
       type,
       buttons: [
         {
-          label: "حسناً",
+          label: t('alerts.ok'),
           onClick: () => setAlertConfig((prev) => ({ ...prev, show: false })),
           variant: "primary",
         },
@@ -107,34 +97,18 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
   };
 
   const handleSubmit = () => {
-    //console.log('way:', way, 'paymentWith:', paymentWith)
-
     if (!transactionId || !transactionDate || !receiptFile) {
-      showAlert("يرجى ملء جميع الحقول المطلوبة", "warning");
+      showAlert(t('alerts.fillAllFields'), "warning");
       return;
     }
-
     if (!paymentWith) {
-      //console.log('❗ Missing paymentWith')
-      showAlert("يرجى اختيار وسيلة الدفع", "warning");
+      showAlert(t('alerts.selectPaymentMethod'), "warning");
       return;
     }
     setIsConfirmed(true);
-
-    //console.log('✅ Form confirmed:', {
-    //     id: transactionId,
-    //     date: transactionDate,
-    //     price: price,
-    //     file: receiptFile.name,
-    //     paymentWith: paymentWith || 'N/A',
-    //     way: way,
-    //     image: receiptFile
-    // })
   };
 
-  const handleEdit = () => {
-    setIsConfirmed(false);
-  };
+  const handleEdit = () => setIsConfirmed(false);
 
   const isFormComplete =
     transactionId &&
@@ -144,7 +118,6 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
 
   return (
     <>
-      {/* Custom Alert */}
       {alertConfig.show && (
         <Alert
           message={alertConfig.message}
@@ -154,25 +127,20 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
         />
       )}
 
-      {/* Form Container */}
-      <div className={styles.formContainer}>
+      <div className={styles.formContainer} style={{direction : isRTL ? 'rtl' : 'ltr' , textAlign : isRTL ? 'right' : 'left' }}>
         <div className={styles.priceSection}>
           <span className={styles.priceForm}>
-            المبلغ المطلوب:
-            {price.toLocaleString("ar-EG")} ج
+            {t('amountRequired')} {price.toLocaleString("ar-EG")} ج
           </span>
-
           {way === "Cash" && (
-            <span className={styles.depositNote}>
-              (مقدم 10% من إجمالي المبلغ)
-            </span>
+            <span className={styles.depositNote}>{t('depositNote')}</span>
           )}
         </div>
 
         <div className={styles.formFields}>
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              وسيلة الدفع <span style={{ color: "red" }}>*</span>
+              {t('paymentMethod')} <span style={{ color: "red" }}>*</span>
             </label>
             <select
               value={paymentWith}
@@ -180,18 +148,18 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
               className={styles.selectionInput}
               disabled={isConfirmed}
             >
-              <option value="">اختر وسيلة الدفع</option>
-              <option value="InstaPay">InstaPay (انستا باي)</option>
-              <option value="Vodafone">Vodafone Cash (فودافون كاش)</option>
+              <option value="">{t('selectPaymentMethod')}</option>
+              <option value="InstaPay">{t('instaPay')}</option>
+              <option value="Vodafone">{t('vodafoneCash')}</option>
             </select>
           </div>
 
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              رقم المعاملة <span style={{ color: "red" }}>*</span>
+              {t('transactionId')} <span style={{ color: "red" }}>*</span>
             </label>
             <Input
-              placeholder="أدخل رقم المعاملة"
+              placeholder={t('transactionIdPlaceholder')}
               value={transactionId}
               onChange={(e) => setTransactionId(e.target.value)}
               className={styles.customInput}
@@ -201,7 +169,7 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
 
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              التاريخ <span style={{ color: "red" }}>*</span>
+              {t('date')} <span style={{ color: "red" }}>*</span>
             </label>
             <Input
               ref={dateInputRef}
@@ -213,19 +181,11 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
               disabled={isConfirmed}
               max={new Date().toISOString().split("T")[0]}
             />
-            {/* <DatePicker
-                            value={transactionDate}
-                            onChange={setTransactionDate}
-                            max={new Date().toISOString().split('T')[0]}
-                            disabled={isConfirmed}
-                            placeholder="اختر التاريخ"
-                            className={styles.customInput}
-                        /> */}
           </div>
 
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              صورة الإيصال <span style={{ color: "red" }}>*</span>
+              {t('receiptImage')} <span style={{ color: "red" }}>*</span>
             </label>
             <div className={styles.imageUploadContainer}>
               <input
@@ -249,16 +209,14 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
                     />
                     {!isConfirmed && (
                       <div className={styles.imageOverlay}>
-                        <span>اضغط لتغيير الصورة</span>
+                        <span>{t('changeImage')}</span>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className={styles.uploadPlaceholder}>
-                    <span>اضغط لرفع صورة الإيصال</span>
-                    <span className={styles.fileNote}>
-                      (PNG, JPG, JPEG - حجم أقصى 5MB)
-                    </span>
+                    <span>{t('uploadImage')}</span>
+                    <span className={styles.fileNote}>{t('imageNote')}</span>
                   </div>
                 )}
               </label>
@@ -276,82 +234,62 @@ const Form: React.FC<Form> = ({ Total, way, onDataChange }) => {
               className={styles.confirm}
               rounded={true}
             >
-              تأكيد العملية
+              {t('confirm')}
             </Button>
           ) : (
             <div className={styles.confirmedState}>
               <div className={styles.successMessage}>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>تم تأكيد بيانات الدفع بنجاح</span>
+                <span>{t('confirmed')}</span>
               </div>
-              <Button
-                variant="custom"
-                size="sm"
-                onClick={handleEdit}
-                className={styles.editBtn}
-              >
-                تعديل البيانات
+              <Button variant="custom" size="sm" onClick={handleEdit} className={styles.editBtn}>
+                {t('editData')}
               </Button>
             </div>
           )}
         </div>
 
-        <div className={styles.paymentInfo}>
-          <div className={styles.title}> معلومات التحويل</div>
+        <div className={styles.paymentInfo} style={{direction : isRTL ? 'rtl' : 'ltr' , textAlign : isRTL ? 'start' : 'end' }}>
+          <div className={styles.title}>{t('transferInfo.title')}</div>
           <div className={styles.infoGrid}>
             <div className={styles.infoSection}>
-              <div className={styles.infoSectionTitle}>
-                للدفع باستخدام محفظة فودافون كاش
-              </div>
+              <div className={styles.infoSectionTitle}>{t('vodafoneSection')}</div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>الرقم:</span>
+                <span className={styles.infoLabel}>{t('number')}</span>
                 <span className={styles.infoValue}>01023456789</span>
               </div>
             </div>
 
             <div className={styles.infoSection}>
-              <div className={styles.infoSectionTitle}>
-                للدفع باستخدام انستا باي
-              </div>
+              <div className={styles.infoSectionTitle}>{t('instaPaySection')}</div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>الرقم:</span>
+                <span className={styles.infoLabel}>{t('number')}</span>
                 <span className={styles.infoValue}>01023456789</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>حساب الدفع:</span>
+                <span className={styles.infoLabel}>{t('paymentAccount')}</span>
                 <span className={styles.infoValue}>atoz@instapay</span>
               </div>
             </div>
 
             <div className={styles.infoSection}>
-              <div className={styles.infoSectionTitle}>
-                للدفع باستخدام حساب بنكي
+              <div className={styles.infoSectionTitle}>{t('bankSection')}</div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>{t('beneficiaryName')}</span>
+                <span className={styles.infoValue}>{t('transferInfo.CompanyName')}</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>اسم المستفيد:</span>
-                <span className={styles.infoValue}>
-                  شركة التجارة الإلكترونية
-                </span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>رقم الحساب:</span>
+                <span className={styles.infoLabel}>{t('accountNumber')}</span>
                 <span className={styles.infoValue}>1234567890123456</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>البنك:</span>
-                <span className={styles.infoValue}>البنك الأهلي المصري</span>
+                <span className={styles.infoLabel}>{t('bank')}</span>
+                <span className={styles.infoValue}>{t('transferInfo.BankName')}</span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>كود SWIFT:</span>
+                <span className={styles.infoLabel}>{t('swiftCode')}</span>
                 <span className={styles.infoValue}>NBEGEGCX</span>
               </div>
             </div>
