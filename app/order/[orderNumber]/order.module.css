@@ -28,7 +28,7 @@
     font-size: 24px;
     font-weight: 600;
     color: var(--black87);
-    text-align: flex-start;
+    /* text-align: flex-start; */
     margin-bottom: 16px;
     direction: rtl;
     font-family: var(--font-primary);

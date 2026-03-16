@@ -27,6 +27,7 @@
     "motion": "^12.23.12",
     "next": "15.4.8",
     "next-auth": "^4.24.11",
+    "next-intl": "^4.8.3",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react": "19.1.2",

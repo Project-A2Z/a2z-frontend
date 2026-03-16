@@ -124,6 +124,7 @@
   /* background-color: aquamarine; */
   padding-bottom: 1rem;
   max-height: fit-content;
+  text-align: center;
 }
 
 .unavailableText{

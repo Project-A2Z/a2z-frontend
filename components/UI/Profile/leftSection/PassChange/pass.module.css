@@ -39,7 +39,7 @@
   color: var(--black87);
   text-align: flex-start;
   margin-bottom: 2rem;
-  direction: rtl;
+  /* direction: rtl; */
   font-family: var(--font-primary);
 }
 
@@ -79,7 +79,7 @@
   font-size: 0.875rem;
   margin-top: 0.25rem;
   margin-right: 1rem;
-  direction: rtl;
+  /* direction: rtl; */
   opacity: 0;
   animation: fadeIn 0.3s ease forwards;
 }

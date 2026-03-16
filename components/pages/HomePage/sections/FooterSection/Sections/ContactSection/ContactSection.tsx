@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Phone, Mail, MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ContactItem {
   type: "phone" | "email" | "address";
@@ -12,6 +13,8 @@ interface ContactInfoProps {
 }
 
 const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
+  const t = useTranslations('footer.contact');
+
   const defaultContacts: ContactItem[] = [
     { type: "phone", value: "+20 12 20612372" },
     { type: "address", value: "كوبرى القبة - القاهرة مصر" },
@@ -28,14 +31,10 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
 
   const getLink = (type: string, value: string): string => {
     switch (type) {
-      case "phone":
-        return `tel:${value.replace(/\s/g, "")}`;
-      case "email":
-        return `https://mail.google.com/mail/?view=cm&fs=1&to=${value.trim()}`;
-      case "address":
-        return `https://maps.app.goo.gl/41u4Vh6848gD8ybs5`;
-      default:
-        return "#";
+      case "phone": return `tel:${value.replace(/\s/g, "")}`;
+      case "email": return `https://mail.google.com/mail/?view=cm&fs=1&to=${value.trim()}`;
+      case "address": return `https://maps.app.goo.gl/41u4Vh6848gD8ybs5`;
+      default: return "#";
     }
   };
 
@@ -49,7 +48,7 @@ const ContactInfo: React.FC<ContactInfoProps> = ({ contacts }) => {
   return (
     <div className="w-full sm:w-[80%] md:w-[60%] lg:w-[23%] min-h-0">
       <h3 className="font-beiruti font-semibold text-base sm:text-xl md:text-2xl leading-none tracking-normal text-secondary1 text-right">
-        تواصل معنا
+        {t('title')}
       </h3>
       <div className="text-left w-full mt-3 grid grid-cols-2 gap-x-4 gap-y-2 md:flex md:flex-col md:gap-y-3">
         {finalContacts.map((item, index) => (

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { getLocale } from '@/services/api/language';
 
 // Components
 import { Button } from '@/components/UI/Buttons/Button';
@@ -11,7 +13,7 @@ import Alert, { AlertButton } from '@/components/UI/Alert/alert';
 import styles from '@/components/UI/Profile/leftSection/Information/info.module.css';
 
 // Services
-import { UpdateProfileData , updateUserProfile} from '@/services/profile/profile';
+import { UpdateProfileData, updateUserProfile } from '@/services/profile/profile';
 
 // Icons
 const EditIcon = () => (
@@ -55,19 +57,21 @@ interface InfoDetailsProps {
   phone: string;
 }
 
-const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email , phone}) => {
+const AccountForm: React.FC<InfoDetailsProps> = ({ firstName, lastName, email, phone }) => {
+  const t = useTranslations('profile.left');
+  const isRtl = getLocale() === 'ar';
+
   const [formData, setFormData] = useState<FormData>({
-    firstName: firstName ||'',
-    lastName: lastName||'',
-    email: email ||'',
-    phone: phone ||'',
+    firstName: firstName || '',
+    lastName: lastName || '',
+    email: email || '',
+    phone: phone || '',
   });
 
-  const [edit , setEdit] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
-  // Alert state
   const [alertConfig, setAlertConfig] = useState<{
     show: boolean;
     message: string;
@@ -77,11 +81,11 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
     show: false,
     message: '',
     type: 'info',
-    buttons: []
+    buttons: [],
   });
 
   const showAlert = (
-    message: string, 
+    message: string,
     type: 'warning' | 'error' | 'info' | 'success' = 'info',
     buttons?: AlertButton[]
   ) => {
@@ -91,59 +95,39 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
       type,
       buttons: buttons || [
         {
-          label: 'حسناً',
+          label: t('accountForm.alerts.ok'),
           onClick: () => setAlertConfig(prev => ({ ...prev, show: false })),
-          variant: 'primary'
-        }
-      ]
+          variant: 'primary',
+        },
+      ],
     });
   };
 
-  const handleInputChange = (field: keyof FormData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-    
-    // Clear error when user starts typing
+  const handleInputChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'الاسم الأول مطلوب';
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'الاسم الأخير مطلوب';
-    }
+    if (!formData.firstName.trim()) newErrors.firstName = t('accountForm.fields.firstName.required');
+    if (!formData.lastName.trim())  newErrors.lastName  = t('accountForm.fields.lastName.required');
 
     if (!formData.email.trim()) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email = t('accountForm.fields.email.required');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'يرجى إدخال بريد إلكتروني صحيح';
+      newErrors.email = t('accountForm.fields.email.invalid');
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'رقم الهاتف مطلوب';
+      newErrors.phone = t('accountForm.fields.phone.required');
     } else {
-      // Remove all non-digit characters except the + sign
       const cleanPhone = formData.phone.replace(/[^\d+]/g, '');
-      
-      // Check if phone starts with +201 or 01 and has appropriate length
-      const isValidFormat = /^(\+201|01)\d{9}$/.test(cleanPhone);
-      
-      if (!isValidFormat) {
-        newErrors.phone = 'يرجى إدخال رقم هاتف صحيح (يجب أن يبدأ برقم 01 أو +201)';
+      if (!/^(\+201|01)\d{9}$/.test(cleanPhone)) {
+        newErrors.phone = t('accountForm.fields.phone.invalid');
       }
     }
 
@@ -153,42 +137,27 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
-    
     try {
-      let payload: UpdateProfileData = {
+      const payload: UpdateProfileData = {
         firstName: formData.firstName,
-        lastName: formData.lastName,  
-        // email: formData.email,
+        lastName: formData.lastName,
         phoneNumber: formData.phone,
       };
-      
       await updateUserProfile(payload);
-      
-      //console.log('Form submitted:', formData);
-      showAlert('تم تحديث بيانات الحساب بنجاح!', 'success');
+      showAlert(t('accountForm.alerts.success'), 'success');
       setEdit(false);
-    } catch (error) {
-      //console.error('Error submitting form:', error);
-      showAlert('فشل تحديث بيانات الحساب. يرجى المحاولة مرة أخرى.', 'error');
+    } catch {
+      showAlert(t('accountForm.alerts.error'), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleIconClick = (field: string) => {
-    //console.log(`Icon clicked for ${field}`);
-    // Add any icon click logic here
-  };
-
   return (
     <>
-      {/* Custom Alert */}
       {alertConfig.show && (
         <Alert
           message={alertConfig.message}
@@ -198,123 +167,105 @@ const AccountForm: React.FC<InfoDetailsProps> = ({firstName , lastName , email ,
         />
       )}
 
-      <div className={styles.container_form}>
+      <div className={styles.container_form} style={{direction: isRtl ? 'rtl' : 'ltr'}}>
         <div className={styles.formCard}>
-          <h1 className={styles.title}>تفاصيل الحساب</h1>
-          
-          <form  className={styles.form}>
+          <h1 className={styles.title} style={{textAlign: isRtl ? 'right' : 'left'}}>{t('accountForm.title')}</h1>
+
+          <form className={styles.form}>
             <div className={styles.inputGroup}>
               <Input
                 type="text"
-                placeholder="الاسم الأول"
+                placeholder={t('accountForm.fields.firstName.placeholder')}
                 value={formData.firstName}
                 onChange={handleInputChange('firstName')}
                 icon={<UserIcon />}
-                onIconClick={() => handleIconClick('firstName')}
                 error={!!errors.firstName}
                 readOnly={!edit}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.firstName && (
-                <span className={styles.errorText}>{errors.firstName}</span>
-              )}
+              {errors.firstName && <span className={styles.errorText}>{errors.firstName}</span>}
             </div>
 
             <div className={styles.inputGroup}>
               <Input
                 type="text"
-                placeholder="الاسم الأخير"
+                placeholder={t('accountForm.fields.lastName.placeholder')}
                 value={formData.lastName}
                 onChange={handleInputChange('lastName')}
                 icon={<UserIcon />}
-                onIconClick={() => handleIconClick('lastName')}
                 error={!!errors.lastName}
                 readOnly={!edit}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.lastName && (
-                <span className={styles.errorText}>{errors.lastName}</span>
-              )}
+              {errors.lastName && <span className={styles.errorText}>{errors.lastName}</span>}
             </div>
 
             <div className={styles.inputGroup}>
               <Input
                 type="email"
-                placeholder="البريد الإليكتروني"
+                placeholder={t('accountForm.fields.email.placeholder')}
                 value={formData.email}
                 onChange={handleInputChange('email')}
                 icon={<MailIcon />}
-                onIconClick={() => handleIconClick('email')}
                 error={!!errors.email}
                 readOnly={!edit}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.email && (
-                <span className={styles.errorText}>{errors.email}</span>
-              )}
+              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
             </div>
 
             <div className={styles.inputGroup}>
               <Input
                 type="tel"
-                placeholder="رقم الهاتف"
+                placeholder={t('accountForm.fields.phone.placeholder')}
                 value={formData.phone}
                 onChange={handleInputChange('phone')}
                 icon={<PhoneIcon />}
-                onIconClick={() => handleIconClick('phone')}
                 error={!!errors.phone}
                 readOnly={!edit}
                 className={styles.input}
+                style={{textAlign: isRtl ? 'right' : 'left'}}
               />
-              {errors.phone && (
-                <span className={styles.errorText}>{errors.phone}</span>
-              )}
+              {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
             </div>
 
             <div className={styles.buttonGroup}>
               {edit ? (
-                  <>
-                      <Button
-                          type="button"
-                          variant="primary"
-                          size="lg"
-                          state={isLoading ? 'loading' : 'default'}
-                          loadingText="جاري التحديث..."
-                          leftIcon={<EditIcon />}
-                          fullWidth
-                          className={styles.submitButton}
-                          rounded ={true}
-                          onClick={(e) => {
-                              e.preventDefault();
-                              if (validateForm()) {
-                                  handleSubmit(e);
-                              }
-                          }}
-                          >
-                          حفظ 
-                      </Button>
-                  </>
-                 ) : ( 
-                  <>
-                      <Button
-                          type="button"
-                          variant="primary"
-                          size="lg"
-                          state={isLoading ? 'loading' : 'default'}
-                          loadingText="جاري التحديث..."
-                          leftIcon={<EditIcon />}
-                          fullWidth
-                          className={styles.submitButton}
-                          rounded ={true}
-                          onClick={(e) => {
-                              e.preventDefault();
-                              setEdit(true);
-                          }}
-                          >
-                          تعديل البيانات
-                      </Button>
-                  </>
-                   )}
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  state={isLoading ? 'loading' : 'default'}
+                  loadingText={t('accountForm.buttons.loading')}
+                  leftIcon={<EditIcon />}
+                  fullWidth
+                  className={styles.submitButton}
+                  rounded={true}
+                  onClick={e => { e.preventDefault(); if (validateForm()) handleSubmit(e); }}
+                  // style={{textAlign: isRtl ? 'right' : 'left'}}
+                >
+                  {t('accountForm.buttons.save')}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  state={isLoading ? 'loading' : 'default'}
+                  loadingText={t('accountForm.buttons.loading')}
+                  leftIcon={<EditIcon />}
+                  fullWidth
+                  className={styles.submitButton}
+                  rounded={true}
+                  onClick={e => { e.preventDefault(); setEdit(true); }}
+                  // style={{textAlign: isRtl ? 'right' : 'left'}}
+                >
+                  {t('accountForm.buttons.edit')}
+                </Button>
+              )}
             </div>
           </form>
         </div>

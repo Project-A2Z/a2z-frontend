@@ -2,14 +2,14 @@
 import Card from '@/components/UI/Card/Card';
 import styles from '@/components/UI/Product/ProductSlider.module.css';
 import { Product } from '@/services/product/products';
+import {useTranslations} from 'next-intl';
 
 interface ProductSliderProps {
   products: Product[];
   title?: string;
   isLoading?: boolean;
   error?: string | null;
-  // NEW: variant state passed down from OptimizedProductSection
-  selectedVariants?: Record<string, string>;   // productId → variantId
+  selectedVariants?: Record<string, string>;     
   onVariantSelect?: (productId: string | number, variantId: string) => void;
 }
 
@@ -21,6 +21,8 @@ function ProductSlider({
   selectedVariants = {},
   onVariantSelect,
 }: ProductSliderProps) {
+
+  const t = useTranslations("products");
 
   if (isLoading) {
     return (
@@ -49,7 +51,7 @@ function ProductSlider({
         <div className={styles.errorContainer}>
           <div className={styles.errorIcon}>⚠️</div>
           <p className={styles.errorMessage}>{error}</p>
-          <p className={styles.errorSubtext}>حدث خطأ في تحميل المنتجات</p>
+          <p className={styles.errorSubtext}>{t('error')}</p>
         </div>
       </div>
     );
@@ -60,8 +62,8 @@ function ProductSlider({
       <div className={styles.sliderContainer}>
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>📦</div>
-          <h3 className={styles.emptyTitle}>لا توجد منتجات</h3>
-          <p className={styles.emptyMessage}>لم يتم العثور على أي منتجات تطابق معايير البحث</p>
+          <h3 className={styles.emptyTitle}>{t('empty')}</h3>
+          <p className={styles.emptyMessage}>{t('emptyQuery')}</p>
         </div>
       </div>
     );
@@ -74,7 +76,7 @@ function ProductSlider({
   };
 
   const getProductName = (product: Product): string => {
-    return product.nameAr || product.name || 'منتج غير محدد';
+    return product.nameAr || product.name || t('unpredictable');
   };
 
   return (
@@ -106,7 +108,7 @@ function ProductSlider({
                   productId={productIdStr}
                   productImg={getProductImage(product)}
                   productName={getProductName(product)}
-                  productCategory={product.category || 'غير محدد'}
+                  productCategory={product.category || t('unpredictable')}
                   productPrice={effectivePrice.toString()}
                   available={effectiveStock}
                   originalPrice={product.originalPrice?.toString()}

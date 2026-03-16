@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from"next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import styles from "./Header.module.css";
 import "./../../../app/globals.css";
+import { useTranslations } from "next-intl";
 
 // Import your authentication service
 import {
@@ -71,16 +72,15 @@ interface HeaderProps {
   dataSearch?: any[];
 }
 
-// ─── Navigation tabs definition ────────────────────────────────────────────────
-const NAV_TABS = [
-  { id: "home", label: "الرئيسية", href: "/" },
-  // { id: "services", label: "الخدمات", href: "/#services" },
-  { id: "products", label: "المنتجات", href: "/#products" },
-  { id: "about", label: "من نحن", href: "/about" },
-  { id: "contact", label: "تواصل معنا", href: "#footer" },
+// ─── Static nav tab IDs and hrefs (labels are translated inside component) ────
+const NAV_TAB_DEFS = [
+  { id: "home",     href: "/" },
+  { id: "products", href: "/#products" },
+  { id: "about",    href: "/about" },
+  { id: "contact",  href: "#footer" },
 ] as const;
 
-type TabId = (typeof NAV_TABS)[number]["id"];
+type TabId = (typeof NAV_TAB_DEFS)[number]["id"];
 
 function Header({
   className = "",
@@ -93,6 +93,14 @@ function Header({
   const router = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const t = useTranslations("Header");
+
+ 
+ // ─── Build translated nav tabs inside the component ──────────────────────────
+const NAV_TABS = useMemo(
+  () => NAV_TAB_DEFS.map((tab) => ({ ...tab, label: t(`header.nav.${tab.id}`) })),
+  [t]
+);
 
   // ─── User state ──────────────────────────────────────────────────────────────
   const [user, setUser] = useState<User | null>(null);
@@ -115,25 +123,26 @@ function Header({
   // Derive active tab from current pathname
   useEffect(() => {
     if (pathname === "/") setActiveTab("home");
-    // else if (pathname?.startsWith("/services")) setActiveTab("services");
     else if (pathname?.startsWith("/products")) setActiveTab("products");
     else if (pathname?.startsWith("/about")) setActiveTab("about");
   }, [pathname]);
 
   // Update sliding indicator position whenever activeTab or window size changes
-  const updateIndicator = useCallback(() => {
-    const activeIndex = NAV_TABS.findIndex((t) => t.id === activeTab);
-    const el = tabRefs.current[activeIndex];
-    const nav = navRef.current;
-    if (!el || !nav) return;
+ const updateIndicator = useCallback(() => {
+  const activeIndex = NAV_TAB_DEFS.findIndex((tab) => tab.id === activeTab);
+  const el = tabRefs.current[activeIndex];
+  const nav = navRef.current;
 
-    const navRect = nav.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    setIndicatorStyle({
-      width: elRect.width,
-      left: elRect.left - navRect.left,
-    });
-  }, [activeTab]);
+  if (!el || !nav) return;
+
+  const navRect = nav.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+
+  setIndicatorStyle({
+    width: elRect.width,
+    left: elRect.left - navRect.left,
+  });
+}, [activeTab]);
 
   useEffect(() => {
     updateIndicator();
@@ -145,25 +154,16 @@ function Header({
   const handleTabClick = (tab: (typeof NAV_TABS)[number]) => {
     setActiveTab(tab.id);
 
-    // "تواصل معنا" → scroll to footer
     if (tab.id === "contact") {
-      const footer = document.querySelector("footer");
-      if (footer) {
-        footer.scrollIntoView({ behavior: "smooth" });
-      }
+      document.querySelector("footer")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
 
-    // Hash links (products, services, about) → navigate then scroll
     if (tab.href.startsWith("/#")) {
-      const sectionId = tab.href.slice(2); // e.g. "products"
+      const sectionId = tab.href.slice(2);
       if (pathname === "/") {
-        // Already on homepage — just scroll
-        document
-          .getElementById(sectionId)
-          ?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
       } else {
-        // Navigate to homepage first; scroll happens via hash
         router.push(tab.href);
       }
       return;
@@ -172,7 +172,7 @@ function Header({
     router.push(tab.href);
   };
 
-  // ─── Auth effects (unchanged from original) ──────────────────────────────────
+  // ─── Auth effects ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const handleSocialAuth = async () => {
       if (session?.backendToken && session?.user?.backendUser) {
@@ -193,11 +193,8 @@ function Header({
     const loadUserData = () => {
       try {
         setIsLoading(true);
-        if (isUserAuthenticated()) {
-          setUser(getCurrentUser());
-        } else {
-          setUser(null);
-        }
+        if (isUserAuthenticated()) setUser(getCurrentUser());
+        else setUser(null);
       } catch {
         setUser(null);
       } finally {
@@ -233,14 +230,9 @@ function Header({
     };
     if (user) {
       fetchUnreadCount();
-      intervalId = setInterval(() => {
-        if (isMounted) fetchUnreadCount();
-      }, 300000);
+      intervalId = setInterval(() => { if (isMounted) fetchUnreadCount(); }, 300000);
     }
-    return () => {
-      isMounted = false;
-      if (intervalId) clearInterval(intervalId);
-    };
+    return () => { isMounted = false; if (intervalId) clearInterval(intervalId); };
   }, [user]);
 
   useEffect(() => {
@@ -255,16 +247,11 @@ function Header({
     };
     if (user) {
       fetchCartCount();
-      intervalId = setInterval(() => {
-        if (isMounted) fetchCartCount();
-      }, 300000);
+      intervalId = setInterval(() => { if (isMounted) fetchCartCount(); }, 300000);
     } else {
       setCartCount(0);
     }
-    return () => {
-      isMounted = false;
-      if (intervalId) clearInterval(intervalId);
-    };
+    return () => { isMounted = false; if (intervalId) clearInterval(intervalId); };
   }, [user]);
 
   useEffect(() => {
@@ -274,18 +261,13 @@ function Header({
         else setUser(null);
       }
     };
-    const handleTokenExpiry = () => {
-      setUser(null);
-      router.push("/login");
-    };
+    const handleTokenExpiry = () => { setUser(null); router.push("/login"); };
     const handleAuthUpdate = () => {
       if (isUserAuthenticated()) setUser(getCurrentUser());
       else setUser(null);
     };
     const handleCartUpdate = async () => {
-      try {
-        setCartCount(await cartService.getCartItemCount());
-      } catch {}
+      try { setCartCount(await cartService.getCartItemCount()); } catch {}
     };
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("tokenExpired", handleTokenExpiry);
@@ -309,28 +291,20 @@ function Header({
     `${firstName} ${lastName}`.trim();
 
   const handleLogin = () => router.push("/login");
-  const handleChat = () => {
-    setChat(!chat);
-    setOpen(!open);
-  };
+  const handleChat = () => { setChat(!chat); setOpen(!open); };
   const handleNotificationClick = () => setIsNotificationsOpen(true);
   const handleNotificationsClose = () => {
     setIsNotificationsOpen(false);
-    if (user)
-      getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
+    if (user) getUnreadNotificationsCount().then(setUnreadCount).catch(console.error);
   };
   const handleSearchClick = () => setIsSearchModalOpen(true);
 
   const getVariantClass = () => {
     switch (variant) {
-      case "auth":
-        return styles.headerAuth;
-      case "minimal":
-        return styles.headerMinimal;
-      case "transparent":
-        return styles.headerTransparent;
-      default:
-        return "";
+      case "auth":        return styles.headerAuth;
+      case "minimal":     return styles.headerMinimal;
+      case "transparent": return styles.headerTransparent;
+      default:            return "";
     }
   };
 
@@ -345,7 +319,7 @@ function Header({
         <header className={styles.header}>
           <div className={styles.left}>
             <Link href="/" className={styles.logoLink}>
-              <img src="/icons/logo.svg" alt="Logo" className={styles.logo} />
+              <img src="/icons/logo.svg" alt={t("header.logo.alt")} className={styles.logo} />
             </Link>
           </div>
           {showSearch && (
@@ -355,11 +329,10 @@ function Header({
           )}
           <div className={styles.right}>
             <div className={styles.loadingSpinner}>
-              <span>...</span>
+              <span>{t("loading.indicator")}</span>
             </div>
           </div>
         </header>
-        {/* Skeleton nav */}
         <div className={styles.subNav} aria-hidden="true" />
       </div>
     );
@@ -375,12 +348,10 @@ function Header({
         <header className={styles.header}>
           <div className={styles.left}>
             <Link href="/" className={styles.logoLink}>
-              <img src={Logo.src} alt="Logo" className={styles.logo} />
+              <img src={Logo.src} alt={t("header.logo.alt")} className={styles.logo} />
             </Link>
-            {/* <LanguageSelector /> */}
+            <LanguageSelector />
           </div>
-
-          
 
           {showSearch && (
             <div className={styles.mid}>
@@ -394,7 +365,7 @@ function Header({
                 <button
                   onClick={handleSearchClick}
                   className={styles.searchIconBtn}
-                  aria-label="البحث"
+                  aria-label={t("accessibility.searchButton")}
                 >
                   <SearchIcon className={styles.searchIcon} />
                 </button>
@@ -413,12 +384,16 @@ function Header({
                         onClick={handleNotificationClick}
                       >
                         <Notification className={styles.icon} />
-                        <span className={styles.navText}>الإشعارات</span>
+                        <span className={styles.navText}>
+                          {t("header.actions.notifications")}
+                        </span>
                       </div>
 
                       <Link href="/favorites" className={styles.navLink}>
                         <Heart className={styles.icon} />
-                        <span className={styles.navText}>المفضلة</span>
+                        <span className={styles.navText}>
+                          {t("header.actions.favorites")}
+                        </span>
                       </Link>
 
                       <Link
@@ -428,7 +403,9 @@ function Header({
                         }`}
                       >
                         <Cart className={styles.icon} />
-                        <span className={styles.navText}>عربة التسوق</span>
+                        <span className={styles.navText}>
+                          {t("header.actions.cart")}
+                        </span>
                       </Link>
                     </nav>
 
@@ -437,15 +414,12 @@ function Header({
                         <div
                           className={styles.avatar}
                           onClick={() => router.push("/profile")}
-                          title={getUserDisplayName(
-                            user.firstName,
-                            user.lastName,
-                          )}
+                          title={getUserDisplayName(user.firstName, user.lastName)}
                         >
                           {user.image ? (
                             <Image
                               src={user.image}
-                              alt="User Avatar"
+                              alt={t("accessibility.userAvatar")}
                               width={40}
                               height={40}
                               className={styles.avatarImage}
@@ -467,7 +441,7 @@ function Header({
                     className={styles.loginButton}
                     rounded={true}
                   >
-                    تسجيل الدخول
+                    {t("header.actions.login")}
                   </Button>
                 )}
               </>
@@ -480,9 +454,7 @@ function Header({
           {NAV_TABS.map((tab, index) => (
             <button
               key={tab.id}
-              ref={(el) => {
-                if (el) tabRefs.current[index] = el;
-              }}
+              ref={(el) => { if (el) tabRefs.current[index] = el; }}
               onClick={() => handleTabClick(tab)}
               className={`${styles.subNavItem} ${
                 activeTab === tab.id ? styles.subNavItemActive : ""
@@ -509,13 +481,13 @@ function Header({
           {chat ? (
             <MessIcon
               onClick={handleChat}
-              aria-label="فتح الدردشة"
+              aria-label={t("header.chat.open")}
               className={styles.MessageCircle}
             />
           ) : (
             <MessageCircle
               onClick={handleChat}
-              aria-label="فتح الدردشة"
+              aria-label={t("header.chat.open")}
               className={styles.MessageCircle}
             />
           )}
@@ -527,41 +499,47 @@ function Header({
                   <button
                     onClick={handleSearchClick}
                     className={styles.bottomNavItem}
-                    aria-label="البحث"
+                    aria-label={t("accessibility.searchButton")}
                   >
                     <SearchIcon className={styles.bottomNavIcon} />
-                    <span className={styles.bottomNavText}>البحث</span>
+                    <span className={styles.bottomNavText}>
+                      {t("header.bottomNav.search")}
+                    </span>
                   </button>
                 )}
 
                 <button
                   onClick={handleNotificationClick}
                   className={styles.bottomNavItem}
-                  aria-label="الإشعارات"
+                  aria-label={t("accessibility.notifications")}
                 >
                   <Notification className={styles.bottomNavIcon} />
-                  <span className={styles.bottomNavText}>الإشعارات</span>
-                  {unreadCount > 0 && (
-                    <span className={styles.bottomNavBadge} />
-                  )}
+                  <span className={styles.bottomNavText}>
+                    {t("header.bottomNav.notifications")}
+                  </span>
+                  {unreadCount > 0 && <span className={styles.bottomNavBadge} />}
                 </button>
 
                 <Link
                   href="/favorites"
                   className={styles.bottomNavItem}
-                  aria-label="المفضلة"
+                  aria-label={t("accessibility.favorites")}
                 >
                   <Heart className={styles.bottomNavIcon} />
-                  <span className={styles.bottomNavText}>المفضلة</span>
+                  <span className={styles.bottomNavText}>
+                    {t("header.bottomNav.favorites")}
+                  </span>
                 </Link>
 
                 <Link
                   href="/cart"
                   className={styles.bottomNavItem}
-                  aria-label="السلة"
+                  aria-label={t("accessibility.cart")}
                 >
                   <Cart className={styles.bottomNavIcon} />
-                  <span className={styles.bottomNavText}>السلة</span>
+                  <span className={styles.bottomNavText}>
+                    {t("header.bottomNav.cart")}
+                  </span>
                   {cartCount > 0 && <span className={styles.bottomNavBadge} />}
                 </Link>
               </>
@@ -577,11 +555,11 @@ function Header({
               />
               <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <div className="bg-primary text-white p-4 text-center relative">
-                  <h2 className="text-lg font-bold">للشكاوى والاستفسارات</h2>
+                  <h2 className="text-lg font-bold">{t("contactModal.title")}</h2>
                   <button
                     onClick={() => setOpen(false)}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
-                    aria-label="إغلاق"
+                    aria-label={t("accessibility.closeModal")}
                   >
                     ✕
                   </button>
@@ -590,18 +568,16 @@ function Header({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input
                       type="text"
-                      placeholder="الاسم"
+                      placeholder={t("contactModal.fields.name")}
                       defaultValue={
-                        user
-                          ? getUserDisplayName(user.firstName, user.lastName)
-                          : ""
+                        user ? getUserDisplayName(user.firstName, user.lastName) : ""
                       }
                       className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       required
                     />
                     <input
                       type="tel"
-                      placeholder="رقم الهاتف"
+                      placeholder={t("contactModal.fields.phone")}
                       defaultValue={user?.phoneNumber || ""}
                       className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       required
@@ -609,14 +585,14 @@ function Header({
                   </div>
                   <input
                     type="email"
-                    placeholder="البريد الإلكتروني"
+                    placeholder={t("contactModal.fields.email")}
                     defaultValue={user?.email || ""}
                     className="w-full rounded-full border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     required
                   />
                   <textarea
                     rows={4}
-                    placeholder="اكتب الشكوى أو الاستفسار لنتمكن من تقديم المساعدة"
+                    placeholder={t("contactModal.fields.message")}
                     className="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
                     required
                   />
@@ -625,7 +601,7 @@ function Header({
                       type="submit"
                       className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-full transition-colors"
                     >
-                      إرسال
+                      {t("contactModal.submit")}
                     </button>
                   </div>
                 </form>

@@ -1,6 +1,7 @@
 // services/product/categories.ts - Category service with smart caching
 
 import { Api, API_ENDPOINTS } from './../api/endpoints';
+import { getLangQueryParam } from '../api/language';
 
 export interface Category {
   id: string;
@@ -27,6 +28,18 @@ interface CategoryCache {
   timestamp: number;
 }
 
+// ============================================
+// LOCALE HELPER
+// ============================================
+
+export type Locale = 'ar' | 'en';
+
+const getLocale = (): Locale => {
+  if (typeof document === 'undefined') return 'ar'; // SSR fallback
+  const match = document.cookie.match(/(?:^|; )locale=([^;]*)/);
+  return (match?.[1] as Locale) ?? 'ar';
+};
+
 // Global cache per language
 const categoriesCacheMap: Record<string, CategoryCache> = {};
 let isLoadingCategories = false;
@@ -48,18 +61,21 @@ const getRequestConfig = (revalidate: number = 60) => ({
   },
 });
 
-// Build URL with optional lang param
-const buildCategoryUrl = (lang?: 'ar' | 'en'): string => {
-  const base = `${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}`;
-  return lang ? `${base}?lang=${lang}` : base;
+// 🌐 Build URL using getLangQueryParam
+const buildCategoryUrl = (lang: Locale): string => {
+  const langParam = getLangQueryParam(lang);
+  return `${Api}${API_ENDPOINTS.PRODUCTS.CATEGORY}${langParam}`;
 };
 
 // ============================================
 // FETCH ALL CATEGORIES WITH CACHING
 // ============================================
-export const fetchCategories = async (lang?: 'ar' | 'en'): Promise<string[]> => {
+
+// lang is now optional — falls back to locale cookie when omitted
+export const fetchCategories = async (lang?: Locale): Promise<string[]> => {
   const now = Date.now();
-  const cacheKey = lang ?? 'default';
+  const resolvedLang: Locale = lang ?? getLocale();
+  const cacheKey = resolvedLang;
   const cachedEntry = categoriesCacheMap[cacheKey];
 
   // Return cached data if available and not expired
@@ -83,10 +99,8 @@ export const fetchCategories = async (lang?: 'ar' | 'en'): Promise<string[]> => 
   isLoadingCategories = true;
   lastCategoryRequestTime = now;
 
-  const url = buildCategoryUrl(lang);
-
-  const doFetch = () =>
-    fetch(url, { method: 'GET', ...getRequestConfig() });
+  const url = buildCategoryUrl(resolvedLang);
+  const doFetch = () => fetch(url, { method: 'GET', ...getRequestConfig() });
 
   try {
     let response = await doFetch();
@@ -151,7 +165,7 @@ export const fetchCategories = async (lang?: 'ar' | 'en'): Promise<string[]> => 
 // ============================================
 // CLEAR CATEGORIES CACHE
 // ============================================
-export const clearCategoriesCache = (lang?: 'ar' | 'en') => {
+export const clearCategoriesCache = (lang?: Locale) => {
   if (lang) {
     delete categoriesCacheMap[lang];
   } else {
@@ -162,8 +176,8 @@ export const clearCategoriesCache = (lang?: 'ar' | 'en') => {
 // ============================================
 // GET CACHE INFO
 // ============================================
-export const getCategoriesCacheInfo = (lang?: 'ar' | 'en') => {
-  const cacheKey = lang ?? 'default';
+export const getCategoriesCacheInfo = (lang?: Locale) => {
+  const cacheKey = lang ?? getLocale();
   const entry = categoriesCacheMap[cacheKey];
   return {
     hasCache: !!entry,

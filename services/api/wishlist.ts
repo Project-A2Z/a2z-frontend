@@ -1,5 +1,6 @@
 import apiClient from './client';
 import { UserStorage } from '../auth/login';
+import { getLocale, getLangQueryParam } from '../api/language';
 
 export interface WishItemResponse {
   _id: string;
@@ -80,7 +81,7 @@ if (typeof window !== 'undefined') {
     const token = localStorage.getItem('auth_token');
     const user = userData ? JSON.parse(userData) : null;
 
-    //console.log('🔍 Auth Debug:', {
+    ////console.log('🔍 Auth Debug:', {
     //   user: user ? { id: user._id, email: user.email } : null,
     //   token: token ? token.substring(0, 50) + '...' : null,
     //   hasToken: !!token,
@@ -95,8 +96,11 @@ const wishlistCache = new ClientCache<WishlistResponse>();
 
 // Cache key for wishlist
 function getWishlistCacheKey(params?: Record<string, any>): string {
+   const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+    // const url = buildUrl(`${Api}/cart${langQuery}`);
   const query = params ? new URLSearchParams(params).toString() : '';
-  return `wishlist${query ? `?${query}` : ""}`;
+  return `wishlist${query ? `?${query}` : ""}${langQuery}`;
 }
 
 // Authentication helper functions
@@ -214,6 +218,9 @@ export const wishlistService = {
   },
 
   async add(productId: string) {
+     const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+    // const url = buildUrl(`${Api}/cart${langQuery}`);
     try {
       const auth = checkAuthentication();
 
@@ -222,7 +229,7 @@ export const wishlistService = {
       }
 
       try {
-        const res = await apiClient.post('/wish-items/', { productId });
+        const res = await apiClient.post(`/wish-items/${ productId }${langQuery}`);
         wishlistCache.clear();
         
         // Handle successful response
@@ -318,6 +325,8 @@ export const wishlistService = {
   },
 
   async remove(productId: string) {
+      const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
     try {
       const auth = checkAuthentication();
 
@@ -326,7 +335,7 @@ export const wishlistService = {
       }
 
       try {
-        const res = await apiClient.delete(`/wish-items/${productId}`);
+        const res = await apiClient.delete(`/wish-items/${productId}${langQuery}`);
         wishlistCache.clear();
         
         // Handle successful response
@@ -437,7 +446,7 @@ export const wishlistService = {
   // Method to clear wishlist cache
   clearCache() {
     wishlistCache.clear();
-    //console.log('🧹 Wishlist cache cleared');
+    ////console.log('🧹 Wishlist cache cleared');
   },
 
   // Helper method to check if user is authenticated
@@ -467,11 +476,11 @@ if (typeof window !== 'undefined') {
       const token = UserStorage.getToken();
 
       if (!user || !token) {
-        //console.log('❌ Not authenticated');
+        ////console.log('❌ Not authenticated');
         return { authenticated: false };
       }
 
-      //console.log('🔍 Testing wishlist endpoints...');
+      ////console.log('🔍 Testing wishlist endpoints...');
       const axios = (await import('./client')).default;
 
       const results: any = {
@@ -481,10 +490,13 @@ if (typeof window !== 'undefined') {
         endpoints: {}
       };
 
+      const locale = getLocale();
+      const langQuery = getLangQueryParam(locale);
+
       // Test wish-items endpoints (based on documentation)
       try {
-        //console.log('🔍 Testing GET /wish-items/');
-        const getRes = await axios.get('/wish-items/');
+        ////console.log('🔍 Testing GET /wish-items/');
+        const getRes = await axios.get(`/wish-items${langQuery}`);
         results.endpoints.wish_items_get = { status: getRes.status, data: getRes.data };
       } catch (err: any) {
         const isNetworkError = !err.response && (err.request || err.message);
@@ -498,8 +510,8 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        //console.log('🔍 Testing POST /wish-items/');
-        const postRes = await axios.post('/wish-items/', { productId: 'test-123' });
+        ////console.log('🔍 Testing POST /wish-items/');
+        const postRes = await axios.post(`/wish-items${langQuery}`, { productId: 'test-123' });
         results.endpoints.wish_items_add = { status: postRes.status, data: postRes.data };
       } catch (err: any) {
         const isNetworkError = !err.response && (err.request || err.message);
@@ -514,8 +526,8 @@ if (typeof window !== 'undefined') {
 
       // Test old wishlist endpoints as fallback
       try {
-        //console.log('🔍 Testing GET /wishlist');
-        const getRes = await axios.get('/wishlist');
+        ////console.log('🔍 Testing GET /wishlist');
+        const getRes = await axios.get(`/wishlist${langQuery}`);
         results.endpoints.wishlist_get = { status: getRes.status, data: getRes.data };
       } catch (err: any) {
         if (err?.response?.status !== 404) {
@@ -526,8 +538,8 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        //console.log('🔍 Testing POST /wishlist/add');
-        const postRes = await axios.post('/wishlist/add', { productId: 'test-123' });
+        ////console.log('🔍 Testing POST /wishlist/add');
+        const postRes = await axios.post(`/wishlist/add${langQuery}`, { productId: 'test-123' });
         results.endpoints.wishlist_add = { status: postRes.status, data: postRes.data };
       } catch (err: any) {
         if (err?.response?.status !== 409 && err?.response?.status !== 404) {
@@ -538,8 +550,8 @@ if (typeof window !== 'undefined') {
       }
 
       try {
-        //console.log('🔍 Testing DELETE /wishlist/remove/test-123');
-        const deleteRes = await axios.delete('/wishlist/remove/test-123');
+        ////console.log('🔍 Testing DELETE /wishlist/remove/test-123');
+        const deleteRes = await axios.delete(`/wishlist/remove/test-123${langQuery}`);
         results.endpoints.wishlist_remove = { status: deleteRes.status, data: deleteRes.data };
       } catch (err: any) {
         if (err?.response?.status !== 404) {
@@ -549,7 +561,7 @@ if (typeof window !== 'undefined') {
         }
       }
 
-      //console.log('🔍 Debug results:', results);
+      ////console.log('🔍 Debug results:', results);
       return results;
     } catch (err) {
       console.error('❌ Debug failed:', err);
@@ -567,6 +579,6 @@ if (typeof window !== 'undefined') {
     import('./reviews').then(({ reviewService }) => reviewService.clearCache()).catch(() => {});
     import('./wishlist').then(({ wishlistService }) => wishlistService.clearCache()).catch(() => {});
 
-    //console.log('🧹 All favorites data cleared. Please refresh the page.');
+    ////console.log('🧹 All favorites data cleared. Please refresh the page.');
   };
 }

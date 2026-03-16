@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { fetchCategories } from '@/services/product/categories';
+import { useTranslations } from 'next-intl';
 
 //styles
 import styles from '@/components/UI/Product/Filter.module.css';
@@ -97,6 +98,8 @@ function Filter({
   initialLetter,
   disabled = false
 }: FilterProps) {
+  const t = useTranslations('products');
+
   // Detect current language
   const [currentLanguage, setCurrentLanguage] = useState<'ar' | 'en'>('ar');
 
@@ -108,14 +111,14 @@ function Filter({
   // 🔧 FIX: Use refs to prevent infinite loops
   const isInitialMount = useRef(true);
   const prevSelectedCategories = useRef<string[]>(propSelectedCategories || initialCategories || []);
-  const prevSelectedLetter = useRef<string>(propSelectedLetter || initialLetter || 'الكل');
+  const prevSelectedLetter = useRef<string>(propSelectedLetter || initialLetter || t('all'));
 
   // Internal state - only use when props are not controlled
   const [internalSelectedCategories, setInternalSelectedCategories] = useState<string[]>(
     propSelectedCategories || initialCategories || []
   );
   const [internalSelectedLetter, setInternalSelectedLetter] = useState<string>(
-    propSelectedLetter || initialLetter || 'الكل'
+    propSelectedLetter || initialLetter || t('all')
   );
 
   // 🔧 FIX: Use controlled state when props exist, otherwise use internal state
@@ -171,11 +174,11 @@ function Filter({
         setIsCategoriesLoading(true);
         setCategoriesError(null);
         
-        console.log('🔄 Loading categories...');
+        //console.log('🔄 Loading categories...');
         
         // 🔧 FIX: Always fetch categories, not conditionally
         const categories = await fetchCategories();
-        console.log('✅ Categories loaded:', categories);
+        //console.log('✅ Categories loaded:', categories);
         setAvailableCategories(categories);
         
       } catch (error) {
@@ -246,7 +249,7 @@ function Filter({
   }, [currentLanguage]);
 
   // Bilingual text (memoized)
-  const t = React.useMemo(() => {
+  const table = React.useMemo(() => {
     const text = {
       ar: {
         activeFilters: 'فلاتر نشطة',
@@ -371,25 +374,25 @@ function Filter({
     <div className={`${styles.filterContainer} ${disabled ? styles.disabled : ''}`}>
       {/* Categories Section */}
       <div className={styles.categoriesSection}>
-        <h2 className={styles.sectionTitle}>{t.type}</h2>
+        <h2 className={styles.sectionTitle}>{table.type}</h2>
 
         {/* Loading State */}
         {isCategoriesLoading && (
           <div className={styles.loadingState}>
             <div className={styles.loadingSpinner}></div>
-            <p>{t.loading}</p>
+            <p>{table.loading}</p>
           </div>
         )}
 
         {/* Error State */}
         {categoriesError && !isCategoriesLoading && (
           <div className={styles.errorState}>
-            <p className={styles.errorMessage}>{t.error}</p>
+            <p className={styles.errorMessage}>{table.error}</p>
             <button 
               onClick={retryLoadCategories} 
               className={styles.retryButton}
             >
-              {t.retry}
+              {table.retry}
             </button>
           </div>
         )}
@@ -398,7 +401,7 @@ function Filter({
         {!isCategoriesLoading && !categoriesError && (
           <div className={styles.categoriesList}>
             {categories.length === 0 ? (
-              <p className={styles.noCategories}>لا توجد فئات متاحة</p>
+              <p className={styles.noCategories}>{t('emptyFilter')}</p>
             ) : (
               categories.map((category) => (
                 <CategoryItem
@@ -416,7 +419,7 @@ function Filter({
 
       {/* Letters Section */}
       <div className={styles.lettersSection}>
-        <h2 className={styles.sectionTitle}>{t.letter}</h2>
+        <h2 className={styles.sectionTitle}>{table.letter}</h2>
         <div className={styles.lettersGrid}>
           {letters.map((letter) => {
             const isActive = 

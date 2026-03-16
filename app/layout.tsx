@@ -1,10 +1,14 @@
 // app/layout.tsx - Server Component with SEO Config
 import "./globals.css";
 import AppShell from "@/components/Layout/AppShell";
-import GoogleTranslate from "@/components/Layout/Translator/GoogleTranslator";
 import ClientProviders from "@/components/providers/ClientProvider";
 import { Metadata } from "next";
-import { seoConfig, organizationSchema, websiteSchema } from "@/config/seo.config";
+import {
+  seoConfig,
+  organizationSchema,
+  websiteSchema,
+} from "@/config/seo.config";
+import { NextIntlClientProvider } from "next-intl";
 
 // ============================================
 // ROOT METADATA (SEO) - Using Config
@@ -12,7 +16,7 @@ import { seoConfig, organizationSchema, websiteSchema } from "@/config/seo.confi
 export const metadata: Metadata = {
   title: {
     default: `${seoConfig.siteName} | ${seoConfig.siteDescription.substring(0, 60)}...`,
-    template: `%s | ${seoConfig.siteName}`
+    template: `%s | ${seoConfig.siteName}`,
   },
   description: seoConfig.siteDescription,
   keywords: seoConfig.defaultKeywords,
@@ -24,18 +28,20 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  ),
   alternates: {
-    canonical: '/',
+    canonical: "/",
     languages: {
-      'ar': '/',
-      'en': '/en',
+      ar: "/",
+      en: "/en",
     },
   },
   openGraph: {
-    type: 'website',
-    locale: 'ar_EG',
-    url: '/',
+    type: "website",
+    locale: "ar_EG",
+    url: "/",
     siteName: seoConfig.siteName,
     title: seoConfig.siteName,
     description: seoConfig.siteDescription,
@@ -49,7 +55,7 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
     title: seoConfig.siteName,
     description: seoConfig.siteDescription,
     images: [seoConfig.images.twitterImage],
@@ -60,7 +66,7 @@ export const metadata: Metadata = {
   icons: {
     icon: seoConfig.images.favicon,
     shortcut: seoConfig.images.favicon,
-    apple: '/apple-touch-icon.png',
+    apple: "/apple-touch-icon.png",
   },
   // manifest: '/site.webmanifest',
   verification: seoConfig.verification,
@@ -70,13 +76,13 @@ export const metadata: Metadata = {
 // VIEWPORT CONFIGURATION
 // ============================================
 export const viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#1a202c' },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a202c" },
   ],
 };
 
@@ -92,34 +98,35 @@ export default function RootLayout({
     <html lang={seoConfig.defaultLanguage} dir="rtl">
       <head>
         {/* Preconnect to improve performance */}
-       <link 
-    rel="preload" 
-    href="/fonts/beiruti/static/Beiruti-Regular.ttf" 
-    as="font" 
-    type="font/truetype"
-    crossOrigin="anonymous"
-  />
-  
-  {/* Contact Information (for search engines) */}
-  <meta name="contact" content={seoConfig.contact.email} />
-  <meta name="geo.region" content="EG-C" />
-  <meta name="geo.placename" content="Cairo" />
+        <link
+          rel="preload"
+          href="/fonts/beiruti/static/Beiruti-Regular.ttf"
+          as="font"
+          type="font/truetype"
+          crossOrigin="anonymous"
+        />
+
+        {/* Contact Information (for search engines) */}
+        <meta name="contact" content={seoConfig.contact.email} />
+        <meta name="geo.region" content="EG-C" />
+        <meta name="geo.placename" content="Cairo" />
       </head>
-      
+
       <body className="antialiased">
-        
         {/* All Client Providers */}
         <ClientProviders>
+          <NextIntlClientProvider>
           <AppShell>
             {children}
           </AppShell>
+          </NextIntlClientProvider>
         </ClientProviders>
 
         {/* Organization Schema (using config) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema)
+            __html: JSON.stringify(organizationSchema),
           }}
         />
 
@@ -127,7 +134,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(websiteSchema)
+            __html: JSON.stringify(websiteSchema),
           }}
         />
 
@@ -136,29 +143,29 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'LocalBusiness',
-              'name': seoConfig.siteName,
-              'description': seoConfig.siteDescription,
-              'image': `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${seoConfig.images.logo}`,
-              'telephone': seoConfig.contact.phone,
-              'email': seoConfig.contact.email,
-              'address': {
-                '@type': 'PostalAddress',
-                'streetAddress': seoConfig.contact.address,
-                'addressLocality': 'Cairo',
-                'addressCountry': 'EG'
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              name: seoConfig.siteName,
+              description: seoConfig.siteDescription,
+              image: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${seoConfig.images.logo}`,
+              telephone: seoConfig.contact.phone,
+              email: seoConfig.contact.email,
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: seoConfig.contact.address,
+                addressLocality: "Cairo",
+                addressCountry: "EG",
               },
-              'geo': {
-                '@type': 'GeoCoordinates',
-                'latitude': 30.0444,
-                'longitude': 31.2357
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 30.0444,
+                longitude: 31.2357,
               },
-              'url': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-              'sameAs': Object.values(seoConfig.socialLinks),
-              'priceRange': '$$',
-              'openingHours': 'Mo-Su 09:00-18:00',
-            })
+              url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+              sameAs: Object.values(seoConfig.socialLinks),
+              priceRange: "$$",
+              openingHours: "Mo-Su 09:00-18:00",
+            }),
           }}
         />
       </body>

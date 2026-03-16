@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 
 //components
 import { Button } from "@/components/UI/Buttons/Button";
@@ -10,6 +11,7 @@ import Alert from "@/components/UI/Alert/alert";
 import { useRouter } from "next/navigation";
 import { AddressService, AddressError } from "@/services/profile/address";
 import AlertHandler from "@/services/Utils/alertHandler";
+import { getLocale } from "@/services/api/language";
 
 //styles
 import styles from "./address.module.css";
@@ -39,6 +41,9 @@ interface ADDProp {
 }
 
 const Address: React.FC<ADDProp> = ({ Addresses }) => {
+  const t = useTranslations("profile.left.address");
+  const isRtl = getLocale() === "ar";
+
   const [addresses, setAddresses] = useState<Address[]>(Addresses || []);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,15 +60,14 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
     if (address.firstName && address.lastName) {
       return `${address.firstName} ${address.lastName}`;
     }
-    return address.firstName || address.lastName || "غير محدد";
+    return address.firstName || address.lastName || t("fallback.name");
   };
 
   const getPhone = (address: Address): string => {
-    return address.phoneNumber || address.phone || "غير محدد";
+    return address.phoneNumber || address.phone || t("fallback.phone");
   };
 
   const handleEdit = (addressId: string, event: React.MouseEvent) => {
-    // Prevent the card click event from firing
     event.stopPropagation();
 
     const addressToEdit = addresses.find(
@@ -87,10 +91,8 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
   };
 
   const handleDeleteClick = (addressId: string, event: React.MouseEvent) => {
-    // Prevent the card click event from firing
     event.stopPropagation();
 
-    // Open the custom alert confirmation
     setDeleteConfirmAlert({
       isOpen: true,
       addressId: addressId,
@@ -102,11 +104,10 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
 
     if (!addressId) return;
 
-    // Close the alert
     setDeleteConfirmAlert({ isOpen: false, addressId: null });
 
     if (!AddressService.isAuthenticated()) {
-      AlertHandler.error("يجب تسجيل الدخول للقيام بهذا الإجراء");
+      AlertHandler.error(t("errors.loginRequired"));
       setTimeout(() => router.push("/login"), 1500);
       return;
     }
@@ -122,14 +123,8 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
             address._id !== addressId && address.id?.toString() !== addressId,
         ),
       );
-
-      //console.log('✅ Address deleted successfully:', addressId);
-      // Success message is already shown by AddressService
     } catch (err) {
-      //console.error('❌ Error deleting address:', err);
-
       if (err instanceof AddressError) {
-        // Only show error if not already shown by service
         if (!err.message.includes("تم حذف")) {
           AlertHandler.error(err.message);
         }
@@ -140,7 +135,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
           }, 2000);
         }
       } else {
-        AlertHandler.error("فشل في حذف العنوان. يرجى المحاولة مرة أخرى.");
+        AlertHandler.error(t("errors.deleteFailed"));
       }
     } finally {
       setIsLoading(false);
@@ -153,29 +148,23 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
 
   const handleAddAddress = () => {
     if (!AddressService.isAuthenticated()) {
-      AlertHandler.error("يجب تسجيل الدخول لإضافة عنوان");
+      AlertHandler.error(t("errors.loginRequiredToAdd"));
       setTimeout(() => router.push("/login"), 1500);
       return;
     }
 
-    //console.log('Add new address');
     router.push("/addAddress");
   };
 
   const handleSetDefault = async (addressId: string) => {
-    // Find the clicked address
     const clickedAddress = addresses.find(
       (addr) => addr._id === addressId || addr.id?.toString() === addressId,
     );
 
-    // If already default, don't do anything
-    if (clickedAddress?.isDefault) {
-      //console.log('Address is already default');
-      return;
-    }
+    if (clickedAddress?.isDefault) return;
 
     if (!AddressService.isAuthenticated()) {
-      AlertHandler.error("يجب تسجيل الدخول للقيام بهذا الإجراء");
+      AlertHandler.error(t("errors.loginRequired"));
       setTimeout(() => router.push("/login"), 1500);
       return;
     }
@@ -188,16 +177,14 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       );
 
       if (!addressToUpdate) {
-        throw new Error("العنوان غير موجود");
+        throw new Error(t("errors.addressNotFound"));
       }
 
-      // Call the update API to set as default
       await AddressService.updateAddress({
         addressId: addressToUpdate._id,
         isDefault: true,
       });
 
-      // Update local state - set only this address as default
       setAddresses((prev) =>
         prev.map((address) => ({
           ...address,
@@ -205,14 +192,8 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
             address._id === addressId || address.id?.toString() === addressId,
         })),
       );
-
-      //console.log('✅ Default address set:', addressId);
-      // Success message is already shown by AddressService
     } catch (err) {
-      //console.error('❌ Error setting default address:', err);
-
       if (err instanceof AddressError) {
-        // Only show error if not already shown by service
         if (!err.message.includes("تم تحديث")) {
           AlertHandler.error(err.message);
         }
@@ -223,9 +204,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
           }, 2000);
         }
       } else {
-        AlertHandler.error(
-          "فشل في تعيين العنوان الافتراضي. يرجى المحاولة مرة أخرى.",
-        );
+        AlertHandler.error(t("errors.setDefaultFailed"));
       }
     } finally {
       setIsLoading(false);
@@ -233,11 +212,11 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
   };
 
   return (
-    <div className={styles.container_form}>
-      <div className={styles.formCard}>
-        <h1 className={styles.title}>عناوينك</h1>
+    <div className={styles.container_form} style={{direction: isRtl ? 'rtl' : 'ltr'}}>
+      <div className={styles.formCard} style={{ textAlign: isRtl ? 'right' : 'left' }}>
+        <h1 className={styles.title} style={{textAlign: isRtl ? 'right' : 'left'}}>{t("title")}</h1>
 
-        <div className={styles.addressList}>
+        <div className={styles.addressList} style={{ textAlign: isRtl ? 'right' : 'left' }}>
           {addresses.length === 0 ? (
             <div
               style={{
@@ -246,9 +225,9 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                 color: "#666",
               }}
             >
-              <p>لا توجد عناوين محفوظة</p>
-              <p style={{ fontSize: "14px", marginTop: "8px" }}>
-                قم بإضافة عنوان جديد للبدء
+              <p>{t("empty.message")}</p>
+              <p style={{ fontSize: "14px", marginTop: "8px" , direction: isRtl ? 'rtl' : 'ltr' }}>
+                {t("empty.hint")}
               </p>
             </div>
           ) : (
@@ -259,7 +238,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                 onClick={() =>
                   handleSetDefault(address._id || address.id!.toString())
                 }
-                style={{ cursor: address.isDefault ? "default" : "pointer" }}
+                style={{ cursor: address.isDefault ? "default" : "pointer" , textAlign: isRtl ? 'right' : 'left' , direction: isRtl ? 'rtl' : 'ltr' }}
               >
                 <div className={styles.addressContent}>
                   <div className={styles.addressHeader}>
@@ -279,10 +258,10 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                                 )
                               }
                               disabled={isLoading}
-                              aria-label="تعديل"
+                              aria-label={t("actions.edit")}
                             >
                               <Edit />
-                              <span>تعديل</span>
+                              <span>{t("actions.edit")}</span>
                             </button>
 
                             <button
@@ -294,15 +273,15 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                                 )
                               }
                               disabled={isLoading || addresses.length <= 1}
-                              aria-label="حذف"
+                              aria-label={t("actions.delete")}
                               title={
                                 addresses.length <= 1
-                                  ? "يجب الاحتفاظ بعنوان واحد على الأقل"
+                                  ? t("card.deleteDisabledTitle")
                                   : ""
                               }
                             >
                               <Delete />
-                              <span>حذف</span>
+                              <span>{t("actions.delete")}</span>
                             </button>
                           </div>
                         </div>
@@ -328,7 +307,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
                               fontWeight: "600",
                             }}
                           >
-                            العنوان الافتراضي
+                            {t("card.defaultBadge")}
                           </span>
                         )}
                       </div>
@@ -346,7 +325,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
             variant="primary"
             size="sm"
             state={isLoading ? "loading" : "default"}
-            loadingText="جاري المعالجة..."
+            loadingText={t("actions.loadingText")}
             rightIcon={<Add />}
             fullWidth
             className={styles.addButton}
@@ -354,7 +333,7 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
             onClick={handleAddAddress}
             disabled={isLoading}
           >
-            إضافة عنوان
+            {t("actions.addAddress")}
           </Button>
         </div>
       </div>
@@ -363,10 +342,10 @@ const Address: React.FC<ADDProp> = ({ Addresses }) => {
       <Alert
         isOpen={deleteConfirmAlert.isOpen}
         type="warning"
-        title="تأكيد الحذف"
-        message="هل أنت متأكد من حذف هذا العنوان؟"
-        confirmText="حذف"
-        cancelText="إلغاء"
+        title={t("deleteAlert.title")}
+        message={t("deleteAlert.message")}
+        confirmText={t("deleteAlert.confirm")}
+        cancelText={t("deleteAlert.cancel")}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         setClose={handleDeleteCancel}

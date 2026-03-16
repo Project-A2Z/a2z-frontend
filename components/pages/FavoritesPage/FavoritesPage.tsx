@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { UserStorage } from '@/services/auth/login';
 import { LogIn, Loader2 } from 'lucide-react';
+import { useTranslations } from "next-intl";
 
 // Dynamically import components with SSR disabled
 const FavoritesList = dynamic(
@@ -47,6 +48,7 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   const [isMounted, setIsMounted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const { items: favItems, remove, loading, error } = useFavorites();
+  const t = useTranslations("favoritesPage");
   
   // Initialize on client side
   useEffect(() => {
@@ -70,31 +72,31 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   // Show loading state with a more visible spinner
   if (loading) {
     return (
-      <div className="min-h-screen bg-background font-beiruti mt-[93px] flex items-center justify-center">
+      <div className="min-h-screen bg-background font-beiruti mt-40 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-lg text-gray-600">جاري تحميل المفضلة...</p>
+          <p className="text-lg text-gray-600">{t("loading.favorites")}</p>
         </div>
       </div>
     );
   }
   
   // Show error state if there's an authentication error
-  if (error?.includes('تسجيل الدخول')) {
+  if (error?.includes(t("auth.loginButton"))) {
     return (
-      <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+      <div className="min-h-screen bg-background font-beiruti mt-40">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-center py-16">
             <div className="text-center bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
               <LogIn className="w-16 h-16 mx-auto mb-4 text-red-500" />
-              <h2 className="text-xl font-bold text-red-800 mb-2">يرجى تسجيل الدخول</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-2">{t("auth.loginRequiredTitle")}</h2>
               <p className="text-red-600 mb-6">{error}</p>
               <button
                 onClick={() => router.push('/login?redirect=/favorites')}
                 className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
               >
                 <LogIn className="w-4 h-4" />
-                تسجيل الدخول
+                {t("auth.loginButton")}
               </button>
             </div>
           </div>
@@ -109,17 +111,17 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   // Show empty state
   if (favItems.length === 0) {
     return (
-      <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+      <div className="min-h-screen bg-background font-beiruti mt-32">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <header className="mb-8">
-            <h1 className="text-2xl font-bold text-black87">المفضلة</h1>
+            <h1 className="text-2xl font-bold text-black87">{t("empty.title")}</h1>
           </header>
           <section className="flex flex-col items-center justify-center py-16">
             <ActionEmptyState
               imageSrc="/icons/empty-cart.png"
-              imageAlt="لا يوجد منتجات في المفضلة"
-              message="لا يوجد منتجات في المفضلة"
-              actionLabel="تصفح المنتجات"
+              imageAlt={t("empty.noProductsAlt")}
+              message={t("empty.noProductsMessage")}
+              actionLabel={t("empty.browseProducts")}
               actionHref="/"
               imageClassName="w-64 h-auto mb-6"
             />
@@ -131,21 +133,21 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   }
 
   // Show error state if there's an authentication error
-  if (error && error.includes('تسجيل الدخول')) {
+  if (error && error.includes(t("auth.loginButton"))) {
     return (
-      <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+      <div className="min-h-screen bg-background font-beiruti mt-40">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-center py-16">
             <div className="text-center bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
               <LogIn className="w-16 h-16 mx-auto mb-4 text-red-500" />
-              <h2 className="text-xl font-bold text-red-800 mb-2">يرجى تسجيل الدخول</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-2">{t("auth.loginRequiredTitle")}</h2>
               <p className="text-red-600 mb-6">{error}</p>
               <button
                 onClick={() => router.push('/login?redirect=/favorites')}
                 className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto"
               >
                 <LogIn className="w-4 h-4" />
-                تسجيل الدخول
+                {t("auth.loginButton")}
               </button>
             </div>
           </div>
@@ -157,17 +159,17 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   // Show error state for other errors
   if (error) {
     return (
-      <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+      <div className="min-h-screen bg-background font-beiruti mt-40">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-center py-16">
             <div className="text-center bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
-              <h2 className="text-xl font-bold text-red-800 mb-2">حدث خطأ</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-2">{t("error.title")}</h2>
               <p className="text-red-600 mb-6">{error}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
               >
-                إعادة المحاولة
+                {t("error.retry")}
               </button>
             </div>
           </div>
@@ -177,12 +179,12 @@ const FavoritesPageContent: React.FC<{ items?: FavoriteItem[] }> = ({ items }) =
   }
 
   return (
-    <div className="min-h-screen bg-background font-beiruti mt-[93px]">
+    <div className="min-h-screen bg-background font-beiruti mt-40">
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-black87">المفضلة</h1>
+          <h1 className="text-2xl font-bold text-black87">{t("header.title")}</h1>
           <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-            {favItems.length} منتج
+            {favItems.length} {t("header.productsCount", { count: favItems.length })}
           </span>
         </header>
 

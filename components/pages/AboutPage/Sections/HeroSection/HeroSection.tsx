@@ -1,7 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 const HeroSection = () => {
+  const t =  useTranslations("about-us.hero");
+
   return (
     <section className="relative min-h-screen flex items-center justify-center py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
       {/* Main Content Container */}
@@ -13,7 +16,7 @@ const HeroSection = () => {
             <div className="relative w-full h-full">
               <Image
                 src="/logo/logo.jpeg"
-                alt="A2Z Company Logo - Improve People Life"
+                alt={t('logoAlt')}
                 fill
                 priority
                 className="object-contain"
@@ -28,18 +31,14 @@ const HeroSection = () => {
             <h1 
               className="text-xl sm:text-2xl lg:text-3xl font-semibold leading-tight text-black87 font-beiruti" 
               style={{ fontFamily: 'Beiruti', fontWeight: 600 }}>
-              شركة A2Z
+              {t('companyName')}
             </h1>
             
             {/* Company Description */}
             <div className="text-right font-beiruti text-base sm:text-lg lg:text-xl font-semibold leading-snug sm:leading-normal" 
               style={{ fontFamily: 'Beiruti', fontWeight: 600 }}>
               <p className="text-black60 mx-auto px-2 sm:px-4 lg:px-0">
-                هي شركة متخصصة في جميع انواع الكيماويات وخاصة كيماويات البناء الحديث والدهانات المتخصصة
-                وكيماويات الصياغة والتجهيز والمواد المساعدة وكيماويات صناعة المنظفات ومستحضرات التجميل.
-                وتعتمد الشركة في تميزها على الجمع بين الخبرات المختلفة والتنوع في المنتجات مع التميز في جودة منتجاتها
-                . كذلك تعمل الشركة في مجالات معالجة المياه والصرف الصناعي والكيماويات الزراعية والصناعية بأنواعها ،
-                كما يوفر خبراء الشركة إستشارات وحلول صناعية وبيئية ودعم فني متميز لكافة الصناعات الكيميائية .
+                {t('description')}
               </p>
             </div>
           </div>

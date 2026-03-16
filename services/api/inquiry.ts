@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { getLangQueryParam , getLocale } from './language';
 
 /**
  * Interface for Inquiry data structure
@@ -40,8 +41,11 @@ const getAuthToken = (): string | null => {
  * Service for handling inquiry-related API calls
  */
 export const checkBackendHealth = async () => {
+  const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+
   try {
-    //console.log('Initiating health check...');
+    ////console.log('Initiating health check...');
     
     // Test root endpoint directly
     try {
@@ -50,12 +54,12 @@ export const checkBackendHealth = async () => {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const response = await fetch('https://a2z-backend.fly.dev/', {
+      const response = await fetch(`https://a2z-backend.fly.dev${langQuery}`, {
         method: 'GET',
         headers,
       });
       const data = await response.json();
-      //console.log('Root endpoint check successful:', response.status, response.statusText);
+      ////console.log('Root endpoint check successful:', response.status, response.statusText);
       return {
         status: 'success',
         data,
@@ -70,12 +74,12 @@ export const checkBackendHealth = async () => {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const healthResponse = await fetch('https://a2z-backend.fly.dev/health', {
+      const healthResponse = await fetch(`https://a2z-backend.fly.dev/health${langQuery}`, {
         method: 'GET',
         headers,
       });
       const healthData = await healthResponse.json();
-      //console.log('Health endpoint check successful:', healthResponse.status, healthResponse.statusText);
+      ////console.log('Health endpoint check successful:', healthResponse.status, healthResponse.statusText);
       
       return {
         status: 'success',
@@ -118,8 +122,11 @@ export const inquiryService = {
       email: data.email.trim(),
       description: data.description.trim()
     };
+    const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+  
 
-    //console.log('Sending inquiry data to https://a2z-backend.fly.dev/app/v1/inquiries:', JSON.stringify(requestData, null, 2));
+    ////console.log('Sending inquiry data to https://a2z-backend.fly.dev/app/v1/inquiries:', JSON.stringify(requestData, null, 2));
     
     try {
       const headers: { [key: string]: string } = {
@@ -131,7 +138,7 @@ export const inquiryService = {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('https://a2z-backend.fly.dev/app/v1/inquiries', {
+      const response = await fetch(`https://a2z-backend.fly.dev/app/v1/inquiries${langQuery}`, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestData),
@@ -150,7 +157,7 @@ export const inquiryService = {
       }
 
       const responseData = await response.json();
-      //console.log('Inquiry created successfully:', responseData);
+      ////console.log('Inquiry created successfully:', responseData);
       return responseData;
     } catch (error: any) {
       console.error('Error in createInquiry:', {
@@ -187,13 +194,16 @@ export const inquiryService = {
    * Get a single inquiry by ID
    */
   async getInquiryById(id: string) {
+    const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+
     try {
       const headers: { [key: string]: string } = {};
       const token = getAuthToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const response = await apiClient.get<InquiryData>(`/app/v1/inquiries/${id}`, { headers });
+      const response = await apiClient.get<InquiryData>(`/app/v1/inquiries/${id}${langQuery}`, { headers });
       return response.data;
     } catch (error) {
       //console.error(`Error fetching inquiry ${id}:`, error);
@@ -205,13 +215,16 @@ export const inquiryService = {
    * Get all inquiries with pagination and filtering
    */
   async getAllInquiries(params?: PaginationParams & { status?: string }) {
+    const locale = getLocale();
+  const langQuery = getLangQueryParam(locale);
+
     try {
       const headers: { [key: string]: string } = {};
       const token = getAuthToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const response = await apiClient.get<PaginatedResponse<InquiryData>>('/app/v1/inquiries', { params, headers });
+      const response = await apiClient.get<PaginatedResponse<InquiryData>>(`/app/v1/inquiries${langQuery}`, { params, headers });
       return response.data;
     } catch (error) {
       //console.error('Error fetching inquiries:', error);

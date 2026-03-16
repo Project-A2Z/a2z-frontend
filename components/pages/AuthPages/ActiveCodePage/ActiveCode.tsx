@@ -41,22 +41,22 @@ const ActiveCodePage = () => {
 
   // Check if email was provided in URL or storage on mount
   useEffect(() => {
-    console.log("🔍 Checking for email...");
-    console.log("📧 URL params:", searchParams?.toString());
+    //console.log("🔍 Checking for email...");
+    //console.log("📧 URL params:", searchParams?.toString());
 
     const emailParam = searchParams?.get("email");
-    console.log("📧 Email from URL:", emailParam);
+    //console.log("📧 Email from URL:", emailParam);
 
     const currentUser = getCurrentUser();
-    console.log("👤 Current user:", currentUser);
+    //console.log("👤 Current user:", currentUser);
 
     if (emailParam) {
-      console.log("✅ Using email from URL params:", emailParam);
+      //console.log("✅ Using email from URL params:", emailParam);
       setEmail(emailParam);
       setEmailInput(emailParam);
       setEmailConfirmed(true);
     } else if (currentUser?.email) {
-      console.log("✅ Using email from current user:", currentUser.email);
+      //console.log("✅ Using email from current user:", currentUser.email);
       setEmail(currentUser.email);
       setEmailInput(currentUser.email);
       setEmailConfirmed(true);
@@ -65,14 +65,14 @@ const ActiveCodePage = () => {
       const storedUser = localStorage.getItem("user");
       const storedEmail = localStorage.getItem("userEmail");
 
-      console.log("💾 Stored user:", storedUser);
-      console.log("💾 Stored email:", storedEmail);
+      //console.log("💾 Stored user:", storedUser);
+      //console.log("💾 Stored email:", storedEmail);
 
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.email) {
-            console.log("✅ Using email from stored user:", parsedUser.email);
+            //console.log("✅ Using email from stored user:", parsedUser.email);
             setEmail(parsedUser.email);
             setEmailInput(parsedUser.email);
             setEmailConfirmed(true);
@@ -84,12 +84,12 @@ const ActiveCodePage = () => {
       }
 
       if (storedEmail) {
-        console.log("✅ Using stored email:", storedEmail);
+        //console.log("✅ Using stored email:", storedEmail);
         setEmail(storedEmail);
         setEmailInput(storedEmail);
         setEmailConfirmed(true);
       } else {
-        console.log("⚠️ No email found, user must enter email manually");
+        //console.log("⚠️ No email found, user must enter email manually");
         // Don't redirect, just let user enter email
       }
     }
@@ -143,7 +143,7 @@ const ActiveCodePage = () => {
       // Optionally, you can add an API call here to check if the email exists
       // For now, we'll just validate the format and proceed
       
-      console.log("✅ Email validated:", trimmedEmail);
+      //console.log("✅ Email validated:", trimmedEmail);
       setEmail(trimmedEmail);
       setEmailConfirmed(true);
       
@@ -219,15 +219,15 @@ const ActiveCodePage = () => {
     setSuccess("");
 
     try {
-      console.log("🔐 Verifying code:", fullCode);
-      console.log("📧 For email:", email);
+      //console.log("🔐 Verifying code:", fullCode);
+      //console.log("📧 For email:", email);
 
       const response = await verifyEmail(fullCode, email.trim());
 
-      console.log("📄 Full verification response:", response);
+      //console.log("📄 Full verification response:", response);
 
       if (response.success === true || response?.status === "success") {
-        console.log("✅ Verification successful:", response);
+        //console.log("✅ Verification successful:", response);
 
         setSuccess("تم تفعيل الحساب بنجاح! جاري تحويلك...");
 
@@ -235,8 +235,8 @@ const ActiveCodePage = () => {
           router.push("/login?verified=true");
         }, 2000);
       } else {
-        console.log("❌ Verification failed - response indicates failure");
-        console.log("📄 Failure response:", response);
+        //console.log("❌ Verification failed - response indicates failure");
+        //console.log("📄 Failure response:", response);
 
         let errorMessage = "فشل في التحقق من الرمز. يرجى المحاولة مرة أخرى.";
 
@@ -321,8 +321,8 @@ const ActiveCodePage = () => {
   };
 
   const handleResend = async () => {
-    console.log("🔄 Attempting to resend code...");
-    console.log("📧 Current email state:", email);
+    //console.log("🔄 Attempting to resend code...");
+    //console.log("📧 Current email state:", email);
 
     const emailToUse = email.trim();
 
@@ -337,11 +337,11 @@ const ActiveCodePage = () => {
     setSuccess("");
 
     try {
-      console.log("📤 Resending verification code to:", emailToUse);
+      //console.log("📤 Resending verification code to:", emailToUse);
 
       const response = await resendVerificationCode(emailToUse);
 
-      console.log("✅ Code resent successfully:", response);
+      //console.log("✅ Code resent successfully:", response);
 
       setCode(["", "", "", "", "", ""]);
       setTimeLeft(60);

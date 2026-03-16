@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
+import { useParams } from 'next/navigation';
 import { Button } from "@/components/UI/Buttons/Button";
 import {
   fetchAllProducts,
@@ -47,7 +48,19 @@ const FilterSkeleton = memo(() => (
   </div>
 ));
 
+// Helper to get the default "All" label per locale
+function getAllLabel(locale: string): string {
+  return locale === 'ar' ? 'الكل' : 'All';
+}
+
 function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) {
+  // ✅ FIX 1: Read active locale from Next.js route params
+  const params = useParams();
+  const locale = (params?.locale as string) || 'ar';
+
+  // ✅ FIX 2: Derive the "All" label from the current locale
+  const allLabel = getAllLabel(locale);
+
   // State management
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>(
     initialData?.data || []
@@ -57,7 +70,8 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   );
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLetter, setSelectedLetter] = useState<string>('الكل');
+  // ✅ FIX 3: Use locale-aware default for letter state
+  const [selectedLetter, setSelectedLetter] = useState<string>(allLabel);
   const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,57 +82,80 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<string[]>([]);
-  const [tempSelectedLetter, setTempSelectedLetter] = useState<string>('الكل');
+  // ✅ FIX 3: Use locale-aware default for temp letter state
+  const [tempSelectedLetter, setTempSelectedLetter] = useState<string>(allLabel);
 
-  // NEW: Per-product selected variant tracking
-  // Key: product id, Value: selected variant id
+  // Per-product selected variant tracking
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
 
   const mountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasInitialData = useRef(!!initialData && initialData.data.length > 0);
 
+  // ✅ FIX 4: Include locale in prevFiltersRef so changes are detected
   const prevFiltersRef = useRef({
     categories: selectedCategories,
     page: currentPage,
     search: searchQuery,
+    locale: '',
   });
 
-  // Cleanup
+  // Cleanup — always pass a reason to abort() so React 18 Strict Mode
+  // double-invoke doesn't throw "signal is aborted without reason"
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (abortControllerRef.current) abortControllerRef.current.abort();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('component unmounted');
+        abortControllerRef.current = null;
+      }
     };
   }, []);
+
+  // ✅ FIX 5: Reset everything when locale changes so new language data is fetched
+  useEffect(() => {
+    const newAllLabel = getAllLabel(locale);
+    hasInitialData.current = false;
+    prevFiltersRef.current = { categories: [], page: 1, search: '', locale: '' };
+    setCurrentPage(1);
+    setSelectedCategories([]);
+    setSelectedLetter(newAllLabel);
+    setTempSelectedLetter(newAllLabel);
+    setSelectedVariants({});
+  }, [locale]);
 
   const isAllLetter = useCallback((letter: string): boolean => {
     const n = letter.toLowerCase().trim();
     return n === 'all' || n === 'الكل' || n === 'كل';
   }, []);
 
-  // Load products
+  // ✅ FIX 6: Pass locale to the API so the backend returns the right language
   const loadProducts = useCallback(async () => {
     const currentFilters = {
       categories: selectedCategories,
       page: currentPage,
       search: searchQuery,
+      locale,
     };
 
     const filtersChanged =
       JSON.stringify([...currentFilters.categories].sort()) !==
         JSON.stringify([...prevFiltersRef.current.categories].sort()) ||
       currentFilters.page !== prevFiltersRef.current.page ||
-      currentFilters.search !== prevFiltersRef.current.search;
+      currentFilters.search !== prevFiltersRef.current.search ||
+      // ✅ FIX 7: Detect locale change so a new fetch is triggered
+      currentFilters.locale !== prevFiltersRef.current.locale;
 
     if (!filtersChanged && !hasInitialData.current) {
-      console.log('⏭️ Skipping API call - filters unchanged');
       return;
     }
 
     prevFiltersRef.current = currentFilters;
 
-    if (abortControllerRef.current) abortControllerRef.current.abort();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('new request started');
+    }
     abortControllerRef.current = new AbortController();
 
     try {
@@ -128,6 +165,9 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       const filters: any = {
         page: currentPage,
         limit: PRODUCTS_PER_PAGE,
+        // ✅ FIX 8: Send locale/lang so the DB returns translated products
+        lang: locale,
+        locale,
       };
 
       if (selectedCategories.length > 0) {
@@ -150,11 +190,10 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       setTotalProducts(response.pagination?.total || 0);
       setTotalPages(response.pagination?.totalPages || 1);
 
-      // NEW: Initialize default variant selections for products with variants
+      // Initialize default variant selections for products with variants
       const defaultVariants: Record<string, string> = {};
       response.data.forEach(product => {
         if (product.productVariants && product.productVariants.length > 0) {
-          // Default to first available (in-stock) variant
           const firstAvailable = product.productVariants.find(v => v.totalQuantity > 0)
             || product.productVariants[0];
           if (firstAvailable) {
@@ -164,11 +203,16 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       });
       setSelectedVariants(prev => ({ ...defaultVariants, ...prev }));
 
-      console.log('✅ Loaded', response.data.length, 'products');
+      console.log('✅ Loaded', response.data.length, 'products for locale:', locale);
 
     } catch (err: any) {
-      if (err.name === 'AbortError') {
-        console.log('Request cancelled');
+      // Catch both named AbortError and reason-string aborts (React 18 Strict Mode)
+      if (
+        err.name === 'AbortError' ||
+        err.message === 'component unmounted' ||
+        err.message === 'new request started' ||
+        abortControllerRef.current?.signal.aborted
+      ) {
         return;
       }
       if (!mountedRef.current) return;
@@ -177,12 +221,12 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     } finally {
       if (mountedRef.current) setIsLoading(false);
     }
-  }, [currentPage, selectedCategories, searchQuery]);
+  // ✅ FIX 9: locale added to dependency array
+  }, [currentPage, selectedCategories, searchQuery, locale]);
 
   useEffect(() => {
     if (hasInitialData.current) {
       hasInitialData.current = false;
-      console.log('✅ Using initial data, skipping first API call');
       return;
     }
     loadProducts();
@@ -192,17 +236,14 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   const filteredProducts = useMemo(() => {
     if (!selectedLetter || isAllLetter(selectedLetter)) return displayedProducts;
 
-    const filtered = displayedProducts.filter(product => {
+    return displayedProducts.filter(product => {
       const firstChar = product.name?.charAt(0) || '';
       return firstChar === selectedLetter ||
         firstChar.toLowerCase() === selectedLetter.toLowerCase();
     });
-
-    console.log(`🔤 Letter filter "${selectedLetter}": ${filtered.length}/${displayedProducts.length} products`);
-    return filtered;
   }, [displayedProducts, selectedLetter, isAllLetter]);
 
-  // NEW: Get effective price for a product (based on selected variant)
+  // Get effective price for a product (based on selected variant)
   const getEffectivePrice = useCallback((product: Product): number => {
     const selectedVariantId = selectedVariants[String(product.id)];
     if (!selectedVariantId || !product.productVariants) return product.price;
@@ -213,7 +254,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     return variant?.price ?? product.price;
   }, [selectedVariants]);
 
-  // NEW: Handle variant selection per product
+  // Handle variant selection per product
   const handleVariantSelect = useCallback((productId: string | number, variantId: string) => {
     setSelectedVariants(prev => ({ ...prev, [String(productId)]: variantId }));
   }, []);
@@ -230,9 +271,9 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, [selectedCategories]);
 
   const handleLetterFilter = useCallback((letter: string | null | undefined) => {
-    const newLetter = letter || 'الكل';
+    const newLetter = letter || allLabel;
     if (newLetter !== selectedLetter) setSelectedLetter(newLetter);
-  }, [selectedLetter]);
+  }, [selectedLetter, allLabel]);
 
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
@@ -265,19 +306,19 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   }, []);
 
   const handleTempLetterFilter = useCallback((letter: string | null | undefined) => {
-    setTempSelectedLetter(letter || 'الكل');
-  }, []);
+    setTempSelectedLetter(letter || allLabel);
+  }, [allLabel]);
 
   const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
-    setSelectedLetter('الكل');
+    setSelectedLetter(allLabel);
     setSearchQuery('');
     setCurrentPage(1);
-  }, []);
+  }, [allLabel]);
 
   const refreshData = useCallback(() => {
     hasInitialData.current = false;
-    prevFiltersRef.current = { categories: [], page: 1, search: '' };
+    prevFiltersRef.current = { categories: [], page: 1, search: '', locale: '' };
     loadProducts();
   }, [loadProducts]);
 
@@ -289,7 +330,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
     );
   }, [selectedCategories.length, selectedLetter, searchQuery, isAllLetter]);
 
-  // NEW: Enrich products with effective prices before passing to children
+  // Enrich products with effective prices before passing to children
   const enrichedProducts = useMemo(() => {
     return filteredProducts.map(product => ({
       ...product,
@@ -349,11 +390,11 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
       {/* Products Display */}
       <div className={style.container}>
         <ProductSlider
-          products={enrichedProducts}           // enriched with variant-aware prices
+          products={enrichedProducts}
           isLoading={isLoading}
           error={error}
-          selectedVariants={selectedVariants}   // pass down so cards can show active variant
-          onVariantSelect={handleVariantSelect} // NEW prop for variant switching in cards
+          selectedVariants={selectedVariants}
+          onVariantSelect={handleVariantSelect}
         />
 
         <Filter

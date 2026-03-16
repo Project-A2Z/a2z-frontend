@@ -1,6 +1,6 @@
 import React from 'react';
-import ClientsData from './Clients.json';
-
+// import ClientsData from './Clients.json';
+import { useTranslations } from 'next-intl';
 interface Client {
   id: number;
   name: string;
@@ -9,19 +9,21 @@ interface Client {
 }
 
 const ClientsSection: React.FC = () => {
-  const clients: Client[] = ClientsData;
+  const t = useTranslations('about-us.clients');
+  const ClientsData = t.raw('items') as Client[] || [];
+  // const clients: Client[] = ClientsData;
 
   return (
     <section className="  bg-gray-50" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Section Title */}
         <h2 className="text-4xl font-bold text-center mb-12 text-green-700">
-          العملاء
+          {t('sectionTitle')}
         </h2>
 
         {/* Clients Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {clients.map((client) => (
+          {ClientsData.map((client) => (
             <div
               key={client.id}
               className="bg-white rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center group cursor-pointer"

@@ -1,10 +1,10 @@
 'use client';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { getLocale } from '@/services/api/language';
 
-//styles
+// styles
 import styles from '@/components/UI/Profile/profile.module.css';
-
 
 export interface User {
   _id: string;
@@ -35,75 +35,73 @@ interface AccountListProps {
 }
 
 const AccountList: React.FC<AccountListProps> = ({ onItemClick, user, setUser }) => {
+  const t = useTranslations('profile.list');
+
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
 
-  const menuItems = [
-    'تفاصيل الحساب',
-    'تغيير كلمة المرور',
-    'عناوينك',
-    'طلباتك',
-    'رسائلك',
-    // 'مدفوعاتك',
-    'تسجيل الخروج'
+  const isRtl = getLocale() === 'ar';
+
+  /**
+   * `value` is the Arabic key used by EditProfileSection's switch-case — do NOT translate it.
+   * `label` is the display text shown to the user — translated via t().
+   */
+  const menuItems: { value: string; label: string }[] = [
+    { value: 'تفاصيل الحساب',      label: t('menu.accountDetails') },
+    { value: 'تغيير كلمة المرور',  label: t('menu.changePassword') },
+    { value: 'عناوينك',             label: t('menu.addresses') },
+    { value: 'طلباتك',              label: t('menu.orders') },
+    { value: 'رسائلك',              label: t('menu.messages') },
+    // { value: 'مدفوعاتك',          label: t('menu.payments') },
+    { value: 'تسجيل الخروج',       label: t('menu.logout') },
   ];
 
-  
-
-  const handleItemClick = async (item: string, index: number) => {
+  const handleItemClick = (value: string, index: number) => {
     setSelectedIndex(index);
-    
-    
-    // Call the parent callback for other items
-    onItemClick?.(item);
+    onItemClick?.(value);
   };
 
-  // Don't render the component if user is not available (optional)
   if (!user) {
     return (
       <div className={styles.container_list}>
         <div className={styles.list}>
-          <div className={styles.listItem}>
-            جاري تحميل البيانات...
-          </div>
+          <div className={styles.listItem}>{t('loading')}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container_list}>
+    <div className={styles.container_list} style={{ textAlign: isRtl ? 'right' : 'left' , direction: isRtl ? 'rtl' : 'ltr' }}>
       <div className={styles.list}>
-        {menuItems.map((item, index) => {
-          const isLogout = item === 'تسجيل الخروج';
+        {menuItems.map(({ value, label }, index) => {
+          const isLogout = value === 'تسجيل الخروج';
           const isSelected = selectedIndex === index;
-          
+
           return (
             <div
               key={index}
               className={`${styles.listItem} ${
-                isLogout 
-                  ? isSelected 
-                    ? styles.logoutSelected 
+                isLogout
+                  ? isSelected
+                    ? styles.logoutSelected
                     : styles.logout
-                  : isSelected 
-                    ? styles.selected 
+                  : isSelected
+                    ? styles.selected
                     : styles.default
               } ${isLoggingOut && isLogout ? styles.loading : ''}`}
-              onClick={() => handleItemClick(item, index)}
+              onClick={() => handleItemClick(value, index)}
               style={{
                 cursor: isLoggingOut && isLogout ? 'not-allowed' : 'pointer',
-                opacity: isLoggingOut && isLogout ? 0.6 : 1
+                opacity: isLoggingOut && isLogout ? 0.6 : 1,
+                direction: isRtl ? 'rtl' : 'ltr',
+                textAlign: isRtl ? 'right' : 'left',
               }}
             >
               {isLoggingOut && isLogout ? (
-                <span>
-                  جاري تسجيل الخروج...
-                  {/* You can add a loading spinner here if you have one */}
-                </span>
+                <span>{t('loggingOut')}</span>
               ) : (
-                item
+                label
               )}
             </div>
           );

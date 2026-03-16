@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 // styles
 import styles from '@/components/UI/Profile/leftSection/Address/map.module.css';
@@ -37,12 +38,14 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   height = '400px',
   width = '100%'
 }) => {
+  const t = useTranslations('Address.location');
+
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const lastGeocodingTimeRef = useRef<number>(0);
   const geocodingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     initialLocation || null
   );
@@ -58,13 +61,11 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       return;
     }
 
-    // Load CSS
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     document.head.appendChild(link);
 
-    // Load JS
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
     script.async = true;
@@ -72,7 +73,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       setIsLoading(false);
     };
     script.onerror = () => {
-      setError('فشل في تحميل الخريطة');
+      setError(t('errors.mapLoadFailed'));
       setIsLoading(false);
     };
     document.head.appendChild(script);
@@ -94,19 +95,16 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     };
 
     try {
-      // Create map
       const map = window.L.map(mapRef.current).setView(
         [defaultLocation.lat, defaultLocation.lng],
         13
       );
 
-      // Add OpenStreetMap tile layer (FREE!)
       window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
       }).addTo(map);
 
-      // Create custom icon
       const customIcon = window.L.divIcon({
         html: '<div style="background-color: #ff4444; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
         iconSize: [24, 24],
@@ -114,22 +112,19 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
         className: 'custom-marker'
       });
 
-      // Add marker
       const marker = window.L.marker(
         [defaultLocation.lat, defaultLocation.lng],
-        { 
+        {
           draggable: true,
           icon: customIcon
         }
       ).addTo(map);
 
-      // Handle marker drag with debouncing
       marker.on('dragend', () => {
         const position = marker.getLatLng();
         handleLocationSelectDebounced(position.lat, position.lng);
       });
 
-      // Handle map click with debouncing
       map.on('click', (e: any) => {
         marker.setLatLng(e.latlng);
         handleLocationSelectDebounced(e.latlng.lat, e.latlng.lng);
@@ -143,36 +138,29 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       }
     } catch (err) {
       console.error('Error initializing map:', err);
-      setError('خطأ في تهيئة الخريطة');
+      setError(t('errors.mapInitFailed'));
     }
   }, [isLoading, initialLocation]);
 
-  // Debounced location select to prevent rapid API calls
   const handleLocationSelectDebounced = (lat: number, lng: number) => {
-    // Clear any pending geocoding request
     if (geocodingTimeoutRef.current) {
       clearTimeout(geocodingTimeoutRef.current);
     }
 
-    // Immediately update location without address
     const basicLocation: Location = { lat, lng };
     setSelectedLocation(basicLocation);
     onLocationSelect(basicLocation);
 
-    // Debounce the geocoding request
     geocodingTimeoutRef.current = setTimeout(() => {
       handleLocationSelect(lat, lng);
-    }, 800); 
+    }, 800);
   };
 
-  // Reverse geocoding using Nominatim (FREE OpenStreetMap service)
   const handleLocationSelect = async (lat: number, lng: number) => {
-    // Rate limiting: ensure at least 1.5 seconds between requests
     const now = Date.now();
     const timeSinceLastRequest = now - lastGeocodingTimeRef.current;
-    
+
     if (timeSinceLastRequest < 1500) {
-      // Wait before making the request
       await new Promise(resolve => setTimeout(resolve, 1500 - timeSinceLastRequest));
     }
 
@@ -181,24 +169,24 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`,
         {
           signal: controller.signal,
           headers: {
-            'User-Agent': 'YourAppName/1.0', // Required by Nominatim
+            'User-Agent': 'YourAppName/1.0',
           },
         }
       );
 
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
         const address = data.address || {};
-        
+
         const location: Location = {
           lat,
           lng,
@@ -215,17 +203,15 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       }
     } catch (err) {
       console.error('Error geocoding:', err);
-      
-      // Handle different error types
+
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
-          setError('انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.');
+          setError(t('errors.geocodingTimeout'));
         } else {
-          setError('تعذر الحصول على تفاصيل العنوان. يمكنك المتابعة بدون عنوان تفصيلي.');
+          setError(t('errors.geocodingFailed'));
         }
       }
-      
-      // Still set location even if geocoding fails
+
       const location: Location = { lat, lng };
       setSelectedLocation(location);
       onLocationSelect(location);
@@ -234,21 +220,20 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     }
   };
 
-  // Get current location
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setError('المتصفح لا يدعم تحديد الموقع الجغرافي');
+      setError(t('errors.geolocationUnsupported'));
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        
+
         if (mapInstanceRef.current && markerRef.current) {
           mapInstanceRef.current.setView([lat, lng], 15);
           markerRef.current.setLatLng([lat, lng]);
@@ -257,20 +242,20 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
         setIsLoading(false);
       },
       (error) => {
-        let errorMessage = 'فشل في الحصول على الموقع الحالي';
-        
+        let errorMessage = t('errors.geolocationFailed');
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'تم رفض إذن الوصول للموقع';
+            errorMessage = t('errors.permissionDenied');
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'معلومات الموقع غير متاحة';
+            errorMessage = t('errors.positionUnavailable');
             break;
           case error.TIMEOUT:
-            errorMessage = 'انتهت مهلة طلب الموقع';
+            errorMessage = t('errors.geolocationTimeout');
             break;
         }
-        
+
         setError(errorMessage);
         setIsLoading(false);
         console.error('Geolocation error:', error);
@@ -283,7 +268,6 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     );
   };
 
-  // Search location using Nominatim
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
@@ -305,14 +289,14 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
       );
 
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data && data.length > 0) {
           const result = data[0];
           const lat = parseFloat(result.lat);
           const lng = parseFloat(result.lon);
-          
+
           if (mapInstanceRef.current && markerRef.current) {
             mapInstanceRef.current.setView([lat, lng], 15);
             markerRef.current.setLatLng([lat, lng]);
@@ -321,7 +305,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
             setError(null);
           }
         } else {
-          setError('لم يتم العثور على الموقع');
+          setError(t('search.notFound'));
         }
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -329,9 +313,9 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     } catch (err) {
       console.error('Search error:', err);
       if (err instanceof Error && err.name === 'AbortError') {
-        setError('انتهت مهلة البحث');
+        setError(t('search.timeout'));
       } else {
-        setError('خطأ في البحث. يرجى المحاولة مرة أخرى.');
+        setError(t('search.error'));
       }
     } finally {
       setIsLoading(false);
@@ -341,7 +325,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
   if (isLoading && !mapInstanceRef.current) {
     return (
       <div className={styles.loading} style={{ height, width }}>
-        <p>جاري تحميل الخريطة...</p>
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -350,7 +334,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
     return (
       <div className={styles.error}>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>إعادة المحاولة</button>
+        <button onClick={() => window.location.reload()}>{t('retry')}</button>
       </div>
     );
   }
@@ -361,7 +345,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
         <div className={styles.searchBox}>
           <input
             type="text"
-            placeholder="ابحث عن موقع... (مثال: القاهرة، مصر)"
+            placeholder={t('search.placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -372,27 +356,27 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
             }}
             className={styles.searchInput}
           />
-         <Button
+          <Button
             onClick={handleSearch}
             variant="primary"
             size="md"
-            loadingText="جاري البحث..."
+            loadingText={t('search.loadingText')}
             disabled={!searchQuery.trim() || isLoading}
             rounded={true}
-        >
-            بحث
-        </Button>
+          >
+            {t('search.button')}
+          </Button>
         </div>
-        
+
         <Button
-            variant="primary"
-            size="md"
-            rounded={true}
+          variant="primary"
+          size="md"
+          rounded={true}
           onClick={handleGetCurrentLocation}
           disabled={isLoading}
           className={styles.currentLocationButton}
         >
-          📍 موقعي الحالي
+          {t('currentLocation')}
         </Button>
       </div>
 
@@ -411,7 +395,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
           fontSize: '13px',
           color: '#1976d2'
         }}>
-          جاري تحميل تفاصيل العنوان...
+          {t('geocoding')}
         </div>
       )}
 
@@ -423,17 +407,24 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
 
       {selectedLocation && (
         <div className={styles.selectedLocation}>
-          <h4>الموقع المحدد:</h4>
+          <h4>{t('selected.title')}</h4>
           <p>
-            {selectedLocation.address ? 
-              selectedLocation.address : 
-              isGeocoding ? 
-                'جاري تحميل العنوان...' : 
-                `خط الطول: ${selectedLocation.lng.toFixed(6)}, خط العرض: ${selectedLocation.lat.toFixed(6)}`
+            {selectedLocation.address
+              ? selectedLocation.address
+              : isGeocoding
+                ? t('selected.loadingAddress')
+                : t('selected.coordinates', {
+                    lng: selectedLocation.lng.toFixed(6),
+                    lat: selectedLocation.lat.toFixed(6),
+                  })
             }
           </p>
-          {selectedLocation.city && <p>المدينة: {selectedLocation.city}</p>}
-          {selectedLocation.region && <p>المحافظة: {selectedLocation.region}</p>}
+          {selectedLocation.city && (
+            <p>{t('selected.city', { city: selectedLocation.city })}</p>
+          )}
+          {selectedLocation.region && (
+            <p>{t('selected.region', { region: selectedLocation.region })}</p>
+          )}
         </div>
       )}
 
@@ -443,9 +434,7 @@ const MapLocationPicker: React.FC<MapLocationPickerProps> = ({
         borderRadius: '4px',
         marginTop: '12px',
         fontSize: '13px'
-      }}>
-       
-      </div>
+      }} />
     </div>
   );
 };

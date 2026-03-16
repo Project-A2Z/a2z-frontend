@@ -1,5 +1,6 @@
 // services/orders/orderService.ts
 import { API_ENDPOINTS, Api } from '../api/endpoints';
+import { getLocale, getLangQueryParam } from '../api/language';
 export interface Variant {
   _id: string;
   productId: Product;
@@ -147,7 +148,7 @@ class OrderService {
                   localStorage.getItem('token') ||
                   localStorage.getItem('accessToken');
     
-    //console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
+    ////console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null');
     
     return token;
   }
@@ -162,7 +163,7 @@ class OrderService {
       const userData = localStorage.getItem('user_data');
       if (userData) {
         const parsed = JSON.parse(userData);
-        //console.log('👤 User data found:', {
+        ////console.log('👤 User data found:', {
         //   hasToken: !!parsed.token,
         //   hasAccessToken: !!parsed.accessToken,
         //   keys: Object.keys(parsed)
@@ -187,7 +188,7 @@ class OrderService {
       token = userData?.token || userData?.accessToken || userData?.auth_token;
     }
     
-    //console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
+    ////console.log('🎯 Best token selected:', token ? 'Found' : 'Not found');
     
     return token;
   }
@@ -202,7 +203,7 @@ class OrderService {
       timestamp: now,
       expiresAt: now + duration,
     });
-    //console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
+    ////console.log(`💾 Cache set for key: ${key}, expires in ${duration / 1000}s`);
   }
 
   /**
@@ -212,18 +213,18 @@ class OrderService {
     const entry = this.cache.get(key);
     
     if (!entry) {
-      //console.log(`❌ Cache miss for key: ${key}`);
+      ////console.log(`❌ Cache miss for key: ${key}`);
       return null;
     }
 
     const now = Date.now();
     if (now > entry.expiresAt) {
-      //console.log(`⏰ Cache expired for key: ${key}`);
+      ////console.log(`⏰ Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
     }
 
-    //console.log(`✅ Cache hit for key: ${key}`);
+    ////console.log(`✅ Cache hit for key: ${key}`);
     return entry.data as T;
   }
 
@@ -233,7 +234,7 @@ class OrderService {
   clearCache(pattern?: string): void {
     if (!pattern) {
       this.cache.clear();
-      //console.log('🗑️ All cache cleared');
+      ////console.log('🗑️ All cache cleared');
       return;
     }
 
@@ -244,7 +245,7 @@ class OrderService {
         cleared++;
       }
     }
-    //console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
+    ////console.log(`🗑️ Cleared ${cleared} cache entries matching: ${pattern}`);
   }
 
   /**
@@ -271,13 +272,13 @@ class OrderService {
     try {
       const token = this.getBestToken();
       
-      //console.log('📡 Fetching orders...');
-      //console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
-      //console.log('🔑 Using token:', token ? 'Found' : 'Not found');
+      ////console.log('📡 Fetching orders...');
+      ////console.log('🔗 URL:', `${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`);
+      ////console.log('🔑 Using token:', token ? 'Found' : 'Not found');
       
       if (!token) {
         //console.error('❌ No authentication token found in localStorage');
-        //console.log('📦 LocalStorage contents:', {
+        ////console.log('📦 LocalStorage contents:', {
         //   auth_token: localStorage.getItem('auth_token'),
         //   token: localStorage.getItem('token'),
         //   user_data: localStorage.getItem('user_data'),
@@ -286,23 +287,27 @@ class OrderService {
         throw new Error('Authentication token not found. Please login again.');
       }
 
+      const locale = getLocale();
+      const langQuery = getLangQueryParam(locale);
+      
+
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       };
       
-      //console.log('📤 Request headers:', {
+      ////console.log('📤 Request headers:', {
       //   Authorization: `Bearer ${token.substring(0, 20)}...`,
       //   'Content-Type': 'application/json'
       // });
 
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}`, {
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.USERS.ORDERS}${langQuery}`, {
         method: 'GET',
         headers,
       });
 
-      //console.log('📥 Response status:', response.status);
-      //console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+      ////console.log('📥 Response status:', response.status);
+      ////console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -327,7 +332,7 @@ class OrderService {
       }
 
       const data: OrdersResponse = await response.json();
-      //console.log('✅ Orders fetched successfully:', data.length, 'orders');
+      ////console.log('✅ Orders fetched successfully:', data.length, 'orders');
       
       const orders = data.data || [];
       
@@ -360,6 +365,9 @@ class OrderService {
    */
   async getOrderDetails(orderId: string, forceRefresh: boolean = false): Promise<OrderItem> {
     const cacheKey = `order_details_${orderId}`;
+    const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
+    
 
     // Check cache first
     if (!forceRefresh) {
@@ -376,7 +384,7 @@ class OrderService {
         throw new Error('Authentication token not found');
       }
 
-      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.DETAILS.replace(':id', orderId)}`;
+      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.DETAILS.replace(':id', orderId)}${langQuery}`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -411,6 +419,8 @@ class OrderService {
    * Cancel an order (invalidates cache)
    */
   async cancelOrder(orderId: string): Promise<boolean> {
+    const locale = getLocale();
+    const langQuery = getLangQueryParam(locale);
     try {
       const token = this.getBestToken();
       
@@ -418,7 +428,7 @@ class OrderService {
         throw new Error('Authentication token not found');
       }
 
-      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.CANCEL.replace(':id', orderId)}`;
+      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.CANCEL.replace(':id', orderId)}${langQuery}`;
       
       const response = await fetch(url, {
         method: 'PATCH',
@@ -453,6 +463,9 @@ class OrderService {
   async trackOrder(orderId: string, forceRefresh: boolean = false): Promise<any> {
     const cacheKey = `order_tracking_${orderId}`;
 
+    const locale = getLocale(); 
+    const langQuery = getLangQueryParam(locale);
+
     // Check cache first
     if (!forceRefresh) {
       const cachedData = this.getCache<any>(cacheKey);
@@ -468,7 +481,7 @@ class OrderService {
         throw new Error('Authentication token not found');
       }
 
-      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.TRACK.replace(':id', orderId)}`;
+      const url = `${this.baseUrl}${API_ENDPOINTS.ORDERS.TRACK.replace(':id', orderId)}${langQuery}`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -526,8 +539,8 @@ class OrderService {
    * Debug helper - log all auth-related localStorage items
    */
   debugAuth(): void {
-    //console.log('🔍 Authentication Debug Info:');
-    // console.log('📦 LocalStorage:', {
+    ////console.log('🔍 Authentication Debug Info:');
+    // //console.log('📦 LocalStorage:', {
     //   auth_token: localStorage.getItem('auth_token'),
     //   token: localStorage.getItem('token'),
     //   accessToken: localStorage.getItem('accessToken'),
@@ -537,15 +550,15 @@ class OrderService {
     
     const userData = this.getUserData();
     if (userData) {
-      //console.log('👤 User data keys:', Object.keys(userData));
+      ////console.log('👤 User data keys:', Object.keys(userData));
     }
     
     const bestToken = this.getBestToken();
-    //console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
+    ////console.log('🎯 Best token:', bestToken ? `${bestToken.substring(0, 20)}...` : 'Not found');
     
     // Cache stats
     const stats = this.getCacheStats();
-    //console.log('💾 Cache stats:', stats);
+    ////console.log('💾 Cache stats:', stats);
   }
 }
 

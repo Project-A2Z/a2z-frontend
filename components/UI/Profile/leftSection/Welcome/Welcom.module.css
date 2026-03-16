@@ -31,11 +31,12 @@
 }
 
 .welcomeText {
-  font-size: 7rem;
+  font-size: 6rem;
   font-weight: 700;
   color: var(--primary);
   line-height: 1.2;
   white-space: nowrap;
+  padding: 0 1rem;
 }
 
 .nameText {

@@ -1,12 +1,16 @@
 "use client";
-import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { Product, ProductVariant } from '@/services/api/products';
+import React, { useEffect, useState, lazy, Suspense } from "react";
+import { useTranslations } from "next-intl";
+import { Product } from "@/services/api/products";
+import { getLocale } from "@/services/api/language";
 
-const Overview = lazy(() => import('./Sections/Overview'));
-const Specs = lazy(() => import('./Sections/Specs'));
-const Ratings = lazy(() => import('./Sections/Ratings'));
-const Reviews = lazy(() => import('./Sections/Reviews'));
-const RelatedProducts = lazy(() => import('@/components/UI/RelatedProducts/RelatedProducts'));
+const Overview = lazy(() => import("./Sections/Overview"));
+const Specs = lazy(() => import("./Sections/Specs"));
+const Ratings = lazy(() => import("./Sections/Ratings"));
+const Reviews = lazy(() => import("./Sections/Reviews"));
+const RelatedProducts = lazy(
+  () => import("@/components/UI/RelatedProducts/RelatedProducts"),
+);
 
 export type ProductData = Product;
 
@@ -15,12 +19,18 @@ const SectionLoader = () => (
 );
 
 const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
+  const t = useTranslations("productPage");
+  const isRTL = getLocale() === "ar";
+
+
   const [product, setProduct] = useState<ProductData | null>(data || null);
   const [loading, setLoading] = useState<boolean>(!data);
   const [error, setError] = useState<string | null>(null);
   const [currentRating, setCurrentRating] = useState<number>(0);
   const [currentRatingCount, setCurrentRatingCount] = useState<number>(0);
-  const [ratingsDistribution, setRatingsDistribution] = useState<{ stars: number; count: number }[]>([]);
+  const [ratingsDistribution, setRatingsDistribution] = useState<
+    { stars: number; count: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -32,29 +42,27 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
 
       try {
         setLoading(true);
-        const productId = window.location.pathname.split('/').pop();
-        if (!productId) throw new Error('Product ID is missing');
+        const productId = window.location.pathname.split("/").pop();
+        if (!productId) throw new Error("Product ID is missing");
 
         const response = await fetch(
-          `https://a2z-backend--dkreq.fly.dev/app/v1/products/${productId}`
+          `https://a2z-backend--dkreq.fly.dev/app/v1/products/${productId}`,
         );
 
-        if (!response.ok) throw new Error('Failed to fetch product');
+        if (!response.ok) throw new Error("Failed to fetch product");
 
         const result = await response.json();
-
-        // Backend now returns { status, product } — not { status, data }
         const productData = result.product ?? result.data;
 
-        if (result.status === 'success' && productData) {
+        if (result.status === "success" && productData) {
           setProduct(productData);
           updateRatingData(productData);
         } else {
-          throw new Error('Invalid product data');
+          throw new Error("Invalid product data");
         }
       } catch (err) {
-        console.error('Error fetching product:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error("Error fetching product:", err);
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -64,13 +72,13 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }, [data]);
 
   const updateRatingData = (productData: ProductData) => {
-    setCurrentRating(productData.reviewSummary?.averageRate ?? productData.averageRate ?? 0);
+    setCurrentRating(
+      productData.reviewSummary?.averageRate ?? productData.averageRate ?? 0,
+    );
     setCurrentRatingCount(productData.reviewSummary?.totalReviews ?? 0);
 
-    // rateDistribution is now { "1": 0, "2": 0, ... "5": 0 }
     const raw = productData.reviewSummary?.rateDistribution;
-
-    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
       const distribution = Object.entries(raw).map(([stars, count]) => ({
         stars: parseInt(stars, 10),
         count: Number(count),
@@ -85,21 +93,19 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     if (!product?._id) return;
     try {
       const response = await fetch(
-        `https://a2z-backend--dkreq.fly.dev/app/v1/products/${product._id}`
+        `https://a2z-backend--dkreq.fly.dev/app/v1/products/${product._id}`,
       );
-      if (!response.ok) throw new Error('Failed to refresh product data');
+      if (!response.ok) throw new Error("Failed to refresh product data");
 
       const result = await response.json();
       const productData = result.product ?? result.data;
 
-      console.log('Refreshed product data after review action:', productData);
-
-      if (result.status === 'success' && productData) {
+      if (result.status === "success" && productData) {
         setProduct(productData);
         updateRatingData(productData);
       }
     } catch (err) {
-      console.error('Error refreshing product data:', err);
+      console.error("Error refreshing product data:", err);
     }
   };
 
@@ -107,7 +113,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     return (
       <div className="min-h-screen bg-background font-beiruti mt-[93px] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl">جاري التحميل...</p>
+          <p className="text-xl">{t("loading")}</p>
         </div>
       </div>
     );
@@ -117,26 +123,29 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     return (
       <div className="min-h-screen bg-background font-beiruti mt-[93px] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl">خطأ في تحميل المنتج</p>
-          <p className="mt-2 text-gray-600">{error || 'المنتج غير موجود'}</p>
+          <p className="text-xl">{t("error.title")}</p>
+          <p className="mt-2 text-gray-600">{error || t("error.notFound")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background font-beiruti mt-40">
+    <div className="min-h-screen bg-background font-beiruti mt-40" style={{direction: isRTL ? 'rtl' : 'ltr' , textAlign : isRTL ? 'right' : 'left'}}>
       <div className="mx-auto max-w-[95%] px-4 py-6 space-y-6">
         <Suspense fallback={<SectionLoader />}>
           <Overview
             id={product._id}
             title={product.name}
-            description={product.description || 'لا يوجد وصف متاح'}
-            imageList={product.imageList?.length ? product.imageList : ['/acessts/NoImage.jpg']}
+            description={product.description || t("error.noDescription")}
+            imageList={
+              product.imageList?.length
+                ? product.imageList
+                : ["/acessts/NoImage.jpg"]
+            }
             rating={currentRating}
             ratingCount={currentRatingCount}
             category={product.category}
-            // Pass the variants array — Overview now derives units/price/stock from it
             variants={product.productVariants ?? []}
             advProduct={product.advProduct ?? []}
           />
@@ -145,8 +154,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         <div className="flex flex-col lg:flex-row gap-6 max-w-[95%] mx-auto">
           <div className="flex flex-col order-2 lg:order-1 flex-1 space-y-6">
             <Suspense fallback={<SectionLoader />}>
-           
-<Specs specs={product.advProduct ?? []} />
+              <Specs specs={product.advProduct ?? []} />
             </Suspense>
 
             <Suspense fallback={<SectionLoader />}>

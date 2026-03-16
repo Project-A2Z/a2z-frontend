@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Slider } from '@/components/UI/Slider';
 import type { SlideItem } from '@/components/UI/Slider';
+import {useTranslations} from 'next-intl';
 
 const MainSection = React.memo(() => {
   const [slides, setSlides] = useState<SlideItem[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+  const t = useTranslations("home");
   
   useEffect(() => {
     setIsMounted(true);
@@ -68,10 +70,10 @@ const MainSection = React.memo(() => {
         {/* Title block under slider */}
         <div className="w-full max-w-[1440px] mx-auto text-center mt-4">
           <h2 className="font-beiruti font-bold text-[20px] sm:text-[24px] md:text-[28px] leading-snug text-gray-800">
-            منتجاتنا و خدماتنا
+            {t('mainSection.title')}
           </h2>
           <p className="font-beiruti font-medium text-[14px] sm:text-[16px] leading-snug text-gray-700 mt-1 sm:mt-2">
-            جميع الكيميائيات في مكان واحد
+            {t('mainSection.subtitle')}
           </p>
         </div>
       </div>
