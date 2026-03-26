@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import ProductPage from "@/components/pages/ProductPage/ProductPage";
 import { fetchProductByIdISR } from "@/services/api/products";
 import { generateSEO } from "@/config/seo.config";
-import { getTranslations } from "next-intl/server";
+import { getTranslations , getLocale } from "next-intl/server";
+// import { getLocale } from "@/services/api/language";
 
 export const metadata = generateSEO({
   title: "صفحة المنتج",
@@ -18,9 +19,11 @@ export default async function ProductByIdPage({
   const { id } = await params;
   const decodedId = decodeURIComponent(id);
   const t = await getTranslations("productPage");
+  const locale = await getLocale();
+
 
   try {
-    const res = await fetchProductByIdISR(decodedId, 3600);
+    const res = await fetchProductByIdISR(decodedId, 3600, locale);
 
     if (res.status === "error") {
       if (res.message?.includes("Product not found")) {
@@ -44,7 +47,7 @@ export default async function ProductByIdPage({
       return notFound();
     }
 
-    return <ProductPage data={product} />;
+    return <ProductPage data={product} id={id}/>;
 
   } catch (e: any) {
     console.error("❌ Error fetching product:", e.message);

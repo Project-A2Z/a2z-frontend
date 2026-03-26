@@ -1,5 +1,6 @@
 import apiClient from './client';
 import { Api } from './endpoints';
+import { getLocale , getLangQueryParam } from './language';
 
 const isServer = typeof window === 'undefined';
 
@@ -126,6 +127,7 @@ export interface ProductFilters {
     gte?: number;
     lte?: number;
   };
+  lang?: 'ar' | 'en';
   [key: string]: any;
 }
 
@@ -302,18 +304,23 @@ export async function fetchProductsISR(
  */
 export async function fetchProductByIdISR(
   id: string,
-  revalidate: number = 3600
+  revalidate: number = 3600,
+  locale: string = 'ar'              // ← explicit param, no internal cookie read
 ): Promise<ApiResponse<Product>> {
   if (!id) throw new Error('Product ID is required');
 
   const BASE_URL = Api ?? 'https://a2z-backend--dkreq.fly.dev/app/v1';
-  const url = `${BASE_URL}/products/${id}?lang=en`;
+  const url = `${BASE_URL}/products/${id}?lang=${locale}`;  // ← use passed locale
+  console.log(`Fetching product ${id} with locale ${locale} from URL: ${url}`);
 
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      next: { revalidate, tags: ['products', `product-${id}`] },
+      next: {
+        revalidate,
+        tags: ['products', `product-${id}`, `product-${id}-${locale}`], // ← locale-scoped tag
+      },
     });
 
     if (!response.ok) {
@@ -323,7 +330,6 @@ export async function fetchProductByIdISR(
 
     const raw = await response.json();
 
-    // Backend changed: top-level key is `product`, not `data`
     return {
       status: raw.status ?? 'success',
       data: raw.product ?? raw.data ?? ({} as Product),

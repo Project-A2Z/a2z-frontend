@@ -52,7 +52,15 @@ const Overview: React.FC<Props> = ({
   // ── Helpers ────────────────────────────────────────────────────────────────
   const unitLabel = (name: string): string => {
     const key = name.toLowerCase();
-    const knownKeys = ["piece", "kg", "ton", "liter", "cubic_meter", "meter", "gram"];
+    const knownKeys = [
+      "piece",
+      "kg",
+      "ton",
+      "liter",
+      "cubic_meter",
+      "meter",
+      "gram",
+    ];
     return knownKeys.includes(key) ? t(`units.${key}`) : name;
   };
 
@@ -84,14 +92,15 @@ const Overview: React.FC<Props> = ({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
 
-  useEffect(() => { setQuantity(1); }, [selectedVariant]);
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
 
   // ── Image carousel ─────────────────────────────────────────────────────────
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isManualNavigation, setIsManualNavigation] = useState(false);
   const isRTL = getLocale() === "ar";
-
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % imageList.length);
@@ -120,8 +129,13 @@ const Overview: React.FC<Props> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (imageList.length <= 1) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); prevImage(); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); nextImage(); }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevImage();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        nextImage();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -139,7 +153,9 @@ const Overview: React.FC<Props> = ({
     cartService.getCart().catch(() => {});
   }, []);
 
-  const favoritesContext = FavoritesContext ? FavoritesContext.useFavorites() : null;
+  const favoritesContext = FavoritesContext
+    ? FavoritesContext.useFavorites()
+    : null;
 
   useEffect(() => {
     if (isClient && favoritesContext && id) {
@@ -149,8 +165,14 @@ const Overview: React.FC<Props> = ({
 
   const toggleFavorite = async () => {
     if (!isMounted) return;
-    if (!isAuthenticated()) { setShowLoginAlert(true); return; }
-    if (!favoritesContext) { setShowLoginAlert(true); return; }
+    if (!isAuthenticated()) {
+      setShowLoginAlert(true);
+      return;
+    }
+    if (!favoritesContext) {
+      setShowLoginAlert(true);
+      return;
+    }
 
     const next = !loved;
     setLoved(next);
@@ -174,7 +196,10 @@ const Overview: React.FC<Props> = ({
     const conflict = checkProductUnitConflict(variantId, selectedUnitName);
     if (conflict) return;
 
-    if (!isAuthenticated()) { router.push("/login"); return; }
+    if (!isAuthenticated()) {
+      router.push("/login");
+      return;
+    }
 
     try {
       setIsAdding(true);
@@ -182,7 +207,9 @@ const Overview: React.FC<Props> = ({
         variantId,
         quantity,
         unit: selectedUnitName,
-        ...(selectedAttributeValueId && { attributeValueId: selectedAttributeValueId }),
+        ...(selectedAttributeValueId && {
+          attributeValueId: selectedAttributeValueId,
+        }),
       });
       await cartService.getCart();
       router.push("/cart");
@@ -195,15 +222,16 @@ const Overview: React.FC<Props> = ({
 
   const handleLoginConfirm = () => {
     setShowLoginAlert(false);
-    router.push("/login?redirect=" + encodeURIComponent(window.location.pathname));
+    router.push(
+      "/login?redirect=" + encodeURIComponent(window.location.pathname),
+    );
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6" >
+      <section className="bg-white max-w-[95%] mx-auto rounded-2xl border shadow-sm p-4 sm:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
           {/* Image carousel */}
           <div className="lg:col-span-4">
             <div
@@ -213,7 +241,9 @@ const Overview: React.FC<Props> = ({
             >
               <CustomImage
                 key={currentImageIndex}
-                src={imageList[currentImageIndex] || "/acessts/download (47).jpg"}
+                src={
+                  imageList[currentImageIndex] || "/acessts/download (47).jpg"
+                }
                 alt={`${title} - Image ${currentImageIndex + 1}`}
                 fill
                 objectFit="contain"
@@ -259,14 +289,15 @@ const Overview: React.FC<Props> = ({
 
           {/* Product info */}
           <div className="lg:col-span-8 w-full">
-
             {/* Title + wishlist */}
             <div className="flex items-start justify-between gap-3 mb-2">
               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-black87 leading-snug flex-1">
                 {title}
               </h1>
               <button
-                aria-label={loved ? t("aria.wishlistRemove") : t("aria.wishlistAdd")}
+                aria-label={
+                  loved ? t("aria.wishlistRemove") : t("aria.wishlistAdd")
+                }
                 onClick={toggleFavorite}
                 className={`p-2 rounded-full border hover:border-primary transition-colors ${
                   loved ? "text-primary border-primary" : "text-black60"
@@ -296,9 +327,7 @@ const Overview: React.FC<Props> = ({
                     : "bg-disabled text-white cursor-not-allowed"
                 }`}
               >
-                {stockQty > 0
-                  ? t("stock.available", { count: stockQty })
-                  : t("stock.unavailable")}
+                {stockQty > 0 ? t("stock.available") : t("stock.unavailable")}
               </span>
             </div>
 
@@ -336,10 +365,10 @@ const Overview: React.FC<Props> = ({
                 <div className="flex flex-wrap gap-2">
                   {variants.map((v) => {
                     const attrLabel = variantAttributeLabel(v);
+                    const conversionRate = v.unitId?.conversionRate ?? 1;
                     const label = attrLabel
-                      ? `${unitLabel(v.unitId?.name ?? "")} · ${attrLabel}`
-                      : unitLabel(v.unitId?.name ?? "");
-
+                      ? `${unitLabel(v.unitId?.name ?? "")} × ${conversionRate} · ${attrLabel}`
+                      : `${unitLabel(v.unitId?.name ?? "")} × ${conversionRate}`;
                     return (
                       <button
                         key={v._id}

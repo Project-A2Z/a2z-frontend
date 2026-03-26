@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { Button } from "@/components/UI/Buttons/Button";
+import { useTranslations } from 'next-intl';
 import {
   fetchAllProducts,
   Product,
@@ -57,6 +58,8 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
   // ✅ FIX 1: Read active locale from Next.js route params
   const params = useParams();
   const locale = (params?.locale as string) || 'ar';
+  const t = useTranslations('products');
+
 
   // ✅ FIX 2: Derive the "All" label from the current locale
   const allLabel = getAllLabel(locale);
@@ -377,12 +380,13 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
           rightIcon={<FilterIcon />}
           rounded={true}
         >
-          تصفية
+         {t("filter")}
         </Button>
 
         {activeFiltersCount > 0 && (
           <Button variant="outline" size="sm" onClick={clearAllFilters} rounded={true}>
-            إلغاء التصفية
+            {t("clearFilter")}
+
           </Button>
         )}
       </div>
@@ -412,7 +416,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
           <div className={style.pageNumbers}>
             <div className={style.paginationInfo}>
               <span className={style.productsCount}>
-                عرض {enrichedProducts.length} من {totalProducts} منتج
+               {t("showing", { count: enrichedProducts.length , total: totalProducts })}
               </span>
             </div>
 
@@ -420,7 +424,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
               className={`${style.pageNumber} ${style.arrowButton}`}
               disabled={currentPage === 1}
               onClick={() => handlePageChange(currentPage - 1)}
-              aria-label="السابق"
+              aria-label={t("previous")}
             >
               ‹
             </button>
@@ -443,7 +447,7 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
               className={`${style.pageNumber} ${style.arrowButton}`}
               disabled={currentPage === totalPages}
               onClick={() => handlePageChange(currentPage + 1)}
-              aria-label="التالي"
+              aria-label={t("next")}
             >
               ›
             </button>
@@ -459,11 +463,11 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
             onClick={e => e.stopPropagation()}
           >
             <div className={style.filterModalHeader}>
-              <h3>الفلاتر</h3>
+              <h3>{t("filter")}</h3>
               <button
                 onClick={closeFilterModal}
                 className={style.closeModal}
-                aria-label="إغلاق"
+                aria-label={  t("close") }
               >
                 ×
               </button>
@@ -480,10 +484,10 @@ function OptimizedProductSection({ initialData }: OptimizedProductSectionProps) 
 
             <div className={style.filterModalFooter}>
               <Button variant="outline" size="lg" fullWidth onClick={closeFilterModal}>
-                إلغاء
+                {t("cancel")}
               </Button>
               <Button variant="primary" size="lg" fullWidth onClick={applyTempFilters}>
-                حفظ التغيير
+                {t("saveChanges")}
               </Button>
             </div>
           </div>

@@ -1,8 +1,10 @@
 "use client";
-import React, { useEffect, useState, lazy, Suspense } from "react";
-import { useTranslations } from "next-intl";
+import React, { useEffect, useState, lazy, Suspense, use } from "react";
+import { useTranslations , useLocale } from "next-intl";
 import { Product } from "@/services/api/products";
-import { getLocale } from "@/services/api/language";
+import { getLocale , getLangQueryParam} from "@/services/api/language";
+import { fetchProductByIdISR } from "@/services/api/products";
+import { notFound } from "next/navigation";
 
 const Overview = lazy(() => import("./Sections/Overview"));
 const Specs = lazy(() => import("./Sections/Specs"));
@@ -18,9 +20,14 @@ const SectionLoader = () => (
   <div className="animate-pulse bg-gray-200 rounded-lg h-32 w-full" />
 );
 
-const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
+const ProductPage: React.FC<{ data: ProductData , id: string}> = ({ data, id }) => {
   const t = useTranslations("productPage");
-  const isRTL = getLocale() === "ar";
+  const locale = useLocale() || getLocale(); // Fallback to getLocale() if useLocale() returns undefined
+  const lang = getLangQueryParam(locale);
+  const isRTL = locale === "ar";
+  
+
+  const decodedId = decodeURIComponent(id);
 
 
   const [product, setProduct] = useState<ProductData | null>(data || null);
@@ -45,21 +52,25 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
         const productId = window.location.pathname.split("/").pop();
         if (!productId) throw new Error("Product ID is missing");
 
-        const response = await fetch(
-          `https://a2z-backend--dkreq.fly.dev/app/v1/products/${productId}`,
-        );
+        const response = await fetchProductByIdISR(decodedId, 3600 , locale);
 
-        if (!response.ok) throw new Error("Failed to fetch product");
+        if (response.status === "error") {
+             if (response.message?.includes("Product not found")) {
+               return notFound();
+             }
+             if (
+               response.message?.includes("Connection timeout") ||
+               response.message?.includes("socket hang up")
+             ) {
+               throw new Error("Connection timeout. Please check your internet connection and try again.");
+             }
+             if (response.message?.includes("temporarily unavailable")) {
+               throw new Error("Product temporarily unavailable. Please try again in a few minutes.");
+             }
+           }
 
-        const result = await response.json();
-        const productData = result.product ?? result.data;
 
-        if (result.status === "success" && productData) {
-          setProduct(productData);
-          updateRatingData(productData);
-        } else {
-          throw new Error("Invalid product data");
-        }
+       
       } catch (err) {
         console.error("Error fetching product:", err);
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -69,7 +80,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     };
 
     fetchProduct();
-  }, [data]);
+  }, [data, locale]);
 
   const updateRatingData = (productData: ProductData) => {
     setCurrentRating(
@@ -93,7 +104,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
     if (!product?._id) return;
     try {
       const response = await fetch(
-        `https://a2z-backend--dkreq.fly.dev/app/v1/products/${product._id}`,
+        `https://a2z-backend--dkreq.fly.dev/app/v1/products/${product._id}${lang}`,
       );
       if (!response.ok) throw new Error("Failed to refresh product data");
 
@@ -131,7 +142,7 @@ const ProductPage: React.FC<{ data: ProductData }> = ({ data }) => {
   }
 
   return (
-    <div className="min-h-screen bg-background font-beiruti mt-40" style={{direction: isRTL ? 'rtl' : 'ltr' , textAlign : isRTL ? 'right' : 'left'}}>
+    <div className="min-h-screen bg-background font-beiruti mt-40" >
       <div className="mx-auto max-w-[95%] px-4 py-6 space-y-6">
         <Suspense fallback={<SectionLoader />}>
           <Overview
