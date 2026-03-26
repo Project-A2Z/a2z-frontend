@@ -33,6 +33,7 @@
     "emptyQuery": "No products match the search criteria",
     "saveChanges": "Apply Changes",
     "close": "Close",
+    "cancel": "Cancel",
     "availability": {
       "inStock": "In Stock",
       "outOfStock": "Out of Stock"
@@ -1544,7 +1545,7 @@
     "defaultCategory": "Unspecified",
     "currency": "EGP",
     "stock": {
-      "available": "In stock ({count})",
+      "available": "In stock ",
       "unavailable": "Out of stock"
     },
     "selectVariant": "Choose type:",

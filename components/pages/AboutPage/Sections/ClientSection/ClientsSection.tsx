@@ -14,7 +14,7 @@ const ClientsSection: React.FC = () => {
   // const clients: Client[] = ClientsData;
 
   return (
-    <section className="  bg-gray-50" dir="rtl">
+    <section className="  bg-gray-50 rounded-lg px-6 py-6" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Section Title */}
         <h2 className="text-4xl font-bold text-center mb-12 text-green-700">

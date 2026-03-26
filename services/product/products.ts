@@ -1,8 +1,7 @@
-// services/product/products.ts - UPDATED for new backend structure
+// services/product/products.ts - UPDATED for locale-aware caching
 
 import { Api, API_ENDPOINTS } from './../api/endpoints';
-
-import { getLangQueryParam } from '../api/language';
+import { getLangQueryParam, getLocale } from '../api/language';
 
 // ============================================
 // NEW INTERFACES - Matching updated backend
@@ -129,18 +128,6 @@ export interface ProductFilters {
   sortOrder?: 'asc' | 'desc';
   lang?: string;
 }
-
-// ============================================
-// LOCALE HELPER
-// ============================================
-
-export type Locale = 'ar' | 'en';
-
-const getLocale = (): Locale => {
-  if (typeof document === 'undefined') return 'ar'; // SSR fallback
-  const match = document.cookie.match(/(?:^|; )locale=([^;]*)/);
-  return (match?.[1] as Locale) ?? 'ar';
-};
 
 // ============================================
 // UNIT HELPERS (now derived from variant unitId)
@@ -313,11 +300,15 @@ interface CategoryCacheEntry {
   timestamp: number;
 }
 
-let globalProductsCache: Product[] | null = null;
+// Locale-keyed caches — each language gets its own independent slot
+let globalProductsCache: Map<string, Product[]> = new Map();
+let cacheTimestamps: Map<string, number> = new Map();
+let isLoadingProducts: Map<string, boolean> = new Map();
+let pendingPromises: Map<string, Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }>> = new Map();
+
+// Category cache key format: `${locale}:${categoryName}`
 let categoryCaches: Map<string, CategoryCacheEntry> = new Map();
-let cacheTimestamp: number = 0;
-let isLoadingProducts = false;
-let pendingPromises: Array<{ resolve: (value: Product[]) => void; reject: (error: any) => void }> = [];
+
 let lastRequestTime = 0;
 
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -350,8 +341,6 @@ const parseApiResponse = (raw: any): { data: Product[]; total: number } => {
 
 // ============================================
 // CLIENT-SIDE PAGINATION HELPER
-// Used as fallback when the backend 4xx/5xx's on
-// paginated requests (e.g. params not supported).
 // ============================================
 
 const paginateLocally = (
@@ -383,27 +372,35 @@ const paginateLocally = (
 };
 
 // ============================================
-// FETCH ALL PRODUCTS (Global Cache)
+// FETCH ALL PRODUCTS (Locale-aware Global Cache)
 // ============================================
 
 export const getProductsWithState = async (signal?: AbortSignal): Promise<Product[]> => {
-  const now: number = Date.now();
+  const now = Date.now();
+  const locale = getLocale();
+  const cacheKey = locale; // Each locale has its own cache slot
 
-  if (globalProductsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    //console.log('✅ Returning cached products:', globalProductsCache.length);
-    return globalProductsCache;
+  const cached = globalProductsCache.get(cacheKey);
+  const cachedAt = cacheTimestamps.get(cacheKey) ?? 0;
+
+  if (cached && (now - cachedAt) < CACHE_DURATION) {
+    return cached;
   }
 
   if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
 
-  if (isLoadingProducts) {
+  if (isLoadingProducts.get(cacheKey)) {
     return new Promise((resolve, reject) => {
-      pendingPromises.push({ resolve, reject });
+      const pending = pendingPromises.get(cacheKey) ?? [];
+      pending.push({ resolve, reject });
+      pendingPromises.set(cacheKey, pending);
+
       if (signal) {
         signal.addEventListener('abort', () => {
-          const index = pendingPromises.findIndex(p => p.resolve === resolve);
+          const list = pendingPromises.get(cacheKey) ?? [];
+          const index = list.findIndex(p => p.resolve === resolve);
           if (index > -1) {
-            pendingPromises.splice(index, 1);
+            list.splice(index, 1);
             reject(new DOMException('Request aborted', 'AbortError'));
           }
         });
@@ -416,13 +413,22 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
     await new Promise<void>(resolve => setTimeout(resolve, waitTime));
   }
 
-  isLoadingProducts = true;
+  isLoadingProducts.set(cacheKey, true);
   lastRequestTime = now;
 
-  try {
-    //console.log('🔄 Fetching all products from API...');
+  const resolvePending = (products: Product[]) => {
+    (pendingPromises.get(cacheKey) ?? []).forEach(({ resolve }) => resolve(products));
+    pendingPromises.set(cacheKey, []);
+    isLoadingProducts.set(cacheKey, false);
+  };
 
-    const locale = getLocale();
+  const rejectPending = (error: any) => {
+    (pendingPromises.get(cacheKey) ?? []).forEach(({ reject }) => reject(error));
+    pendingPromises.set(cacheKey, []);
+    isLoadingProducts.set(cacheKey, false);
+  };
+
+  try {
     const langParam = getLangQueryParam(locale);
     const url = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}${langParam}`;
 
@@ -432,11 +438,9 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
     });
 
     if (response.status === 429) {
-      if (globalProductsCache) {
-        isLoadingProducts = false;
-        pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
-        pendingPromises = [];
-        return globalProductsCache;
+      if (cached) {
+        resolvePending(cached);
+        return cached;
       }
       await new Promise<void>(resolve => setTimeout(resolve, 10000));
       throw new Error('Service temporarily unavailable due to rate limiting.');
@@ -447,41 +451,27 @@ export const getProductsWithState = async (signal?: AbortSignal): Promise<Produc
     const raw = await response.json();
     const { data: products } = parseApiResponse(raw);
 
-    globalProductsCache = products;
-    cacheTimestamp = now;
-    isLoadingProducts = false;
-    pendingPromises.forEach(({ resolve }) => resolve(products));
-    pendingPromises = [];
-
-    //console.log('✅ Fetched products successfully:', products.length);
+    globalProductsCache.set(cacheKey, products);
+    cacheTimestamps.set(cacheKey, now);
+    resolvePending(products);
     return products;
 
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
-
     if (error instanceof DOMException && error.name === 'AbortError') {
-      isLoadingProducts = false;
-      pendingPromises.forEach(({ reject }) => reject(error));
-      pendingPromises = [];
+      rejectPending(error);
       throw error;
     }
-
-    if (globalProductsCache) {
-      isLoadingProducts = false;
-      pendingPromises.forEach(({ resolve }) => resolve(globalProductsCache!));
-      pendingPromises = [];
-      return globalProductsCache;
+    if (cached) {
+      resolvePending(cached);
+      return cached;
     }
-
-    isLoadingProducts = false;
-    pendingPromises.forEach(({ reject }) => reject(error));
-    pendingPromises = [];
+    rejectPending(error);
     throw error;
   }
 };
 
 // ============================================
-// FETCH PRODUCTS BY CATEGORY
+// FETCH PRODUCTS BY CATEGORY (Locale-aware)
 // ============================================
 
 export const fetchProductsByCategory = async (
@@ -489,19 +479,17 @@ export const fetchProductsByCategory = async (
   signal?: AbortSignal
 ): Promise<Product[]> => {
   const now = Date.now();
+  const locale = getLocale();
+  const cacheKey = `${locale}:${categoryName}`; // Locale-scoped category key
 
-  const cachedCategory = categoryCaches.get(categoryName);
+  const cachedCategory = categoryCaches.get(cacheKey);
   if (cachedCategory && (now - cachedCategory.timestamp) < CACHE_DURATION) {
-    //console.log('✅ Returning cached category products:', categoryName, cachedCategory.products.length);
     return cachedCategory.products;
   }
 
   if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
 
   try {
-    //console.log('🔄 Fetching products for category:', categoryName);
-
-    const locale = getLocale();
     const langParam = getLangQueryParam(locale);
     const filterUrl = `${Api}/${API_ENDPOINTS.PRODUCTS.LIST}${langParam}&category=${encodeURIComponent(categoryName)}`;
 
@@ -517,8 +505,7 @@ export const fetchProductsByCategory = async (
     const raw = await response.json();
     const { data: products } = parseApiResponse(raw);
 
-    categoryCaches.set(categoryName, { categoryName, products, timestamp: now });
-    //console.log('✅ Fetched category products:', categoryName, products.length);
+    categoryCaches.set(cacheKey, { categoryName, products, timestamp: now });
     return products;
 
   } catch (error) {
@@ -530,10 +517,6 @@ export const fetchProductsByCategory = async (
 
 // ============================================
 // FETCH PRODUCTS WITH PAGINATION FROM API
-// Attempts server-side pagination first.
-// If the backend responds with 4xx/5xx (e.g. it
-// doesn't support page/limit params), falls back
-// to fetching all products and paginating locally.
 // ============================================
 
 export const fetchProductsFromAPI = async (
@@ -557,16 +540,13 @@ export const fetchProductsFromAPI = async (
     const locale = getLocale();
     const langParam = getLangQueryParam(locale);
     let url = `${Api}${API_ENDPOINTS.PRODUCTS.LIST}${langParam}&page=${page}&limit=${limit}`;
-    console.log('🔄 Fetching products with pagination from API:', { page, limit, category , locale });
+    console.log('🔄 Fetching products with pagination from API:', { page, limit, category, locale });
     if (category) url += `&category=${encodeURIComponent(category)}`;
-
-    //console.log('🔄 Fetching paginated products:', { page, limit, category });
 
     const response = await fetch(url, { method: 'GET', ...getRequestConfig(60, signal) });
 
     if (response.status === 429) throw new Error('Rate limited. Please try again later.');
 
-    // ✅ Backend doesn't support pagination params — fall back gracefully
     if (!response.ok) {
       console.warn(`⚠️ Server responded ${response.status} for paginated request — falling back to client-side pagination`);
       const allProducts = await getProductsWithState(signal);
@@ -578,8 +558,6 @@ export const fetchProductsFromAPI = async (
 
     const paginatedProducts = products.slice((page - 1) * limit, page * limit);
     const totalPages = Math.ceil(total / limit);
-
-    //console.log('✅ Fetched paginated products:', paginatedProducts.length, 'of', total);
 
     return {
       data: paginatedProducts,
@@ -597,7 +575,6 @@ export const fetchProductsFromAPI = async (
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
 
-    // ✅ Network/parse failure — fall back to cache + local pagination
     console.warn('⚠️ fetchProductsFromAPI failed — falling back to client-side pagination:', error);
     const allProducts = await getProductsWithState(signal);
     return paginateLocally(allProducts, page, limit, category);
@@ -613,8 +590,6 @@ export const fetchAllProducts = async (
   signal?: AbortSignal
 ): Promise<ProductsResponse> => {
   try {
-    //console.log('📊 fetchAllProducts called with filters:', filters);
-
     const page = filters.page || 1;
     const limit = filters.limit || 20;
 
@@ -633,7 +608,6 @@ export const fetchAllProducts = async (
       return await fetchProductsFromAPI(page, limit, category, signal);
     }
 
-    // Client-side filtering path
     let products: Product[];
 
     if (filters.category && typeof filters.category === 'string') {
@@ -675,8 +649,6 @@ export const fetchAllProducts = async (
     const totalPages = Math.ceil(total / limit);
     const paginatedProducts = filteredProducts.slice((page - 1) * limit, page * limit);
 
-    //console.log('✅ Returning filtered products:', paginatedProducts.length, 'of', total);
-
     return {
       data: paginatedProducts,
       pagination: { page, limit, total, totalPages },
@@ -694,28 +666,30 @@ export const fetchAllProducts = async (
     console.error('❌ Error in fetchAllProducts:', error);
 
     if (error instanceof DOMException && error.name === 'AbortError') {
-      //console.log('ℹ️ Request was cancelled');
       throw error;
     }
 
-    if (globalProductsCache) {
+    // Fallback: try to return any cached locale data
+    const locale = getLocale();
+    const cached = globalProductsCache.get(locale);
+
+    if (cached) {
       const page = filters.page || 1;
       const limit = filters.limit || 20;
-      const paginatedCache = globalProductsCache.slice((page - 1) * limit, page * limit);
-      //console.log('⚠️ Returning cached data due to error');
+      const paginatedCache = cached.slice((page - 1) * limit, page * limit);
       return {
         data: paginatedCache,
         pagination: {
           page, limit,
-          total: globalProductsCache.length,
-          totalPages: Math.ceil(globalProductsCache.length / limit),
+          total: cached.length,
+          totalPages: Math.ceil(cached.length / limit),
         },
         filters: {
-          categories: [...new Set(globalProductsCache.map(p => p.category))],
+          categories: [...new Set(cached.map(p => p.category))],
           brands: [],
           priceRange: {
-            min: globalProductsCache.length > 0 ? Math.min(...globalProductsCache.map(p => p.price)) : 0,
-            max: globalProductsCache.length > 0 ? Math.max(...globalProductsCache.map(p => p.price)) : 0,
+            min: cached.length > 0 ? Math.min(...cached.map(p => p.price)) : 0,
+            max: cached.length > 0 ? Math.max(...cached.map(p => p.price)) : 0,
           },
         },
       };
@@ -852,15 +826,26 @@ export const getByFirstLetter = (letter: string | null | undefined, allProducts:
 // CACHE MANAGEMENT
 // ============================================
 
-export const clearProductsCache = (): void => {
-  globalProductsCache = null;
-  cacheTimestamp = 0;
-  //console.log('🗑️ Cleared products cache');
+export const clearProductsCache = (locale?: string): void => {
+  if (locale) {
+    globalProductsCache.delete(locale);
+    cacheTimestamps.delete(locale);
+  } else {
+    globalProductsCache.clear();
+    cacheTimestamps.clear();
+  }
 };
 
-export const clearCategoryCache = (categoryName?: string): void => {
+export const clearCategoryCache = (categoryName?: string, locale?: string): void => {
   if (categoryName) {
-    categoryCaches.delete(categoryName);
+    // Clear both locale-specific and any legacy keys
+    if (locale) {
+      categoryCaches.delete(`${locale}:${categoryName}`);
+    } else {
+      categoryCaches.delete(`ar:${categoryName}`);
+      categoryCaches.delete(`en:${categoryName}`);
+      categoryCaches.delete(categoryName); // legacy fallback
+    }
   } else {
     categoryCaches.clear();
   }
@@ -873,16 +858,20 @@ export const clearAllCaches = (): void => {
 
 export const getCacheInfo = () => ({
   global: {
-    hasCache: !!globalProductsCache,
-    cacheSize: globalProductsCache?.length || 0,
-    cacheAge: cacheTimestamp ? Date.now() - cacheTimestamp : 0,
-    isLoading: isLoadingProducts,
-    pendingRequests: pendingPromises.length,
+    locales: Array.from(globalProductsCache.keys()),
+    entries: Array.from(globalProductsCache.entries()).map(([locale, products]) => ({
+      locale,
+      cacheSize: products.length,
+      cacheAge: cacheTimestamps.has(locale) ? Date.now() - (cacheTimestamps.get(locale) ?? 0) : 0,
+      isLoading: isLoadingProducts.get(locale) ?? false,
+      pendingRequests: (pendingPromises.get(locale) ?? []).length,
+    })),
   },
   categories: {
     count: categoryCaches.size,
-    entries: Array.from(categoryCaches.entries()).map(([name, cache]) => ({
-      name,
+    entries: Array.from(categoryCaches.entries()).map(([key, cache]) => ({
+      key, // format: `${locale}:${categoryName}`
+      name: cache.categoryName,
       productsCount: cache.products.length,
       cacheAge: Date.now() - cache.timestamp,
     })),

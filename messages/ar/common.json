@@ -33,6 +33,7 @@
     "emptyQuery": "لا توجد منتجات تطابق معايير البحث",
     "saveChanges": "حفظ التغيير",
     "close": "إغلاق",
+    "cancel": "إلغاء",
     "availability": {
       "inStock": "متوفر في المخزون",
       "outOfStock": "نفذ من المخزون"
@@ -1530,7 +1531,7 @@
     "defaultCategory": "غير محدد",
     "currency": "ج.م",
     "stock": {
-      "available": "متوفر ({count})",
+      "available": "متوفر ",
       "unavailable": "غير متوفر"
     },
     "selectVariant": "اختر النوع:",
