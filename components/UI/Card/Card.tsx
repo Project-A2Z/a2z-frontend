@@ -86,7 +86,8 @@ const isColorAttr = (name: string): boolean =>
 
 // ─── Carton helpers (module-level, reusable) ─────────────────────────────────
 
-const CARTON_KEYS = ['carton', 'كرتونة', 'cartons', 'كراتين', 'ctn', 'box'];
+const CARTON_KEYS = ["carton", "كرتونة", "كرتون", "cartons", "كراتين", "ctn", "box"];
+
 
 const isCartonUnit = (name: string): boolean =>
   CARTON_KEYS.includes(name.toLowerCase().trim());
