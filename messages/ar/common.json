@@ -37,7 +37,6 @@
     "availability": {
       "inStock": "متوفر في المخزون",
       "outOfStock": "نفذ من المخزون"
-    
     }
   },
   "Header": {
@@ -370,12 +369,12 @@
     "products": {
       "title": "المنتجات",
       "relatedProducts": {
-          "title": "منتجات ذات صلة",
-          "loading": {
-            "error" : "حدث خطأ أثناء تحميل المنتجات المتعلقة",
-            "retry": "إعادة المحاولة"
-          },
-            "unknownCategory": "فئة غير معروفة"
+        "title": "منتجات ذات صلة",
+        "loading": {
+          "error": "حدث خطأ أثناء تحميل المنتجات المتعلقة",
+          "retry": "إعادة المحاولة"
+        },
+        "unknownCategory": "فئة غير معروفة"
       },
       "loading": "جاري تحميل المنتجات...",
       "tabs": [
@@ -1111,12 +1110,12 @@
       "currentLocation": "📍 موقعي الحالي",
       "geocoding": "جاري تحميل تفاصيل العنوان...",
       "selected": {
-            "title": "الموقع المحدد:",
-            "loadingAddress": "جاري تحميل العنوان...",
-            "coordinates": "خط الطول: {lng}، خط العرض: {lat}",
-            "city": "المدينة: {city}",
-            "region": "المحافظة: {region}"
-          },
+        "title": "الموقع المحدد:",
+        "loadingAddress": "جاري تحميل العنوان...",
+        "coordinates": "خط الطول: {lng}، خط العرض: {lat}",
+        "city": "المدينة: {city}",
+        "region": "المحافظة: {region}"
+      },
       "errors": {
         "mapLoadFailed": "فشل في تحميل الخريطة",
         "mapInitFailed": "خطأ في تهيئة الخريطة",
@@ -1131,7 +1130,7 @@
     }
   },
   "profile": {
-     "page": {
+    "page": {
       "loading": "جاري تحميل البيانات...",
       "back": "العودة",
       "error": {
@@ -1159,17 +1158,17 @@
       }
     },
     "list": {
-        "loading": "جاري تحميل البيانات...",
-        "loggingOut": "جاري تسجيل الخروج...",
-        "menu": {
-          "accountDetails": "تفاصيل الحساب",
-          "changePassword": "تغيير كلمة المرور",
-          "addresses": "عناوينك",
-          "orders": "طلباتك",
-          "messages": "رسائلك",
-          "logout": "تسجيل الخروج"
-        }
-      },
+      "loading": "جاري تحميل البيانات...",
+      "loggingOut": "جاري تسجيل الخروج...",
+      "menu": {
+        "accountDetails": "تفاصيل الحساب",
+        "changePassword": "تغيير كلمة المرور",
+        "addresses": "عناوينك",
+        "orders": "طلباتك",
+        "messages": "رسائلك",
+        "logout": "تسجيل الخروج"
+      }
+    },
     "left": {
       "loading": "جاري التحميل...",
       "welcome": {
@@ -1318,7 +1317,7 @@
       }
     }
   },
-   "favoritesPage": {
+  "favoritesPage": {
     "loading": {
       "general": "جاري التحميل...",
       "favorites": "جاري تحميل المفضلة...",
@@ -1404,7 +1403,7 @@
       "parcel": "طرد",
       "confirm": "تأكيد تفاصيل التوصيل",
       "edit": "تعديل",
-      "pound":"ج"
+      "pound": "ج"
     },
     "payment": {
       "title": "طريقة الدفع",
@@ -1428,8 +1427,8 @@
         "confirm": "تأكيد العملية",
         "confirmed": "تم تأكيد بيانات الدفع بنجاح",
         "editData": "تعديل البيانات",
-        "transferInfo": { 
-          "title":"بيانات التحويل البنكي",
+        "transferInfo": {
+          "title": "بيانات التحويل البنكي",
           "CompanyName": "شركة A2Z للتجارة والتوريدات",
           "BankName": "البنك الأهلي المصري"
         },
@@ -1521,12 +1520,23 @@
   "overview": {
     "units": {
       "piece": "قطعة",
+      "piece_plural": "قطع",
       "kg": "كيلو",
+      "kg_plural": "كيلو",
       "ton": "طن",
+      "ton_plural": "أطنان",
+      "carton": "كرتونة",
+      "carton_plural": "كراتين",
+      "piecesInCarton": "({count} قطعة)",
+      "piecesInCarton_plural": "({count} قطعة)",
       "liter": "لتر",
+      "liter_plural": "لتر",
       "cubic_meter": "متر مكعب",
+      "cubic_meter_plural": "متر مكعب",
       "meter": "متر",
-      "gram": "جرام"
+      "meter_plural": "متر",
+      "gram": "جرام",
+      "gram_plural": "جرام"
     },
     "defaultCategory": "غير محدد",
     "currency": "ج.م",

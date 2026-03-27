@@ -37,7 +37,6 @@
     "availability": {
       "inStock": "In Stock",
       "outOfStock": "Out of Stock"
-    
     }
   },
   "Header": {
@@ -375,12 +374,12 @@
     "products": {
       "title": "Products",
       "relatedProducts": {
-          "title": "Related Products",
-          "loading": {
-            "error" : "Something went wrong while loading related products",
-            "retry": "Retry"
-          },
-            "unknownCategory": "Unknown Category"
+        "title": "Related Products",
+        "loading": {
+          "error": "Something went wrong while loading related products",
+          "retry": "Retry"
+        },
+        "unknownCategory": "Unknown Category"
       },
       "loading": "Loading products...",
       "tabs": [
@@ -1116,12 +1115,12 @@
       "currentLocation": "📍 My Current Location",
       "geocoding": "Loading address details...",
       "selected": {
-            "title": "Selected Location:",
-            "loadingAddress": "Loading address...",
-            "coordinates": "Lng: {lng}, Lat: {lat}",
-            "city": "City: {city}",
-            "region": "Governorate: {region}"
-          },
+        "title": "Selected Location:",
+        "loadingAddress": "Loading address...",
+        "coordinates": "Lng: {lng}, Lat: {lat}",
+        "city": "City: {city}",
+        "region": "Governorate: {region}"
+      },
       "errors": {
         "mapLoadFailed": "Failed to load the map",
         "mapInitFailed": "Error initializing the map",
@@ -1154,7 +1153,7 @@
         "orders": "Order Count",
         "reviews": "Reviews"
       }
-    }, 
+    },
     "info": {
       "loading": "Loading...",
       "avatar": {
@@ -1172,18 +1171,18 @@
         "invalidData": "Invalid data. Please try again."
       }
     },
-     "list": {
-        "loading": "Loading data...",
-        "loggingOut": "Logging out...",
-        "menu": {
-          "accountDetails": "Account Details",
-          "changePassword": "Change Password",
-          "addresses": "Your Addresses",
-          "orders": "Your Orders",
-          "messages": "Your Messages",
-          "logout": "Log Out"
-        }
-      },
+    "list": {
+      "loading": "Loading data...",
+      "loggingOut": "Logging out...",
+      "menu": {
+        "accountDetails": "Account Details",
+        "changePassword": "Change Password",
+        "addresses": "Your Addresses",
+        "orders": "Your Orders",
+        "messages": "Your Messages",
+        "logout": "Log Out"
+      }
+    },
     "left": {
       "loading": "Loading your profile...",
       "welcome": {
@@ -1442,8 +1441,8 @@
         "confirm": "Confirm transaction",
         "confirmed": "Payment data confirmed successfully",
         "editData": "Edit data",
-        "transferInfo":{ 
-          "title":"Transfer information",
+        "transferInfo": {
+          "title": "Transfer information",
           "CompanyName": "A2Z for Chemicals & Supplies",
           "BankName": "Al Ahli Bank of Egypt"
         },
@@ -1512,7 +1511,7 @@
     "ok": "OK",
     "cancel": "Cancel"
   },
-   "productPage": {
+  "productPage": {
     "loading": "Loading...",
     "error": {
       "title": "Error loading product",
@@ -1534,13 +1533,24 @@
   },
   "overview": {
     "units": {
-      "piece": "Piece",
-      "kg": "Kilogram",
-      "ton": "Ton",
-      "liter": "Liter",
-      "cubic_meter": "Cubic meter",
-      "meter": "Meter",
-      "gram": "Gram"
+      "piece": "piece",
+      "piece_plural": "pieces",
+      "kg": "kg",
+      "kg_plural": "kg",
+      "ton": "ton",
+      "ton_plural": "tons",
+      "carton": "carton",
+      "carton_plural": "cartons",
+      "piecesInCarton": "({count} piece)",
+      "piecesInCarton_plural": "({count} pieces)",
+      "liter": "liter",
+      "liter_plural": "liters",
+      "cubic_meter": "cubic meter",
+      "cubic_meter_plural": "cubic meters",
+      "meter": "meter",
+      "meter_plural": "meters",
+      "gram": "gram",
+      "gram_plural": "grams"
     },
     "defaultCategory": "Unspecified",
     "currency": "EGP",

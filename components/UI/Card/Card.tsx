@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useCallback, useState } from 'react';
 import type { StaticImageData } from "next/image";
+import { useTranslations } from 'next-intl';
 
 import styles from '@/components/UI/Card/card.module.css';
 
@@ -60,7 +61,6 @@ const calculateDiscountPercentage = (original: number, current: number): number 
   return Math.round(((original - current) / original) * 100);
 };
 
-/** Returns a deterministic background colour for a named colour value. */
 const resolveSwatchColor = (value: string): string => {
   const map: Record<string, string> = {
     أبيض: '#ffffff', white: '#ffffff',
@@ -78,12 +78,18 @@ const resolveSwatchColor = (value: string): string => {
     فضي: '#9ca3af', silver: '#9ca3af',
   };
   const lower = value.toLowerCase().trim();
-  return map[lower] || '#e5e7eb'; // neutral fallback
+  return map[lower] || '#e5e7eb';
 };
 
-/** True when the attribute name looks like a colour field. */
 const isColorAttr = (name: string): boolean =>
   /color|colour|لون/i.test(name);
+
+// ─── Carton helpers (module-level, reusable) ─────────────────────────────────
+
+const CARTON_KEYS = ['carton', 'كرتونة', 'cartons', 'كراتين', 'ctn', 'box'];
+
+const isCartonUnit = (name: string): boolean =>
+  CARTON_KEYS.includes(name.toLowerCase().trim());
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -110,7 +116,77 @@ function Card({
 }: CardProps) {
   const { toggle, isFavorite } = useFavorites();
   const router = useRouter();
+  const t = useTranslations('overview');
   const [showLoginAlert, setShowLoginAlert] = useState(false);
+
+  // ── active variant unit info ──────────────────────────────────────────────
+
+  const variants: ProductVariant[] = product?.productVariants || [];
+
+  const activeVariant = useMemo(() => {
+    if (!variants.length) return null;
+    if (activeVariantId) {
+      return variants.find(v => (v.id || v._id) === activeVariantId) ?? variants[0];
+    }
+    return variants[0];
+  }, [variants, activeVariantId]);
+
+  const activeUnitName = activeVariant?.unitId?.name ?? '';
+  const activeConversionRate = activeVariant?.unitId?.conversionRate ?? 1;
+
+
+  // ── unit label helper ─────────────────────────────────────────────────────
+
+ // Replace the buildUnitLabel helper with this:
+const buildUnitLabel = useCallback(
+  (name: string, count = 1, conversionRate?: number): string => {
+    const key = name.toLowerCase();
+    const knownKeys = [
+      'piece', 'kg', 'ton', 'liter', 'cubic_meter', 'meter', 'gram', 'carton',
+    ];
+
+    let label: string;
+    if (knownKeys.includes(key)) {
+      try {
+        label = count !== 1 ? t(`units.${key}_plural`) : t(`units.${key}`);
+      } catch {
+        label = name;
+      }
+    } else {
+      label = name;
+    }
+
+    // Carton: just append pieces — no number prefix
+    if (isCartonUnit(name) && conversionRate && conversionRate > 1) {
+      try {
+        const piecesKey = conversionRate !== 1
+          ? 'units.piecesInCarton_plural'
+          : 'units.piecesInCarton';
+        return `${label} ${t(piecesKey, { count: conversionRate })}`;
+      } catch {
+        return `${label} (${conversionRate} ${t('units.piece')})`;
+      }
+    }
+
+    // Non-carton: embed the count in the string
+    return `${count} ${label}`;
+  },
+  [t],
+);
+  
+  /**
+   * The full unit string shown next to the price.
+   * e.g. "12 كرتونة (12 قطعة)"  |  "1 قطعة"  |  "50 كيلو"
+   */
+  const priceUnitLabel = useMemo(() => {
+    if (!activeUnitName) {
+      // Fallback to legacy helper when no variant data available
+      if (product) return getProductUnitLabel(product);
+      const mockProduct = { IsKG, IsTON, IsLITER, IsCUBIC_METER } as Product;
+      return getProductUnitLabel(mockProduct);
+    }
+    return buildUnitLabel(activeUnitName, activeConversionRate, activeConversionRate);
+  }, [activeUnitName, activeConversionRate, buildUnitLabel, product, IsKG, IsTON, IsLITER, IsCUBIC_METER]);
 
   // ── derived numeric values ────────────────────────────────────────────────
 
@@ -146,27 +222,11 @@ function Card({
     return 0;
   }, [discount, numericOriginalPrice, numericPrice]);
 
-  // ── unit label ────────────────────────────────────────────────────────────
+  // ── variant / attribute data ──────────────────────────────────────────────
 
-  const unitLabel = useMemo(() => {
-    if (product) return getProductUnitLabel(product);
-    const mockProduct = { IsKG, IsTON, IsLITER, IsCUBIC_METER } as Product;
-    return getProductUnitLabel(mockProduct);
-  }, [product, IsKG, IsTON, IsLITER, IsCUBIC_METER]);
-
-  // ── variant data ──────────────────────────────────────────────────────────
-
-  const variants: ProductVariant[] = product?.productVariants || [];
-
-  /**
-   * Group attribute values by attribute name across ALL variants.
-   * Result: { "Color": [{value, variantId}, ...], "Size": [...] }
-   */
   const attributeGroups = useMemo(() => {
     if (!variants.length) return {} as Record<string, { value: string; variantId: string }[]>;
-
     const groups: Record<string, { value: string; variantId: string }[]> = {};
-
     for (const variant of variants) {
       const vid = variant.id || variant._id;
       for (const link of variant.attributeLinks || []) {
@@ -174,17 +234,14 @@ function Card({
         const attrValue = link.attributeValueId?.value || '';
         if (!attrValue) continue;
         if (!groups[attrName]) groups[attrName] = [];
-        // Avoid duplicate values in the same attribute group
         if (!groups[attrName].some(e => e.value === attrValue)) {
           groups[attrName].push({ value: attrValue, variantId: vid });
         }
       }
     }
-
     return groups;
   }, [variants]);
 
-  /** Find which value of a given attribute belongs to the active variant */
   const getActiveValueForAttr = useCallback(
     (attrName: string): string | null => {
       if (!activeVariantId) return null;
@@ -198,26 +255,17 @@ function Card({
     [activeVariantId, variants],
   );
 
-  /**
-   * When a swatch / option is clicked, find the variant that matches
-   * the new value for this attribute while keeping other active attribute values.
-   */
   const handleAttrSelect = useCallback(
     (attrName: string, selectedValue: string) => {
       if (!onVariantSelect || !productId || !variants.length) return;
-
-      // Build "desired" attributes: current active attrs overridden with new selection
-      const activeVariant = variants.find(v => (v.id || v._id) === activeVariantId);
+      const activeVar = variants.find(v => (v.id || v._id) === activeVariantId);
       const currentAttrs: Record<string, string> = {};
-
-      for (const link of activeVariant?.attributeLinks || []) {
+      for (const link of activeVar?.attributeLinks || []) {
         const name = link.attributeValueId?.attributeId?.name;
         const val = link.attributeValueId?.value;
         if (name && val) currentAttrs[name] = val;
       }
       currentAttrs[attrName] = selectedValue;
-
-      // Find the best matching variant
       const match = variants.find(variant =>
         Object.entries(currentAttrs).every(([name, val]) =>
           variant.attributeLinks?.some(
@@ -227,7 +275,6 @@ function Card({
           ),
         ),
       );
-
       const targetVariant = match || variants.find(
         v => v.attributeLinks?.some(
           l =>
@@ -235,7 +282,6 @@ function Card({
             l.attributeValueId?.value === selectedValue,
         ),
       );
-
       if (targetVariant) {
         onVariantSelect(productId, targetVariant.id || targetVariant._id);
       }
@@ -290,8 +336,6 @@ function Card({
   }
 
   // ── render ────────────────────────────────────────────────────────────────
-
-  const hasAttributes = Object.keys(attributeGroups).length > 0;
 
   return (
     <>
@@ -355,73 +399,27 @@ function Card({
             {productName || 'اسم المنتج'}
           </h2>
 
-          {/* ── NEW: Attribute selectors ─────────────────────────────── */}
-          {/* {hasAttributes && (
-            <div
-              className={styles.attributesSection}
-              onClick={e => e.stopPropagation()} // prevent card navigation on attr click
-            >
-              {Object.entries(attributeGroups).map(([attrName, options]) => {
-                const activeValue = getActiveValueForAttr(attrName);
-                const isColor = isColorAttr(attrName);
-
-                return (
-                  <div key={attrName} className={styles.attributeGroup}>
-                    {Object.keys(attributeGroups).length > 1 && (
-                      <span className={styles.attributeLabel}>{attrName}:</span>
-                    )}
-
-                    <div className={styles.attributeOptions}>
-                      {options.map(({ value, variantId }) => {
-                        const isActive = activeValue === value;
-
-                        if (isColor) {
-                          // Render colour swatch
-                          return (
-                            <button
-                              key={variantId}
-                              className={`${styles.colorSwatch} ${isActive ? styles.activeColorSwatch : ''}`}
-                              style={{ backgroundColor: resolveSwatchColor(value) }}
-                              title={value}
-                              aria-label={`${attrName}: ${value}`}
-                              aria-pressed={isActive}
-                              onClick={() => handleAttrSelect(attrName, value)}
-                            />
-                          );
-                        }
-
-                        // Render text pill for non-colour attributes
-                        return (
-                          <button
-                            key={variantId}
-                            className={`${styles.attributePill} ${isActive ? styles.activeAttributePill : ''}`}
-                            aria-pressed={isActive}
-                            onClick={() => handleAttrSelect(attrName, value)}
-                          >
-                            {value}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )} */}
-
           {/* Price */}
           <div className={styles.priceSection}>
             <div className={styles.currentPrice}>
               {formatPrice(productPrice)}
               <span className={styles.currency}> ج.م</span>
-              {unitLabel && <span className={styles.unitLabel}> / {unitLabel}</span>}
+              {priceUnitLabel && (
+                <span className={styles.unitLabel}>
+                  {' / '} {priceUnitLabel}
+                </span>
+              )}
             </div>
 
             {numericOriginalPrice && numericOriginalPrice > numericPrice && (
               <div className={styles.originalPrice}>
                 {formatPrice(originalPrice)}
                 <span className={styles.currency}> ج.م</span>
-                {unitLabel && <span className={styles.unitLabel}> / {unitLabel}</span>}
+                {priceUnitLabel && (
+                  <span className={styles.unitLabel}>
+                    {' / '} {priceUnitLabel}
+                  </span>
+                )}
               </div>
             )}
           </div>
