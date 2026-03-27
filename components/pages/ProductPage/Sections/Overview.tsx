@@ -50,7 +50,14 @@ const Overview: React.FC<Props> = ({
   const t = useTranslations("overview");
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  const unitLabel = (name: string): string => {
+
+  const CARTON_KEYS = ["carton", "كرتونة", "cartons", "كراتين", "ctn", "box"];
+
+  const isCartonUnit = (name: string): boolean =>
+    CARTON_KEYS.includes(name.toLowerCase().trim());
+
+  /** Returns just the translated unit name — no number prefix. */
+  const unitName = (name: string, count = 1): string => {
     const key = name.toLowerCase();
     const knownKeys = [
       "piece",
@@ -60,8 +67,64 @@ const Overview: React.FC<Props> = ({
       "cubic_meter",
       "meter",
       "gram",
+      "carton",
     ];
-    return knownKeys.includes(key) ? t(`units.${key}`) : name;
+    if (!knownKeys.includes(key)) return name;
+    try {
+      return count !== 1 ? t(`units.${key}_plural`) : t(`units.${key}`);
+    } catch {
+      return name;
+    }
+  };
+
+  /**
+   * Full label for the PRICE line  →  "/ {label}"
+   * Carton : "1 كرتونة (10 قطعة)"
+   * Others : "50 كيلو"  |  "1 قطعة"
+   */
+  const priceUnitLabel = (name: string, conversionRate = 1): string => {
+    if (isCartonUnit(name)) {
+      const cartonWord = unitName(name, 1);
+      if (conversionRate > 1) {
+        try {
+          const piecesStr = t("units.piecesInCarton_plural", {
+            count: conversionRate,
+          });
+          return `1 ${cartonWord} ${piecesStr}`;
+        } catch {
+          return `1 ${cartonWord} (${conversionRate} ${unitName("piece", conversionRate)})`;
+        }
+      }
+      return `1 ${cartonWord}`;
+    }
+    return `${conversionRate} ${unitName(name, conversionRate)}`;
+  };
+
+  /**
+   * Full label for the QUANTITY COUNTER
+   * Carton : "2 كرتونة (10 قطعة)"
+   * Others : "3 كيلو"  |  "1 قطعة"
+   */
+  const quantityUnitLabel = (
+    name: string,
+    qty: number,
+    conversionRate = 1,
+  ): string => {
+    if (isCartonUnit(name)) {
+      const cartonWord = unitName(name, qty);
+      if (conversionRate > 1) {
+        try {
+          const piecesStr = t("units.piecesInCarton_plural", {
+            count: conversionRate,
+          });
+          return `${qty} ${cartonWord} ${piecesStr}`;
+        } catch {
+          return `${qty} ${cartonWord} (${conversionRate} ${unitName("piece", conversionRate)})`;
+        }
+      }
+      return `${qty} ${cartonWord}`;
+    }
+    return `${qty} ${unitName(name, qty)}`;
   };
 
   // ── Variant / unit selection ───────────────────────────────────────────────
@@ -76,6 +139,7 @@ const Overview: React.FC<Props> = ({
   const displayedPrice = selectedVariant?.price ?? 0;
   const stockQty = selectedVariant?.totalQuantity ?? 0;
   const selectedUnitName = selectedVariant?.unitId?.name ?? "unit";
+  const selectedConversionRate = selectedVariant?.unitId?.conversionRate ?? 1;
 
   const selectedAttributeValueId: string | undefined = useMemo(
     () => selectedVariant?.attributeLinks?.[0]?.attributeValueId?._id,
@@ -315,8 +379,9 @@ const Overview: React.FC<Props> = ({
 
               <div className="text-2xl font-extrabold text-primary">
                 {displayedPrice.toLocaleString()} {t("currency")}
+                {/* carton → "/ 1 كرتونة (10 قطعة)"   kg → "/ 50 كيلو"   piece → "/ 1 قطعة" */}
                 <span className="text-sm font-normal text-black60 mr-2">
-                  / {unitLabel(selectedUnitName)}
+                  / {priceUnitLabel(selectedUnitName, selectedConversionRate)}
                 </span>
               </div>
 
@@ -364,11 +429,15 @@ const Overview: React.FC<Props> = ({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {variants.map((v) => {
-                    const attrLabel = variantAttributeLabel(v);
                     const conversionRate = v.unitId?.conversionRate ?? 1;
+                    const attrLabel = variantAttributeLabel(v);
+                    const baseLabel = priceUnitLabel(
+                      v.unitId?.name ?? "",
+                      conversionRate,
+                    );
                     const label = attrLabel
-                      ? `${unitLabel(v.unitId?.name ?? "")} × ${conversionRate} · ${attrLabel}`
-                      : `${unitLabel(v.unitId?.name ?? "")} × ${conversionRate}`;
+                      ? `${baseLabel} · ${attrLabel}`
+                      : baseLabel;
                     return (
                       <button
                         key={v._id}
@@ -394,15 +463,29 @@ const Overview: React.FC<Props> = ({
                 <button
                   aria-label={t("aria.decrease")}
                   onClick={() => setQuantity((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded-full hover:bg-black8"
+                  disabled={quantity <= 1}
+                  className="p-1 rounded-full hover:bg-black8 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="min-w-[1.5rem] text-center">{quantity}</span>
+
+                <span className="min-w-[1.5rem] text-center">
+                  {quantityUnitLabel(
+                    selectedUnitName,
+                    quantity,
+                    selectedConversionRate,
+                  )}
+                </span>
+
                 <button
                   aria-label={t("aria.increase")}
-                  onClick={() => setQuantity((p) => Math.min(stockQty, p + 1))}
-                  className="p-1 rounded-full hover:bg-black8"
+                  onClick={() =>
+                    setQuantity((p) =>
+                      stockQty > 0 ? Math.min(stockQty, p + 1) : p,
+                    )
+                  }
+                  disabled={quantity >= stockQty || stockQty === 0}
+                  className="p-1 rounded-full hover:bg-black8 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
